@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laplace Transform - Envelopes, Poles and the s-Plane</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjs@12.4.1/lib/browser/math.js"
+  onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js'"></script>
+<!-- KaTeX: render LaTeX in the explanation section -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+  onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js';"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js';"></script>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;          /* must equal the canvas fill colour in the JS */
+    --text: #e0e0e0;             /* must equal the canvas label colour in the JS */
+    --text-dim: #99a5c2;
+    --text-faint: #7b87a6;
+    --accent: #4cc9f0;
+    --accent2: #f72585;
+    --border: #2a2a4a;
+    --hairline: rgba(255, 255, 255, 0.10);
+    --radius: 14px;
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Source Han Serif SC', 'Songti SC', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+    --mono: 'Cascadia Mono', Consolas, 'SFMono-Regular', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+  body {
+    font-family: var(--sans);
+    background-color: var(--bg);
+    background-image: radial-gradient(1000px 560px at 50% -220px, rgba(76, 201, 240, 0.10), transparent 70%);
+    background-repeat: no-repeat;
+    color: var(--text);
+    line-height: 1.75; max-width: 1180px; margin: 0 auto;
+    padding: clamp(20px, 4vw, 52px) clamp(16px, 4vw, 40px) 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: rgba(76, 201, 240, 0.3); }
+
+  /* ---- Headings ---- */
+  h1 {
+    font-size: clamp(1.9rem, 4.2vw, 2.55rem); font-weight: 600;
+    letter-spacing: 0.005em; text-align: center; color: #f4f8ff;
+    margin: 0 0 14px;
+  }
+  h1::after {
+    content: ''; display: block; width: 68px; height: 2px; border-radius: 2px;
+    margin: 20px auto 0;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  h2 {
+    font-size: clamp(1.2rem, 2.4vw, 1.42rem); font-weight: 600;
+    letter-spacing: 0.01em; color: #eaf2ff;
+    margin: 4.6rem 0 0.8rem; padding-left: 0.9rem;
+    border-left: 3px solid var(--accent); scroll-margin-top: 24px;
+  }
+  h2:first-of-type { margin-top: 2.4rem; }
+  h3 { font-size: 1.05rem; color: var(--accent); margin: 2rem 0 0.5rem; }
+  h4 {
+    font-size: 0.79rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--accent); margin: 2.6rem 0 0.9rem;
+  }
+  p, li { margin: 0.55rem 0; max-width: 68ch; }
+
+  /* the one-line blurb under each numbered section heading */
+  h2 + p { color: var(--text-dim); font-size: 0.94rem; max-width: 62ch; }
+
+  /* ---- Hero ---- */
+  .lead {
+    text-align: center; color: var(--text-dim); font-size: 1rem;
+    line-height: 1.85; max-width: 58ch; margin: 0 auto 2.2rem;
+  }
+  .lead b { color: #ffffff; font-weight: 600; }
+  .lead a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(76, 201, 240, 0.4); }
+  .lead a:hover { border-bottom-color: var(--accent); }
+  img { max-width: 100%; }
+
+  /* ---- Input Panel ---- */
+  .input-panel {
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: var(--radius); padding: clamp(18px, 2.6vw, 28px);
+    margin: 1.6rem 0; display: flex; flex-wrap: wrap; gap: 18px 22px; align-items: flex-end;
+    box-shadow: 0 24px 60px -40px rgba(0, 0, 0, 0.95);
+  }
+  .input-panel label {
+    display: block; font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.13em; color: var(--text-faint); margin-bottom: 7px;
+  }
+  .input-panel input {
+    padding: 9px 13px; border-radius: 9px; border: 1px solid var(--border);
+    background: rgba(9, 13, 30, 0.6); color: var(--text); font-size: 0.95rem;
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  }
+  .input-panel input:focus {
+    outline: none; border-color: var(--accent);
+    background: rgba(9, 13, 30, 0.9);
+    box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.18);
+  }
+  .input-panel input[type="text"] { width: min(260px, 60vw); font-family: var(--mono); }
+  .input-panel input[type="number"] { width: 84px; }
+  .btn {
+    padding: 10px 26px; border-radius: 9px; border: none; cursor: pointer;
+    font-size: 0.95rem; font-weight: 600;
+    transition: transform 0.15s, box-shadow 0.2s, background 0.2s, color 0.2s;
+  }
+  .btn:disabled { opacity: 0.55; cursor: progress; }
+  .btn-primary {
+    background: linear-gradient(180deg, #74daf9, var(--accent)); color: #04121c;
+    box-shadow: 0 12px 28px -16px rgba(76, 201, 240, 0.75);
+  }
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 32px -14px rgba(76, 201, 240, 0.9);
+  }
+  .note { font-size: 0.78rem; color: var(--text-faint); margin-top: 7px; }
+  .note b { color: var(--text-dim); }
+  .btn:focus-visible, .anim-controls button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  /* the row of preset signals under the panel */
+  .preset-row {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    margin: 1.2rem 0 0.4rem;
+  }
+  .preset-row .preset-label {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.13em;
+    color: var(--text-faint); margin-right: 4px;
+  }
+  .btn-preset {
+    padding: 7px 15px; border-radius: 999px; cursor: pointer;
+    border: 1px solid rgba(76, 201, 240, 0.35);
+    background: rgba(76, 201, 240, 0.08);
+    color: var(--accent); font-family: var(--mono); font-size: 0.8rem;
+    transition: background 0.18s, color 0.18s;
+  }
+  .btn-preset:hover { background: var(--accent); color: #04121c; }
+
+  /* the integration-range radios inside the panel */
+  .radio-group { display: flex; flex-wrap: wrap; gap: 16px; padding-bottom: 9px; }
+  .radio-group label {
+    display: inline-flex; align-items: center; gap: 7px;
+    text-transform: none; letter-spacing: 0.02em; font-size: 0.82rem;
+    color: var(--text-dim); margin-bottom: 0; cursor: pointer;
+  }
+  .radio-group input[type="radio"] { accent-color: var(--accent); width: 15px; height: 15px; }
+
+  /* ---- Canvas containers ---- */
+  .canvas-box {
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: var(--radius); padding: clamp(14px, 2vw, 22px);
+    margin: 1.4rem 0; overflow-x: auto;
+    box-shadow: 0 26px 55px -34px rgba(0, 0, 0, 0.95);
+  }
+  canvas { display: block; max-width: 100%; margin: 0 auto; }
+
+  /* ---- Animation / slider controls ---- */
+  .anim-controls {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 14px;
+    padding: 4px 2px 16px; margin-bottom: 10px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .anim-controls label {
+    font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.13em; color: var(--text-faint);
+  }
+  .anim-controls #animSigmaLabel, .anim-controls #animOmegaLabel,
+  .anim-controls #animFrameLabel, .anim-controls #envReadout {
+    font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0;
+    text-transform: none; color: var(--accent);
+  }
+  .anim-controls input[type="range"] { flex: 1; min-width: 140px; accent-color: var(--accent); }
+  .anim-controls button {
+    padding: 7px 18px; border-radius: 999px;
+    border: 1px solid rgba(76, 201, 240, 0.5);
+    background: rgba(76, 201, 240, 0.08); color: var(--accent);
+    cursor: pointer; font-size: 0.85rem;
+    transition: background 0.18s, color 0.18s;
+  }
+  .anim-controls button:hover { background: var(--accent); color: #04121c; }
+  .anim-controls .play-btn { font-size: 1rem; padding: 6px 16px; }
+
+  .legend-row {
+    display: flex; flex-wrap: wrap; gap: 20px; align-items: center;
+    padding: 12px 4px 0; font-size: 0.78rem; color: var(--text-dim);
+  }
+  .legend-row span { display: inline-flex; align-items: center; gap: 7px; }
+  .swatch { display: inline-block; width: 20px; height: 3px; border-radius: 2px; }
+
+  .com-row { display: flex; flex-wrap: wrap; gap: 12px; }
+  .com-row canvas { flex: 1; min-width: 300px; }
+
+  .loading { text-align: center; padding: 28px; color: var(--text-faint); font-size: 0.9rem; display: none; }
+
+  /* ---- Section 7: the essay ---- */
+  #section7 {
+    /* a narrower card, so the reading column is framed instead of floating in a wide empty box */
+    max-width: 880px; margin: 2rem auto;
+    padding: clamp(26px, 4.5vw, 58px) clamp(20px, 5vw, 62px);
+  }
+  /* prose: one sentence per line, flush left, no centring */
+  #section7 p {
+    font-family: var(--serif); font-size: clamp(1rem, 1.3vw, 1.08rem);
+    line-height: 1.9; color: #dee5f4; max-width: 100%; margin: 1.6rem 0;
+  }
+  #section7 h4 { text-align: left; margin: 2.8rem 0 0.9rem; }
+  #section7 strong { color: #ffffff; font-weight: 600; }
+  #section7 em { color: #ffffff; }
+  #section7 a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(76, 201, 240, 0.4); }
+  #section7 a:hover { border-bottom-color: var(--accent); }
+  #section7 .katex-display,
+  #section7 .katex-display > .katex { text-align: left; }
+  #section7 .katex-display { margin: 1.6em 0; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+
+  @media (max-width: 720px) {
+    body { padding: 22px 16px 64px; }
+    h2 { margin-top: 3rem; }
+    h4 { margin-top: 2rem; }
+    #section7 { padding: 26px 20px; }
+    .input-panel > div:first-child { flex: 1 1 100%; }
+    .input-panel input[type="text"] { width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Laplace Transform — Envelopes, Poles and the s&#8209;Plane</h1>
+<p class="lead">
+  The winding machine from the Fourier page, with one extra knob: a real exponent.
+  Turn <b>σ</b> down and a signal that never decayed now explodes — that flare is a <b>pole</b>.
+  <br>Prefer the Fourier-only story? <a href="./fourier_transform.html">fourier_transform.html</a>
+</p>
+
+<!-- ========== INPUT PANEL ========== -->
+<h2>⚙️ Input Your Function</h2>
+<div class="input-panel">
+  <div>
+    <label for="funcInput">Function f(t) =</label>
+    <input type="text" id="funcInput" value="exp(-2*t)" placeholder="e.g. exp(-2*t)">
+  </div>
+  <div>
+    <label>Integration range</label>
+    <div class="radio-group">
+      <label><input type="radio" id="modeUni" name="mode" value="unilateral" checked> &#8747;<sub>0</sub><sup>T</sup> (unilateral)</label>
+      <label><input type="radio" id="modeBi" name="mode" value="bilateral"> &#8747;<sub>&#8722;T/2</sub><sup>T/2</sup> (bilateral)</label>
+    </div>
+  </div>
+  <div>
+    <label for="winLen">T (window length)</label>
+    <input type="number" id="winLen" value="2" step="0.5" min="0.5">
+  </div>
+  <div>
+    <label for="sigmaMin">σ min</label>
+    <input type="number" id="sigmaMin" value="-5" step="0.5">
+  </div>
+  <div>
+    <label for="sigmaMax">σ max</label>
+    <input type="number" id="sigmaMax" value="1" step="0.5">
+  </div>
+  <div>
+    <label for="omegaMin">ω min (rad/s)</label>
+    <input type="number" id="omegaMin" value="-15" step="1">
+  </div>
+  <div>
+    <label for="omegaMax">ω max (rad/s)</label>
+    <input type="number" id="omegaMax" value="15" step="1">
+  </div>
+  <div>
+    <label for="tMap">T_map (map window)</label>
+    <input type="number" id="tMap" value="20" step="1" min="5" max="50">
+  </div>
+  <button class="btn btn-primary" id="btnGenerate" onclick="generate()" disabled>Loading math.js...</button>
+</div>
+<div class="preset-row">
+  <span class="preset-label">Presets</span>
+  <button class="btn-preset" id="presetExp" onclick="applyPreset('exp')">exp(-2*t) — one real pole</button>
+  <button class="btn-preset" id="presetRing" onclick="applyPreset('ring')">exp(-0.5*t)*cos(2*pi*t) — a pole pair</button>
+  <button class="btn-preset" id="presetStep" onclick="applyPreset('step')">(t&gt;=0) — a step</button>
+</div>
+<div class="note">
+  Variable: <b>t</b> only. Available: exp, sin, cos, abs, sqrt, log, pi.
+  The window is <b>[0, T]</b> for the unilateral integral and <b>[−T/2, T/2]</b> for the bilateral one, so a single <b>T</b> controls both.
+  <b>T_map</b> is an internal, longer window used only by the s-plane map in Section 4.
+  Nothing here does symbolic maths: every value is a numeric sum, and the poles are read off the pictures.
+</div>
+<div class="loading" id="loading">Computing... please wait...</div>
+
+<!-- ========== SECTION 1: signal and envelope ========== -->
+<h2>1. The Signal and the Exponential Envelope</h2>
+<p>Multiplying by the kernel's real part first, before any winding: the signal f(t), the envelope e<sup>−σt</sup>, and the product that actually gets wound.</p>
+<div class="canvas-box">
+  <div class="anim-controls">
+    <label for="sigmaSlider">σ</label>
+    <input type="range" id="sigmaSlider" min="-5" max="1" value="0" step="0.015">
+    <label id="envReadout">max|f·e^−σt| = —</label>
+  </div>
+  <canvas id="canvasSignal" width="1000" height="350"></canvas>
+  <div class="legend-row">
+    <span><i class="swatch" style="background:#4cc9f0;"></i> f(t)</span>
+    <span><i class="swatch" style="background:#99a5c2;"></i> envelope e<sup>−σt</sup> (dashed)</span>
+    <span><i class="swatch" style="background:#f72585;"></i> product f(t)·e<sup>−σt</sup></span>
+    <span><i class="swatch" style="background:rgba(255,255,255,0.18);height:14px;"></i> integration window</span>
+  </div>
+</div>
+
+<!-- ========== SECTION 2: winding grid ========== -->
+<h2>2. Winding in the s-Plane</h2>
+<p>At the current σ, the envelope-weighted signal is wound once per ω — 121 cells, each labelled with its ω in rad/s.
+The <span style="color:#ff4444;">red dot</span> is the center of mass, and <span style="color:#f72585;">⚠</span> marks a cell whose curve left the frame: the sum is running away.</p>
+<div class="canvas-box">
+  <canvas id="canvasGrid" width="900" height="900"></canvas>
+  <div class="legend-row" id="gridCaption"></div>
+</div>
+
+<!-- ========== SECTION 3: animation ========== -->
+<h2>3. Interactive Winding Animation</h2>
+<p>Two knobs and a play button. The curve grows out of the window sample by sample; the readout tracks the running sum, which converges to F(s) as the window fills.</p>
+<div class="canvas-box">
+  <div class="anim-controls">
+    <label for="animSigma">σ</label>
+    <input type="range" id="animSigma" min="-5" max="1" value="0" step="0.015">
+    <label id="animSigmaLabel">σ = 0.000</label>
+  </div>
+  <div class="anim-controls">
+    <label for="animOmega">ω</label>
+    <input type="range" id="animOmega" min="-15" max="15" value="0" step="0.075">
+    <label id="animOmegaLabel">ω = 0.000</label>
+    <button class="play-btn" id="animPlayBtn" onclick="togglePlay()">▶</button>
+    <label for="animFrame">Frame</label>
+    <input type="range" id="animFrame" min="0" max="1999" value="0" step="1" style="flex:1 1 180px;">
+    <label id="animFrameLabel">0/1999</label>
+  </div>
+  <canvas id="canvasAnim" width="650" height="650"></canvas>
+</div>
+
+<!-- ========== SECTION 4: the s-plane map ========== -->
+<h2>4. The s-Plane Map</h2>
+<p>σ across, ω up, colour = log<sub>10</sub>|F(s)| computed over the internal window T_map. The dashed line marks where the numbers saturate — the numerical front, not the true boundary.</p>
+<div class="canvas-box">
+  <canvas id="canvasMap" width="900" height="520"></canvas>
+</div>
+<div class="canvas-box">
+  <div class="com-row">
+    <canvas id="canvasSliceA" width="500" height="300"></canvas>
+    <canvas id="canvasSliceB" width="500" height="300"></canvas>
+  </div>
+</div>
+<div class="note">
+  The map is a <b>ramp in σ, not a ridge</b>. With a finite window, pushing σ further left keeps enlarging the far end of the window, so |F| rises all the way to the edge of the grid.
+  The colour scale therefore clips four decades (anchored at the 10th percentile of log<sub>10</sub>|F|): everything past the front saturates into one solid slab, and just inside it sits the bright ridge of the pole.
+  How sharp that front looks is set by <b>T_map</b>; the real boundary is the T → ∞ limit. Section 5 is the honest way to see it.
+</div>
+
+<!-- ========== SECTION 5: poles and ROC ========== -->
+<h2>5. Poles and the Region of Convergence</h2>
+<p>No colour scale, no clipping: the same signal over the windows T, 2T and 4T, plotted against σ at ω = 0.
+Where the three curves coincide the integral has converged; where they fan apart it diverges. The fork is the pole's real part.</p>
+<div class="canvas-box">
+  <canvas id="canvasFamily" width="900" height="340"></canvas>
+</div>
+
+<!-- ========== SECTION 6: the 3D spiral ========== -->
+<h2>6. The Spiral in Three Dimensions</h2>
+<p>Time runs into the depth of the picture. The thin spiral is the kernel e<sup>−st</sup>, the thick curve is f(t)·e<sup>−st</sup>, and the centroid of that thick curve is F(s). <b>Drag horizontally</b> on the picture to turn it.</p>
+<div class="canvas-box">
+  <canvas id="canvasSpiral" width="760" height="520"></canvas>
+  <div class="legend-row">
+    <span><i class="swatch" style="background:#99a5c2;"></i> kernel e<sup>−st</sup> (radius e<sup>−σt</sup>)</span>
+    <span><i class="swatch" style="background:#f72585;"></i> f(t)·e<sup>−st</sup></span>
+    <span><i class="swatch" style="background:#4cc9f0;height:8px;width:8px;border-radius:50%;"></i> current sample</span>
+  </div>
+</div>
+
+<!-- ========== SECTION 7: the essay ========== -->
+<h2>7. Understanding the Laplace Transform</h2>
+<div class="canvas-box" id="section7">
+  <p>
+    The Fourier page wound a signal around a circle at frequency $\omega$.<br>
+    Its kernel was $e^{-j\omega t}$, a point of modulus one.<br>
+    Turning a signal cannot emphasise any part of it: the weight is the same everywhere.<br>
+    The Laplace transform adds a real exponent to that kernel, $s = \sigma + j\omega$.
+  </p>
+  $$
+  e^{-st} = e^{-\sigma t} \cdot e^{-j\omega t}
+  $$
+  <p>
+    The second factor is the old rotation.<br>
+    The first one is real and depends on $t$: it is an <em>envelope</em>, and it is new.<br>
+    So the winding machine is unchanged; only the signal that feeds it is different.<br>
+    It now feeds $f(t)e^{-\sigma t}$ instead of $f(t)$.
+  </p>
+
+  <h4>The definition</h4>
+  $$
+  F(s) \stackrel{\mathrm{def}}{=} \int f(t)\, e^{-st} \,\mathrm{d}t,
+  \qquad s = \sigma + j\omega
+  $$
+  <p>
+    The integral is unilateral, $\int_0^\infty$, or bilateral, $\int_{-\infty}^{\infty}$.<br>
+    The switch in the input panel chooses which, and both are covered below.
+  </p>
+
+  <h4>Centroid, then integral</h4>
+  <p>
+    The derivation of Section 5 of the Fourier page carries over word for word.<br>
+    Sample the window at $t_k$ with step $\Delta t$, put a mass $\frac{1}{N}$ on each sample, and the centroid of the wound curve is
+  </p>
+  $$
+  \sum_{k=1}^{N} \frac{1}{N}\, f(t_k)\, e^{-s t_k}
+  $$
+  <p>
+    Since $\frac{1}{N} = \frac{\Delta t}{T}$, this is a Riemann sum for an average:
+  </p>
+  $$
+  \frac{1}{T}\sum_{k=1}^{N} f(t_k) e^{-s t_k} \Delta t
+  \;\longrightarrow\; \frac{1}{T}\int_{\mathrm{window}} f(t) e^{-st}\,\mathrm{d}t
+  $$
+  <p>
+    Multiplying by $T$ turns that average back into the integral.<br>
+    It is the same step as on the Fourier page, and it produces the same unit of density.<br>
+    The only thing that changed is the kernel.
+  </p>
+
+  <h4>What σ does</h4>
+  <p>
+    The envelope $e^{-\sigma t}$ weights the late part of the window against the early part.<br>
+    For $\sigma > 0$ it shrinks the tail, for $\sigma < 0$ it inflates it, and for $\sigma = 0$ it does nothing.<br>
+    So $\sigma$ is a knob for how much the far end of the observation window is allowed to count.
+  </p>
+  <p>
+    Setting $\sigma = 0$ leaves $F(j\omega)$, the Fourier transform of the Fourier page.<br>
+    Everything on this page at $\sigma = 0$ is that page, seen from a slightly different angle.
+  </p>
+
+  <h4>Poles</h4>
+  <p>
+    Take the default signal, $f(t) = e^{-2t}$ on the unilateral window.<br>
+    The integrand is $e^{-2t}e^{-\sigma t} = e^{-(\sigma+2)t}$.<br>
+    At $\sigma = 0$ it decays, and the centroid settles on a finite number, about $0.49$ for this window.<br>
+    At $\sigma = -1$ it still decays, only half as fast.<br>
+    At $\sigma = -2$ the two exponentials cancel exactly and the integrand is constant.<br>
+    The centroid then grows in proportion to the window: $T$ for a window of length $T$.<br>
+    Push $\sigma$ below $-2$ and the integrand grows, so the centroid runs away exponentially in $T$.
+  </p>
+  <p>
+    That value, $s = -2$, is a <strong>pole</strong>.<br>
+    It is the point where the kernel's own envelope can cancel the signal's decay.<br>
+    For $s$ purely real and north of $-2$ the sum converges; at $s=-2$ it does not.<br>
+    Nothing special is happening to the signal, only to the pair (signal, kernel).
+  </p>
+  <p>
+    Poles need not sit on the real axis.<br>
+    Load the second preset, $f(t) = e^{-0.5t}\cos(2\pi t)$.<br>
+    Its two decaying oscillations are matched by the kernel when $\sigma = -0.5$ and $\omega = \pm 2\pi$.<br>
+    Inside the window the integrand then stops decaying and just oscillates, and the centroid grows like the window length.<br>
+    That is the pole pair $s = -0.5 \pm j2\pi$, and those are the two bright ridges on the s-plane map.
+  </p>
+
+  <h4>Magnitude and phase</h4>
+  <p>
+    $|F(s)|$ is how far the wound curve bunches to one side, so it carries amplitude.<br>
+    $\angle F(s)$ is the direction in which it bunches, so it carries phase.<br>
+    A pole makes $|F(s)|$ unbounded, so the map shows a pole as a place where the picture saturates.<br>
+    A zero would do the opposite, and shows up as a place where the map goes dark and the curve winds up neatly on the origin.
+  </p>
+
+  <h4>The region of convergence</h4>
+  <p>
+    Which $s$ make the integral finite?<br>
+    For the unilateral integral it is a matter of the $t \to +\infty$ end, so it is a condition on $\sigma$ alone: a vertical <em>half-plane</em>, everything to the right of the rightmost pole.<br>
+    For $f(t)=e^{-2t}$ that half-plane is $\sigma > -2$.
+  </p>
+  <p>
+    For the bilateral integral both ends have to decay, which gives a vertical <em>strip</em>.<br>
+    With $f(t) = e^{-2|t|}$ the integral is
+  </p>
+  $$
+  \int_{-\infty}^{\infty} e^{-2|t|} e^{-st}\,\mathrm{d}t
+  = \frac{1}{s+2} + \frac{1}{2-s}
+  = \frac{4}{4-s^2},
+  \qquad -2 < \sigma < 2
+  $$
+  <p>
+    Two poles at $s = \pm 2$ and a strip between them.<br>
+    Outside the strip one of the two tails grows and the integral diverges, on whichever side the offending pole lies.<br>
+    Widen <b>σ max</b> past $2$ in the panel, reload the preset $e^{-2|t|}$, and both edges of the strip appear.
+  </p>
+  <p>
+    A step function makes an even quicker example.<br>
+    $f(t) = 1$ for $t \ge 0$ integrates to $1/s$, a single pole at the origin and the half-plane $\sigma > 0$.
+  </p>
+
+  <h4>What a finite window can and cannot show</h4>
+  <p>
+    This page never lets $T \to \infty$, and it should be honest about what that costs.
+  </p>
+  <p>
+    The first thing to know is that $|F|$ as a function of $\sigma$ is a <em>ramp</em>, not a ridge.<br>
+    With a finite window the integrand is $f(t)e^{-\sigma t}$, and going further left in $\sigma$ keeps enlarging the far end of the window.<br>
+    $|F|$ therefore rises monotonically as $\sigma$ decreases, and its maximum sits on the edge of the σ grid, not at the pole.<br>
+    A map of $|F|$ in the σ direction answers "where am I most strongly amplifying the tail", which is only loosely "where is the pole".
+  </p>
+  <p>
+    The second thing is why the front looks sharp anyway.<br>
+    Outside the region of convergence the growth per unit step in $\sigma$ is $e^{\,T_{\mathrm{map}}\Delta\sigma}$, and it does not depend on $\omega$ at all.<br>
+    A ratio of about $54.6 = e^{4}$ for $\Delta\sigma = 0.2$ with $T_{\mathrm{map}} = 20$, at any $\omega$, is what makes the front a straight vertical line rather than a fan.<br>
+    But that steepness is a property of the window length, not of the transform.<br>
+    The map in Section 4 is a picture of $T_{\mathrm{map}}$, clipped to four decades; the region of convergence is the limit as $T \to \infty$.
+  </p>
+  <p>
+    Section 5 avoids the colour scale altogether.<br>
+    It draws the same $|F|$ against $\sigma$ three times, for the windows $T$, $2T$ and $4T$.<br>
+    Well inside the region of convergence the integrand has already died out by the end of the window, so all three windows give the same number and the curves lie on top of each other.<br>
+    Outside it, a longer window collects more of a growing integrand, so the curves separate, and they separate faster the further out you go.<br>
+    The point where they split is the pole's real part, read off without any choice of colours.
+  </p>
+
+  <h4>Reading the spiral</h4>
+  <p>
+    Section 6 unwinds the same sum in three dimensions.<br>
+    The depth axis is time.<br>
+    The thin spiral is the kernel $e^{-st}$: its radius is $e^{-\sigma t}$ and it turns at $-\omega$ radians per unit of $t$.<br>
+    At $\sigma = 0$ the radius never changes and the kernel is a cylinder — that is the Fourier machine.<br>
+    At $\sigma > 0$ it funnels inward toward the time axis, and at $\sigma < 0$ it flares outward.
+  </p>
+  <p>
+    The thick curve is the signal multiplied by that kernel, so it is the actual curve whose centroid is $F(s)$.<br>
+    When the signal's own decay cancels the kernel's growth, the thick curve stops being pulled toward the axis and keeps its distance from it.<br>
+    The centroid then climbs without bound, and that is a pole, seen directly.<br>
+    At $s = -2 + 0j$ with the default signal, the whole window reduces to a straight ray leaving the origin, and the camera cannot help showing it.
+  </p>
+
+  <h4>No symbolic maths</h4>
+  <p>
+    Every number on this page comes from evaluating your function on a grid of samples over $t$ and summing.<br>
+    Nothing is factored, solved or integrated symbolically.<br>
+    Poles and regions of convergence here are never computed from a formula; they are what the pictures force you to conclude.<br>
+    That is also why the numeric front on the map is not the same as the dashed line a textbook would draw.
+  </p>
+</div>
+
+<script>
+// ============================================================
+//  GLOBAL STATE
+// ============================================================
+const NUM_POINTS = 2000;     // samples in the display window (Sections 1-3 and 5)
+const N_MAP = 1000;          // samples over the map window — checked against 4000: 1.1% at omega = 15
+const MAP_SIGMA_N = 81;      // s-plane map: sigma columns
+const MAP_OMEGA_N = 121;     // s-plane map: omega rows, the same 121 values as the Section 2 grid
+const GRID_COLS = 11;        // Section 2 grid: 11 x 11 = 121 cells
+const GRID_ROWS = 11;
+const ENV_CLAMP = 700;       // exp guard: e^700 stays finite, so a blow-up can still be coloured
+const FAMILY_N = 81;         // Section 5: sigma samples per window curve
+const FAMILY_SPLIT = Math.log10(4);  // T and 4T agree this closely inside the region of convergence
+const PITCH = 0.38;          // fixed slight pitch of the Section 6 camera
+
+let compiled = null;
+let mode = 'unilateral';     // 'unilateral' | 'bilateral'
+let T = 2, TMap = 20;
+let sigmaMin = -5, sigmaMax = 1, omegaMin = -15, omegaMax = 15;
+
+let tMin = 0, tMax = 2;                     // display window
+let tArr = new Float64Array(0);             // display time samples
+let sig = new Float64Array(0);              // f(t) at those samples
+let dtDisplay = 0.001;
+let signalMax = 1;                          // max|f| in the window: the fixed winding radius
+
+let omegaList = [];                         // 121 winding frequencies, rad/s
+let xCord = [], yCord = [];                 // [omegaIdx][sampleIdx] at the current sigma
+let sumList = [];                           // [omegaIdx] -> {re, im}, the window sum at the current sigma
+let envelope = new Float64Array(0);         // e^{-sigma t} on the display window
+let animX = new Float64Array(0);            // the winding curve for the animation's exact omega
+let animY = new Float64Array(0);
+let animSum = { re: 0, im: 0 };
+let curSigma = 0, curOmega = 0;             // slider positions
+
+let mapSigmaList = [], mapOmegaList = [];   // s-plane map axes
+let sMap = [];                              // sMap[sigmaIdx][omegaIdx] = log10|F|
+let mapT = new Float64Array(0);             // the map's own, longer window
+let mapSig = new Float64Array(0);
+let mapDt = 0.001;
+let mapEnv = new Float64Array(0);
+let mapEnvSigma = NaN;
+let mapLo = 0, mapHi = 1;                   // colour scale: four decades
+let frontSigma = null;                      // where the map saturates: the numerical front
+let mapBitmap = null;                       // offscreen heat map, reused by slider drags
+let sliceA = [], sliceB = [];               // the two Section 4 slices, log10|F|
+let sliceAOmega = NaN, sliceBSigma = NaN;   // what each slice is currently computed for
+
+let famSigmaList = [], famCurves = [], famSplitSigma = null;   // Section 5
+
+let thetaY = 0.55, spinning = false, lastDragX = 0;            // Section 6 view angle
+let animPlaying = false, animTimer = null;
+
+const ctxSignal = document.getElementById('canvasSignal').getContext('2d');
+const ctxGrid   = document.getElementById('canvasGrid').getContext('2d');
+const ctxAnim   = document.getElementById('canvasAnim').getContext('2d');
+const ctxMap    = document.getElementById('canvasMap').getContext('2d');
+const ctxSliceA = document.getElementById('canvasSliceA').getContext('2d');
+const ctxSliceB = document.getElementById('canvasSliceB').getContext('2d');
+const ctxFamily = document.getElementById('canvasFamily').getContext('2d');
+const ctxSpiral = document.getElementById('canvasSpiral').getContext('2d');
+
+// ============================================================
+//  NUMERIC HELPERS
+// ============================================================
+// e^x with a guard, so a diverging window saturates instead of turning into Infinity or NaN
+function envExp(x) {
+  if (x > ENV_CLAMP) x = ENV_CLAMP;
+  else if (x < -ENV_CLAMP) x = -ENV_CLAMP;
+  return Math.exp(x);
+}
+
+// math.js may hand back booleans (the step preset), BigNumbers or complex values
+function toNumber(v) {
+  if (typeof v === 'number') return v;
+  if (typeof v === 'boolean') return v ? 1 : 0;
+  if (v === null || v === undefined) return 0;
+  if (typeof v === 'object') {
+    if (typeof v.toNumber === 'function') return v.toNumber();
+    if (typeof v.re === 'number') return v.re;
+  }
+  const n = Number(v);
+  return isNaN(n) ? 0 : n;
+}
+
+function numOr(str, dflt) {
+  const v = parseFloat(str);
+  return isFinite(v) ? v : dflt;
+}
+
+function clampTo(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+function sampleWindow(tmin, tmax, N) {
+  const dt = (tmax - tmin) / (N - 1);
+  const tt = new Float64Array(N), ss = new Float64Array(N);
+  for (let i = 0; i < N; i++) {
+    const ti = tmin + i * dt;
+    tt[i] = ti;
+    ss[i] = toNumber(compiled.evaluate({ t: ti }));
+  }
+  return { t: tt, sig: ss, dt: dt };
+}
+
+function makeEnvelope(sigma, tIn) {
+  const env = new Float64Array(tIn.length);
+  for (let i = 0; i < tIn.length; i++) env[i] = envExp(-sigma * tIn[i]);
+  return env;
+}
+
+// ------------------------------------------------------------
+//  THE ONE NUMERIC KERNEL
+//    F(s) ~ sum_i f(t_i) e^{-s t_i} dt,   s = sigma + j omega
+//  The kernel angle is -omega*t, i.e. e^{-j omega t}, the convention
+//  of the Fourier page. Do NOT flip the sign.
+//  The same pass can hand back the per-sample winding coordinates,
+//  and it can take a precomputed e^{-sigma t} for the whole sigma row
+//  (that row is reused by all 121 omega values).
+// ------------------------------------------------------------
+function kernelPass(sigma, omega, tIn, sigIn, dt, out, env) {
+  const N = tIn.length;
+  const step = -omega * dt;                       // unit phasor e^{-j omega dt}
+  const wr = Math.cos(step), wi = Math.sin(step);
+  // Start the phasor at the ABSOLUTE phase of the window's first sample, not at 1.
+  // Starting at 1 would leave a constant e^{-j omega t0} factor on the whole sum
+  // and on every winding coordinate: invisible in the unilateral window (t0 = 0)
+  // but it rigidly rotates each bilateral cell by omega*T/2.
+  let pr = Math.cos(-omega * tIn[0]), pi = Math.sin(-omega * tIn[0]);
+  let re = 0, im = 0;
+  for (let i = 0; i < N; i++) {
+    const a = sigIn[i] * (env ? env[i] : envExp(-sigma * tIn[i]));
+    if (out) { out.x[i] = a * pr; out.y[i] = a * pi; }
+    re += a * pr;
+    im += a * pi;
+    const nr = pr * wr - pi * wi;                 // one complex multiply per sample
+    pi = pr * wi + pi * wr;                       // instead of a cos/sin pair
+    pr = nr;
+  }
+  return { re: re * dt, im: im * dt };
+}
+
+// the same kernel over a freshly sampled window (map, slices, window family);
+// pass a precomputed sigIn to reuse samples already taken over that window
+function Fsum(sigma, omega, tmin, tmax, N, sigIn) {
+  const dt = (tmax - tmin) / (N - 1);
+  let tt, ss = sigIn;
+  if (!ss) {
+    const w = sampleWindow(tmin, tmax, N);
+    tt = w.t;
+    ss = w.sig;
+  } else {
+    tt = new Float64Array(N);
+    for (let i = 0; i < N; i++) tt[i] = tmin + i * dt;
+  }
+  return kernelPass(sigma, omega, tt, ss, dt, null, null);
+}
+
+function magnitude(v) { return Math.hypot(v.re, v.im); }
+
+function log10Mag(v) {
+  const m = magnitude(v);
+  if (isNaN(m)) return NaN;
+  if (!isFinite(m)) return Infinity;
+  return Math.log10(Math.max(m, 1e-300));
+}
+
+// Infinity / NaN are clamped onto the colour scale, and shown as such in a readout
+function fmt(v) {
+  if (typeof v !== 'number' || isNaN(v)) return 'NaN';
+  if (!isFinite(v)) return '\u221E';
+  const a = Math.abs(v);
+  if (a !== 0 && (a >= 1e5 || a < 1e-3)) return v.toExponential(2);
+  return v.toFixed(a >= 100 ? 1 : 3);
+}
+
+// ============================================================
+//  PANEL -> STATE
+// ============================================================
+function readPanel() {
+  const get = id => document.getElementById(id);
+  mode = get('modeBi').checked ? 'bilateral' : 'unilateral';
+  T = Math.max(0.5, numOr(get('winLen').value, 2));
+  TMap = clampTo(numOr(get('tMap').value, 20), 5, 50);
+  sigmaMin = numOr(get('sigmaMin').value, -5);
+  sigmaMax = numOr(get('sigmaMax').value, 1);
+  omegaMin = numOr(get('omegaMin').value, -15);
+  omegaMax = numOr(get('omegaMax').value, 15);
+  if (sigmaMax - sigmaMin < 0.2) sigmaMax = sigmaMin + 1;
+  if (omegaMax - omegaMin < 0.2) omegaMax = omegaMin + 1;
+  compiled = math.compile(get('funcInput').value.trim());
+}
+
+function setWindow() {
+  if (mode === 'bilateral') { tMin = -T / 2; tMax = T / 2; }
+  else { tMin = 0; tMax = T; }
+}
+
+function mapWindow() {
+  return mode === 'bilateral' ? [-TMap / 2, TMap / 2] : [0, TMap];
+}
+
+function setupSliders() {
+  const sA = document.getElementById('sigmaSlider');
+  const sB = document.getElementById('animSigma');
+  const oA = document.getElementById('animOmega');
+  const sStep = (sigmaMax - sigmaMin) / 400;
+  const oStep = (omegaMax - omegaMin) / 400;
+  sA.min = sigmaMin; sA.max = sigmaMax; sA.step = sStep;
+  sB.min = sigmaMin; sB.max = sigmaMax; sB.step = sStep;
+  oA.min = omegaMin; oA.max = omegaMax; oA.step = oStep;
+  curSigma = clampTo(curSigma, sigmaMin, sigmaMax);
+  curOmega = clampTo(curOmega, omegaMin, omegaMax);
+  sA.value = curSigma;
+  sB.value = curSigma;
+  oA.value = curOmega;
+  document.getElementById('animFrame').max = NUM_POINTS - 1;
+}
+
+function curFrame() {
+  const el = document.getElementById('animFrame');
+  return clampTo(parseInt(el.value, 10) || 0, 0, NUM_POINTS - 1);
+}
+
+function omegaIndexOf(om) {
+  let best = 0, bd = Infinity;
+  for (let k = 0; k < omegaList.length; k++) {
+    const d = Math.abs(omegaList[k] - om);
+    if (d < bd) { bd = d; best = k; }
+  }
+  return best;
+}
+
+// ============================================================
+//  GENERATE
+// ============================================================
+function generate() {
+  const loadingEl = document.getElementById('loading');
+  loadingEl.style.display = 'block';
+
+  // Use setTimeout so the loading indicator renders before heavy computation
+  setTimeout(() => {
+    try {
+      readPanel();
+      setWindow();
+
+      const w = sampleWindow(tMin, tMax, NUM_POINTS);
+      tArr = w.t; sig = w.sig; dtDisplay = w.dt;
+
+      signalMax = 0;
+      for (let i = 0; i < sig.length; i++) {
+        const a = Math.abs(sig[i]);
+        if (isFinite(a) && a > signalMax) signalMax = a;
+      }
+      if (!(signalMax > 0)) signalMax = 1;
+
+      // 121 winding frequencies
+      omegaList = [];
+      for (let b = 0; b < MAP_OMEGA_N; b++) {
+        omegaList.push(omegaMin + (omegaMax - omegaMin) * b / (MAP_OMEGA_N - 1));
+      }
+      mapOmegaList = omegaList.slice();
+
+      setupSliders();
+      buildMap();        // Section 4: the long-window map, its colour scale and the two slices
+      buildFamily();     // Section 5: the T / 2T / 4T window family
+      refreshCheap(true);   // Sections 1-3 and 6, plus the map overlay
+
+      loadingEl.style.display = 'none';
+    } catch (err) {
+      loadingEl.style.display = 'none';
+      if (!mathReady) {
+        alert('math.js is still loading. Please wait a moment and try again.');
+      } else {
+        alert('Error: ' + err.message + '\n\nCheck your function syntax. Use "t" as the variable.');
+      }
+    }
+  }, 30);
+}
+
+// ============================================================
+//  CHEAP PATH: everything that is NOT the heat map
+// ============================================================
+function refreshWinding() {
+  // The envelope for the current sigma is computed once and reused by all 121 curves.
+  envelope = makeEnvelope(curSigma, tArr);
+  xCord = [];
+  yCord = [];
+  sumList = [];
+  for (let k = 0; k < omegaList.length; k++) {
+    const xk = new Float64Array(tArr.length);
+    const yk = new Float64Array(tArr.length);
+    const s = kernelPass(curSigma, omegaList[k], tArr, sig, dtDisplay, { x: xk, y: yk }, envelope);
+    xCord.push(xk);
+    yCord.push(yk);
+    sumList.push(s);
+  }
+  // Section 3 winds at the slider's exact omega, so dragging it stays continuous
+  animX = new Float64Array(tArr.length);
+  animY = new Float64Array(tArr.length);
+  animSum = kernelPass(curSigma, curOmega, tArr, sig, dtDisplay, { x: animX, y: animY }, envelope);
+  mapEnv = makeEnvelope(curSigma, mapT);
+  mapEnvSigma = curSigma;
+}
+
+function refreshCheap(rebuild) {
+  const f = curFrame();
+  if (rebuild) refreshWinding();
+  if (mapEnvSigma !== curSigma) { mapEnv = makeEnvelope(curSigma, mapT); mapEnvSigma = curSigma; }
+  computeSliceA();
+  computeSliceB();
+  drawEnvelope();
+  drawGrid();
+  drawAnim(f);
+  drawMapOverlay();
+  drawSlices();
+  drawFamily();          // Section 5: the T/2T/4T family, plus its marker at the current sigma
+  drawSpiral();
+  updateReadouts();
+}
+
+function setSigma(v) {
+  curSigma = clampTo(v, sigmaMin, sigmaMax);
+  document.getElementById('sigmaSlider').value = curSigma;
+  document.getElementById('animSigma').value = curSigma;
+  refreshCheap(true);
+}
+
+function setOmega(v) {
+  curOmega = clampTo(v, omegaMin, omegaMax);
+  document.getElementById('animOmega').value = curOmega;
+  refreshWinding();          // Section 3 follows the exact omega
+  computeSliceA();           // slice A is the sigma cut at the current omega
+  drawEnvelope();
+  drawGrid();
+  drawAnim(curFrame());
+  drawMapOverlay();
+  drawSlices();
+  drawSpiral();
+  updateReadouts();
+}
+
+function partialSum(xk, yk, n) {
+  let re = 0, im = 0;
+  for (let i = 0; i < n; i++) { re += xk[i]; im += yk[i]; }
+  return { re: re * dtDisplay, im: im * dtDisplay };
+}
+
+function updateReadouts() {
+  const st = envelopeStats();
+  document.getElementById('envReadout').textContent = 'max|f\u00B7e^(\u2212\u03C3t)| = ' + fmt(st.maxAbs);
+  document.getElementById('animSigmaLabel').textContent = '\u03C3 = ' + curSigma.toFixed(3);
+  document.getElementById('animOmegaLabel').textContent = '\u03C9 = ' + curOmega.toFixed(3) + ' rad/s';
+  document.getElementById('animFrameLabel').textContent = curFrame() + '/' + (NUM_POINTS - 1);
+}
+
+// ============================================================
+//  SECTION 1: signal and the exponential envelope
+// ============================================================
+function envelopeStats() {
+  let mn = 0, mx = 0, maxAbs = 0;
+  for (let i = 0; i < sig.length; i++) {
+    const e = envelope[i];
+    const p = sig[i] * e;
+    if (isFinite(e)) { if (e < mn) mn = e; if (e > mx) mx = e; }
+    const ap = Math.abs(p);
+    if (isFinite(ap) && ap > maxAbs) maxAbs = ap;
+  }
+  return { min: mn, max: mx, maxAbs: maxAbs };
+}
+
+function drawEnvelope() {
+  const ctx = ctxSignal;
+  const W = ctx.canvas.width, H = ctx.canvas.height;
+  const pad = { top: 30, right: 30, bottom: 40, left: 58 };
+  const plotW = W - pad.left - pad.right;
+  const plotH = H - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#16213e';
+  ctx.fillRect(0, 0, W, H);
+
+  // the integration window
+  ctx.fillStyle = 'rgba(255,255,255,0.035)';
+  ctx.fillRect(pad.left, pad.top, plotW, plotH);
+
+  let yMin = 0, yMax = 0;
+  for (let i = 0; i < sig.length; i++) {
+    if (!isFinite(tArr[i])) continue;
+    const p = sig[i] * envelope[i];
+    const cand = [sig[i], envelope[i], p];
+    for (let c = 0; c < 3; c++) {
+      const v = cand[c];
+      if (isFinite(v)) { if (v < yMin) yMin = v; if (v > yMax) yMax = v; }
+    }
+  }
+  if (yMax - yMin <= 0) { yMin = -1; yMax = 1; }
+  const yMargin = (yMax - yMin) * 0.1;
+  yMin -= yMargin; yMax += yMargin;
+
+  const tx = x => pad.left + (x - tMin) / (tMax - tMin) * plotW;
+  const ty = y => pad.top + plotH - (y - yMin) / (yMax - yMin) * plotH;
+
+  // horizontal grid
+  ctx.strokeStyle = '#2a2a4a';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 5; i++) {
+    const y = yMin + (yMax - yMin) * i / 5;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, ty(y));
+    ctx.lineTo(W - pad.right, ty(y));
+    ctx.stroke();
+  }
+
+  // t = 0 reference line, drawn only when the window crosses the origin
+  if (tMin < 0 && tMax > 0) {
+    ctx.save();
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = '#2a2a4a';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(tx(0), pad.top);
+    ctx.lineTo(tx(0), H - pad.bottom);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // axes
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.left, pad.top);
+  ctx.lineTo(pad.left, H - pad.bottom);
+  ctx.lineTo(W - pad.right, H - pad.bottom);
+  ctx.stroke();
+
+  function line(values, color, width, dash) {
+    ctx.save();
+    if (dash) ctx.setLineDash(dash);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    let first = true;
+    for (let i = 0; i < tArr.length; i++) {
+      const v = values[i];
+      if (!isFinite(v)) { first = true; continue; }
+      const px = tx(tArr[i]), py = ty(v);
+      if (first) { ctx.moveTo(px, py); first = false; }
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  const product = new Float64Array(sig.length);
+  for (let i = 0; i < sig.length; i++) product[i] = sig[i] * envelope[i];
+
+  // three lines: the signal, the envelope, and the product that actually gets wound
+  line(product, '#f72585', 2.4, null);
+  line(sig, '#4cc9f0', 1.5, null);
+  line(envelope, '#99a5c2', 1.3, [6, 5]);
+
+  // labels
+  ctx.fillStyle = '#e0e0e0';
+  ctx.font = '12px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Time t (s)', W / 2, H - 5);
+  ctx.save();
+  ctx.translate(13, H / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Amplitude', 0, 0);
+  ctx.restore();
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 5; i++) {
+    const y = yMin + (yMax - yMin) * i / 5;
+    ctx.fillText(fmt(y), pad.left - 6, ty(y) + 4);
+  }
+  ctx.textAlign = 'center';
+  for (let i = 0; i <= 5; i++) {
+    const x = tMin + (tMax - tMin) * i / 5;
+    ctx.fillText(x.toFixed(1), tx(x), H - pad.bottom + 16);
+  }
+  ctx.fillStyle = '#99a5c2';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(mode === 'bilateral'
+    ? 'window [\u2212T/2, T/2] = [' + tMin.toFixed(2) + ', ' + tMax.toFixed(2) + ']'
+    : 'window [0, T] = [0, ' + tMax.toFixed(2) + ']', pad.left, pad.top - 10);
+}
+
+// ============================================================
+//  SECTION 2: the winding grid
+// ============================================================
+function drawWindingCell(ctx, xk, yk, numPoints, rect, opts) {
+  // One winding plot, shared by the Section 2 grid and the Section 3 animation.
+  // The frame radius is fixed (max|f| over the window) and does NOT follow sigma,
+  // so a curve that diverges really does leave the frame.
+  const o = opts || {};
+  const cx = rect.x + rect.w / 2;
+  const cy = rect.y + rect.h / 2;
+  const scale = Math.min(rect.w, rect.h) * 0.38;
+  const r = signalMax || 1;
+  const stride = o.stride || 1;
+  const n = Math.max(1, Math.min(numPoints, xk.length));
+
+  const sx = v => cx + (v / r) * scale;
+  const sy = v => cy - (v / r) * scale;
+
+  ctx.clearRect(rect.x, rect.y, rect.w, rect.h);
+  ctx.fillStyle = '#16213e';
+  ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+
+  // the frame: a visible radius plus axes through the data origin
+  ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+  ctx.lineWidth = 0.6;
+  ctx.beginPath();
+  ctx.arc(cx, cy, scale, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = o.axisWidth || 0.35;
+  ctx.beginPath();
+  ctx.moveTo(cx - scale, cy); ctx.lineTo(cx + scale, cy);
+  ctx.moveTo(cx, cy - scale); ctx.lineTo(cx, cy + scale);
+  ctx.stroke();
+
+  // clip to the cell: past a pole the curve really does leave the frame,
+  // and without this clip it would smear into its neighbours
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(rect.x + 1, rect.y + 1, rect.w - 2, rect.h - 2);
+  ctx.clip();
+  ctx.strokeStyle = '#4cc9f0';
+  ctx.lineWidth = o.curveWidth || 0.6;
+  ctx.beginPath();
+  for (let i = 0; i < n; i += stride) {
+    const px = sx(xk[i]), py = sy(yk[i]);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  // the centre of mass of the drawn samples
+  let sumX = 0, sumY = 0, maxR = 0;
+  for (let i = 0; i < n; i++) {
+    sumX += xk[i];
+    sumY += yk[i];
+    const rr = Math.hypot(xk[i], yk[i]);
+    if (isFinite(rr) && rr > maxR) maxR = rr;
+  }
+  const cmx = sumX / n, cmy = sumY / n;
+  const comR = Math.hypot(cmx, cmy);
+
+  // out-of-frame badge: the curve left the visible radius, i.e. the sum is running away
+  if (maxR > r) {
+    ctx.fillStyle = '#f72585';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('\u26A0', rect.x + rect.w - 3, rect.y + 12);
+  }
+
+  // the centre of mass, pinned to the frame edge once it has left the picture
+  if (comR > r) {
+    const ux = cmx / (comR || 1), uy = cmy / (comR || 1);
+    ctx.strokeStyle = '#ff4444';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.arc(cx + ux * scale, cy - uy * scale, o.comRadius || 2.5, 0, Math.PI * 2);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = '#ff4444';
+    ctx.beginPath();
+    ctx.arc(sx(cmx), sy(cmy), o.comRadius || 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawGrid() {
+  const ctx = ctxGrid;
+  const W = ctx.canvas.width;
+  const cols = GRID_COLS;
+  const rows = Math.max(1, Math.ceil(omegaList.length / cols));
+  const cellW = W / cols;
+  const cellH = cellW;
+  if (ctx.canvas.height !== rows * cellH) ctx.canvas.height = rows * cellH;
+
+  const active = omegaIndexOf(curOmega);
+
+  for (let k = 0; k < omegaList.length; k++) {
+    const col = k % cols;
+    const row = Math.floor(k / cols);
+    const rect = { x: col * cellW, y: row * cellH, w: cellW, h: cellH };
+    drawWindingCell(ctx, xCord[k], yCord[k], xCord[k].length, rect, { stride: 2, curveWidth: 0.55 });
+
+    if (k === active) {
+      ctx.strokeStyle = 'rgba(76,201,240,0.85)';
+      ctx.lineWidth = 1.6;
+      ctx.strokeRect(rect.x + 0.8, rect.y + 0.8, rect.w - 1.6, rect.h - 1.6);
+    }
+
+    ctx.fillStyle = '#aaa';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('\u03C9=' + omegaList[k].toFixed(2), rect.x + rect.w / 2, rect.y + rect.h - 5);
+  }
+
+  document.getElementById('gridCaption').textContent =
+    '121 cells, one per omega, at \u03C3 = ' + curSigma.toFixed(3) +
+    ' — the boxed cell is the omega the animation is winding at (' + curOmega.toFixed(3) + ' rad/s)';
+}
+
+// ============================================================
+//  SECTION 3: interactive winding animation
+// ============================================================
+function drawAnim(frame) {
+  if (!tArr.length || !animX.length) return;
+  const ctx = ctxAnim;
+  const W = ctx.canvas.width, H = ctx.canvas.height;
+  const n = Math.max(1, Math.min(frame + 1, animX.length));
+
+  drawWindingCell(ctx, animX, animY, n, { x: 0, y: 0, w: W, h: H },
+    { curveWidth: 1.2, axisWidth: 0.5, comRadius: 6 });
+
+  const s = partialSum(animX, animY, n);
+  const mag = magnitude(s);
+  const phase = Math.atan2(s.im, s.re);
+  ctx.fillStyle = '#e0e0e0';
+  ctx.font = '13px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('t = ' + tArr[n - 1].toFixed(3) + ' s   |   frame ' + (n - 1) + '/' + (NUM_POINTS - 1),
+    W / 2, H - 34);
+  ctx.fillStyle = '#4cc9f0';
+  ctx.fillText('Re F = ' + fmt(s.re) + '   Im F = ' + fmt(s.im) +
+    '   |F| = ' + fmt(mag) + '   \u2220F = ' + phase.toFixed(3) + ' rad', W / 2, H - 14);
+}
+
+function togglePlay() {
+  if (animPlaying) {
+    animPlaying = false;
+    document.getElementById('animPlayBtn').textContent = '\u25B6';
+    if (animTimer) clearTimeout(animTimer);
+  } else {
+    animPlaying = true;
+    document.getElementById('animPlayBtn').textContent = '\u23F8';
+    animStep();
+  }
+}
+
+function animStep() {
+  if (!animPlaying) return;
+  const el = document.getElementById('animFrame');
+  let frame = parseInt(el.value, 10) || 0;
+  frame += 10;
+  if (frame >= NUM_POINTS) frame = 0;
+  el.value = frame;
+  drawAnim(frame);
+  drawSpiral();
+  updateReadouts();
+  animTimer = setTimeout(animStep, 40);
+}
+
+// ============================================================
+//  SECTION 4: the s-plane map
+// ============================================================
+function buildMap() {
+  // The map uses its own, longer window: only T_map makes the front straight.
+  const win = mapWindow();
+  const w = sampleWindow(win[0], win[1], N_MAP);
+  mapT = w.t; mapSig = w.sig; mapDt = w.dt;
+
+  mapSigmaList = [];
+  for (let a = 0; a < MAP_SIGMA_N; a++) {
+    mapSigmaList.push(sigmaMin + (sigmaMax - sigmaMin) * a / (MAP_SIGMA_N - 1));
+  }
+
+  sMap = [];
+  for (let a = 0; a < MAP_SIGMA_N; a++) {
+    const sg = mapSigmaList[a];
+    const env = makeEnvelope(sg, mapT);      // one envelope per sigma row, reused by 121 omegas
+    const row = new Float64Array(MAP_OMEGA_N);
+    for (let b = 0; b < MAP_OMEGA_N; b++) {
+      row[b] = log10Mag(kernelPass(sg, mapOmegaList[b], mapT, mapSig, mapDt, null, env));
+    }
+    sMap.push(row);
+  }
+
+  // colour scale: four decades, anchored at the 10th percentile of log10|F| over the map
+  const vals = [];
+  for (let a = 0; a < sMap.length; a++) {
+    for (let b = 0; b < sMap[a].length; b++) {
+      if (isFinite(sMap[a][b])) vals.push(sMap[a][b]);
+    }
+  }
+  vals.sort((x, y) => x - y);
+  mapLo = vals.length ? vals[Math.min(vals.length - 1, Math.floor(0.10 * (vals.length - 1)))] : -3;
+  mapHi = mapLo + 4;
+
+  frontSigma = findFront();
+  sliceAOmega = NaN;      // the map window and its signal just changed
+  sliceBSigma = NaN;
+  paintMapBitmap();
+}
+
+// where the omega = 0 ridge column meets the top of the colour scale: the numerical front
+function findFront() {
+  let zeroIdx = 0, bd = Infinity;
+  for (let b = 0; b < mapOmegaList.length; b++) {
+    const d = Math.abs(mapOmegaList[b]);
+    if (d < bd) { bd = d; zeroIdx = b; }
+  }
+  let prevSigma = null, prevVal = null;
+  for (let a = MAP_SIGMA_N - 1; a >= 0; a--) {
+    const v = sMap[a][zeroIdx];
+    if (!isFinite(v)) continue;
+    if (v >= mapHi) {
+      if (prevSigma === null || prevVal === null || v === prevVal) return mapSigmaList[a];
+      const t = (mapHi - prevVal) / (v - prevVal);
+      return prevSigma + (mapSigmaList[a] - prevSigma) * t;
+    }
+    prevSigma = mapSigmaList[a];
+    prevVal = v;
+  }
+  return null;
+}
+
+const CMAP_STOPS = [
+  [0.00, [11, 16, 38]],
+  [0.25, [42, 72, 150]],
+  [0.50, [76, 201, 240]],
+  [0.75, [247, 37, 133]],
+  [1.00, [255, 240, 200]]
+];
+
+function colorFor(v) {
+  if (typeof v !== 'number' || isNaN(v)) return 'rgb(11, 16, 38)';
+  if (!isFinite(v)) return 'rgb(255, 240, 200)';
+  const span = (mapHi - mapLo) || 1;
+  let t = (v - mapLo) / span;
+  t = t < 0 ? 0 : (t > 1 ? 1 : t);
+  let i = 0;
+  while (i < CMAP_STOPS.length - 2 && t > CMAP_STOPS[i + 1][0]) i++;
+  const a = CMAP_STOPS[i], b = CMAP_STOPS[i + 1];
+  const f = (t - a[0]) / ((b[0] - a[0]) || 1);
+  const r = Math.round(a[1][0] + (b[1][0] - a[1][0]) * f);
+  const g = Math.round(a[1][1] + (b[1][1] - a[1][1]) * f);
+  const bl = Math.round(a[1][2] + (b[1][2] - a[1][2]) * f);
+  return 'rgb(' + r + ', ' + g + ', ' + bl + ')';
+}
+
+function mapGeom(ctx) {
+  const W = ctx.canvas.width, H = ctx.canvas.height;
+  const pad = { top: 26, right: 118, bottom: 38, left: 58 };
+  const plotW = W - pad.left - pad.right;
+  const plotH = H - pad.top - pad.bottom;
+  return {
+    W: W, H: H, pad: pad, plotW: plotW, plotH: plotH,
+    xOf: sg => pad.left + (sg - sigmaMin) / ((sigmaMax - sigmaMin) || 1) * plotW,
+    yOf: om => pad.top + plotH - (om - omegaMin) / ((omegaMax - omegaMin) || 1) * plotH
+  };
+}
+
+function paintMapBitmap() {
+  if (!mapBitmap) mapBitmap = document.createElement('canvas');
+  mapBitmap.width = ctxMap.canvas.width;
+  mapBitmap.height = ctxMap.canvas.height;
+  const bctx = mapBitmap.getContext('2d');
+  const g = mapGeom(ctxMap);
+
+  bctx.clearRect(0, 0, g.W, g.H);
+  bctx.fillStyle = '#16213e';
+  bctx.fillRect(0, 0, g.W, g.H);
+
+  const cols = MAP_SIGMA_N - 1, rowsN = MAP_OMEGA_N - 1;
+  const cw = g.plotW / cols, chh = g.plotH / rowsN;
+  for (let a = 0; a < cols; a++) {
+    for (let b = 0; b < rowsN; b++) {
+      // four corner values, averaged, so the cell is not shifted by half a step
+      let sum = 0, cnt = 0;
+      const corners = [sMap[a][b], sMap[a + 1][b], sMap[a][b + 1], sMap[a + 1][b + 1]];
+      for (let c = 0; c < 4; c++) {
+        const v = corners[c];
+        if (isFinite(v)) { sum += v; cnt++; }
+        else if (v === Infinity) { sum += mapHi; cnt++; }
+      }
+      const v = cnt ? sum / cnt : mapLo;
+      bctx.fillStyle = colorFor(v);
+      const x = g.xOf(mapSigmaList[a]);
+      const y = g.yOf(mapOmegaList[b + 1]);
+      bctx.fillRect(x, y, cw + 0.7, chh + 0.7);
+    }
+  }
+
+  // window border
+  bctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  bctx.lineWidth = 1;
+  bctx.strokeRect(g.pad.left, g.pad.top, g.plotW, g.plotH);
+}
+
+function drawMapOverlay() {
+  const ctx = ctxMap;
+  const g = mapGeom(ctx);
+  if (!mapBitmap) return;
+
+  ctx.clearRect(0, 0, g.W, g.H);
+  ctx.drawImage(mapBitmap, 0, 0);
+
+  // axes
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(g.pad.left, g.pad.top);
+  ctx.lineTo(g.pad.left, g.pad.top + g.plotH);
+  ctx.lineTo(g.pad.left + g.plotW, g.pad.top + g.plotH);
+  ctx.stroke();
+
+  ctx.fillStyle = '#e0e0e0';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'center';
+  for (let i = 0; i <= 6; i++) {
+    const sg = sigmaMin + (sigmaMax - sigmaMin) * i / 6;
+    ctx.fillText(sg.toFixed(2), g.xOf(sg), g.pad.top + g.plotH + 16);
+  }
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 6; i++) {
+    const om = omegaMin + (omegaMax - omegaMin) * i / 6;
+    ctx.fillText(om.toFixed(1), g.pad.left - 6, g.yOf(om) + 4);
+  }
+  ctx.textAlign = 'center';
+  ctx.fillText('\u03C3  (1/s)', g.pad.left + g.plotW / 2, g.H - 6);
+  ctx.save();
+  ctx.translate(12, g.pad.top + g.plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('\u03C9  (rad/s)', 0, 0);
+  ctx.restore();
+
+  // colour bar: four decades, top of the scale at mapHi
+  const bx = g.pad.left + g.plotW + 26, bw = 16;
+  for (let i = 0; i < 64; i++) {
+    const t = 1 - i / 63;
+    ctx.fillStyle = colorFor(mapLo + t * (mapHi - mapLo));
+    ctx.fillRect(bx, g.pad.top + (g.plotH) * i / 64, bw, g.plotH / 64 + 1);
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(bx, g.pad.top, bw, g.plotH);
+  ctx.fillStyle = '#e0e0e0';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(mapHi.toFixed(1), bx + bw + 4, g.pad.top + 9);
+  ctx.fillText(mapLo.toFixed(1), bx + bw + 4, g.pad.top + g.plotH);
+  ctx.save();
+  ctx.translate(bx + bw + 34, g.pad.top + g.plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center';
+  ctx.fillText('log10 |F|  (4 decades)', 0, 0);
+  ctx.restore();
+
+  // the numerical front
+  if (frontSigma !== null) {
+    const fx = g.xOf(frontSigma);
+    ctx.save();
+    ctx.setLineDash([6, 5]);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(fx, g.pad.top);
+    ctx.lineTo(fx, g.pad.top + g.plotH);
+    ctx.stroke();
+    ctx.restore();
+    ctx.save();
+    ctx.translate(fx - 5, g.pad.top + 14);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('region of convergence (numerical), \u03C3 \u2248 ' + frontSigma.toFixed(2), 0, 0);
+    ctx.restore();
+  }
+
+  // the cursor for the current (sigma, omega)
+  const px = g.xOf(curSigma), py = g.yOf(curOmega);
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath();
+  ctx.moveTo(px, g.pad.top); ctx.lineTo(px, g.pad.top + g.plotH);
+  ctx.moveTo(g.pad.left, py); ctx.lineTo(g.pad.left + g.plotW, py);
+  ctx.stroke();
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.arc(px, py, 4.5, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // captions
+  ctx.fillStyle = '#e0e0e0';
+  ctx.font = '12px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('|F_{T_map}(s)| = |\u222B f(t) e^{\u2212st} dt| over the internal window ' +
+    (mode === 'bilateral' ? '[\u2212T_map/2, T_map/2]' : '[0, T_map]') + ',  T_map = ' + TMap.toFixed(0),
+    g.pad.left, 16);
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#99a5c2';
+  ctx.font = '11px sans-serif';
+  ctx.fillText('the front is a property of T_map: sharper as T_map grows, and the real boundary is the T \u2192 \u221E limit',
+    g.pad.left + g.plotW, g.pad.top + g.plotH - 6);
+}
+
+function computeSliceA() {
+  // |F| against sigma at the current omega, over the map window
+  if (!mapSigmaList.length || !mapT.length) return;
+  if (sliceAOmega === curOmega && sliceA.length === MAP_SIGMA_N) return;
+  sliceA = mapSigmaList.map(sg =>
+    log10Mag(kernelPass(sg, curOmega, mapT, mapSig, mapDt, null, makeEnvelope(sg, mapT))));
+  sliceAOmega = curOmega;
+}
+
+function computeSliceB() {
+  // |F| against omega at the current sigma, over the map window
+  if (!mapOmegaList.length || !mapT.length) return;
+  if (sliceBSigma === curSigma && sliceB.length === MAP_OMEGA_N) return;
+  if (mapEnvSigma !== curSigma || mapEnv.length !== mapT.length) {
+    mapEnv = makeEnvelope(curSigma, mapT);
+    mapEnvSigma = curSigma;
+  }
+  sliceB = mapOmegaList.map(om => log10Mag(kernelPass(curSigma, om, mapT, mapSig, mapDt, null, mapEnv)));
+  sliceBSigma = curSigma;
+}
+
+function drawSlices() {
+  drawSlicePlot(ctxSliceA, sliceA, mapSigmaList, {
+    title: 'Slice A: |F(\u03C3 + j\u03C9)| against \u03C3, at \u03C9 = ' + curOmega.toFixed(2) + ' rad/s',
+    xLabel: '\u03C3  (1/s)',
+    markX: frontSigma,
+    markLabel: 'front \u03C3 \u2248 ' + (frontSigma === null ? '\u2014' : frontSigma.toFixed(2)),
+    cursorX: curSigma
+  });
+  drawSlicePlot(ctxSliceB, sliceB, mapOmegaList, {
+    title: 'Slice B: |F(\u03C3 + j\u03C9)| against \u03C9, at \u03C3 = ' + curSigma.toFixed(3),
+    xLabel: '\u03C9  (rad/s)',
+    markX: null,
+    markLabel: '',
+    cursorX: curOmega
+  });
+}
+
+function drawSlicePlot(ctx, yArr, xArr, opts) {
+  const W = ctx.canvas.width, H = ctx.canvas.height;
+  const pad = { top: 30, right: 18, bottom: 36, left: 54 };
+  const plotW = W - pad.left - pad.right;
+  const plotH = H - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#16213e';
+  ctx.fillRect(0, 0, W, H);
+  if (!yArr.length) return;
+
+  let yMin = Infinity, yMax = -Infinity;
+  for (let i = 0; i < yArr.length; i++) {
+    const v = yArr[i];
+    if (!isFinite(v)) continue;
+    if (v < yMin) yMin = v;
+    if (v > yMax) yMax = v;
+  }
+  if (!isFinite(yMin)) { yMin = -3; yMax = 1; }
+  const m = (yMax - yMin) * 0.1 || 0.1;
+  yMin -= m; yMax += m;
+
+  const x0 = xArr[0], x1 = xArr[xArr.length - 1];
+  const tx = x => pad.left + (x - x0) / ((x1 - x0) || 1) * plotW;
+  const ty = y => pad.top + plotH - (y - yMin) / ((yMax - yMin) || 1) * plotH;
+
+  ctx.strokeStyle = '#2a2a4a';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = yMin + (yMax - yMin) * i / 4;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, ty(y));
+    ctx.lineTo(W - pad.right, ty(y));
+    ctx.stroke();
+  }
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.left, pad.top);
+  ctx.lineTo(pad.left, H - pad.bottom);
+  ctx.lineTo(W - pad.right, H - pad.bottom);
+  ctx.stroke();
+
+  ctx.strokeStyle = '#4cc9f0';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  let first = true;
+  const cap = yMax;
+  for (let i = 0; i < yArr.length; i++) {
+    let v = yArr[i];
+    if (isNaN(v)) { first = true; continue; }
+    if (!isFinite(v)) v = cap;
+    const px = tx(xArr[i]), py = ty(v);
+    if (first) { ctx.moveTo(px, py); first = false; }
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+
+  if (opts.markX !== null && opts.markX !== undefined) {
+    const mx = tx(opts.markX);
+    ctx.save();
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(mx, pad.top);
+    ctx.lineTo(mx, pad.top + plotH);
+    ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(opts.markLabel, mx + 4, pad.top + 10);
+  }
+
+  if (opts.cursorX !== null && opts.cursorX !== undefined) {
+    const cx = tx(opts.cursorX);
+    ctx.fillStyle = '#f72585';
+    ctx.beginPath();
+    ctx.moveTo(cx, pad.top + plotH - 8);
+    ctx.lineTo(cx - 4, pad.top + plotH + 1);
+    ctx.lineTo(cx + 4, pad.top + plotH + 1);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.fillStyle = '#e0e0e0';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(opts.title, W / 2, 15);
+  ctx.fillText(opts.xLabel, W / 2, H - 4);
+  ctx.save();
+  ctx.translate(11, pad.top + plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('log10 |F|', 0, 0);
+  ctx.restore();
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const y = yMin + (yMax - yMin) * i / 4;
+    ctx.fillText(y.toFixed(1), pad.left - 5, ty(y) + 4);
+  }
+}
+
+// ============================================================
+//  SECTION 5: poles and the region of convergence
+// ============================================================
+function buildFamily() {
+  famSigmaList = [];
+  for (let a = 0; a < FAMILY_N; a++) {
+    famSigmaList.push(sigmaMin + (sigmaMax - sigmaMin) * a / (FAMILY_N - 1));
+  }
+  const lengths = [T, 2 * T, 4 * T];
+  famCurves = lengths.map(L => {
+    const win = mode === 'bilateral' ? [-L / 2, L / 2] : [0, L];
+    const w = sampleWindow(win[0], win[1], NUM_POINTS);
+    return famSigmaList.map(sg =>
+      log10Mag(kernelPass(sg, 0, w.t, w.sig, w.dt, null, makeEnvelope(sg, w.t))));
+  });
+  famSplitSigma = findFamilySplit();
+}
+
+// The family separates where the integral stops converging: inside the ROC the longest and the
+// shortest window agree to within the ratio of their lengths (4, i.e. 0.6 decades); outside it
+// that ratio grows without bound as sigma falls.
+function findFamilySplit() {
+  if (famCurves.length < 3) return null;
+  const shortC = famCurves[0], longC = famCurves[2];
+  for (let a = FAMILY_N - 1; a >= 1; a--) {
+    const dNow = longC[a] - shortC[a];
+    const dPrev = longC[a - 1] - shortC[a - 1];
+    if (!isFinite(dNow) || !isFinite(dPrev)) continue;
+    if (dNow < FAMILY_SPLIT && dPrev >= FAMILY_SPLIT) {
+      const t = (FAMILY_SPLIT - dNow) / ((dPrev - dNow) || 1);
+      return famSigmaList[a] + (famSigmaList[a - 1] - famSigmaList[a]) * t;
+    }
+  }
+  return null;
+}
+
+function drawFamily() {
+  const ctx = ctxFamily;
+  const W = ctx.canvas.width, H = ctx.canvas.height;
+  const pad = { top: 34, right: 22, bottom: 40, left: 60 };
+  const plotW = W - pad.left - pad.right;
+  const plotH = H - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#16213e';
+  ctx.fillRect(0, 0, W, H);
+  if (!famCurves.length) return;
+
+  let yMin = Infinity, yMax = -Infinity;
+  for (let c = 0; c < famCurves.length; c++) {
+    for (let a = 0; a < famCurves[c].length; a++) {
+      const v = famCurves[c][a];
+      if (!isFinite(v)) continue;
+      if (v < yMin) yMin = v;
+      if (v > yMax) yMax = v;
+    }
+  }
+  if (!isFinite(yMin)) { yMin = -3; yMax = 1; }
+  const m = (yMax - yMin) * 0.08 || 0.1;
+  yMin -= m; yMax += m;
+
+  const tx = sg => pad.left + (sg - sigmaMin) / ((sigmaMax - sigmaMin) || 1) * plotW;
+  const ty = y => pad.top + plotH - (y - yMin) / ((yMax - yMin) || 1) * plotH;
+
+  ctx.strokeStyle = '#2a2a4a';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = yMin + (yMax - yMin) * i / 4;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, ty(y));
+    ctx.lineTo(W - pad.right, ty(y));
+    ctx.stroke();
+  }
+  if (sigmaMin < 0 && sigmaMax > 0) {
+    ctx.save();
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = '#2a2a4a';
+    ctx.beginPath();
+    ctx.moveTo(tx(0), pad.top);
+    ctx.lineTo(tx(0), pad.top + plotH);
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.left, pad.top);
+  ctx.lineTo(pad.left, pad.top + plotH);
+  ctx.lineTo(pad.left + plotW, pad.top + plotH);
+  ctx.stroke();
+
+  const colors = ['#4cc9f0', '#f72585', '#ffd166'];
+  const widths = [1.4, 1.7, 2.1];
+  for (let c = famCurves.length - 1; c >= 0; c--) {
+    ctx.strokeStyle = colors[c];
+    ctx.lineWidth = widths[c];
+    ctx.beginPath();
+    let first = true;
+    for (let a = 0; a < famCurves[c].length; a++) {
+      let v = famCurves[c][a];
+      if (isNaN(v)) { first = true; continue; }
+      if (!isFinite(v)) v = yMax;
+      const px = tx(famSigmaList[a]), py = ty(v);
+      if (first) { ctx.moveTo(px, py); first = false; }
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+
+  if (famSplitSigma !== null) {
+    const mx = tx(famSplitSigma);
+    ctx.save();
+    ctx.setLineDash([6, 4]);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(mx, pad.top);
+    ctx.lineTo(mx, pad.top + plotH);
+    ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('windows start to disagree \u2192 pole at \u03C3 \u2248 ' + famSplitSigma.toFixed(2),
+      mx + 6, pad.top + 14);
+  } else {
+    ctx.fillStyle = '#99a5c2';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('no split found in this \u03C3 range', pad.left + 6, pad.top + 14);
+  }
+
+  const cxp = tx(curSigma);
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.beginPath();
+  ctx.arc(cxp, pad.top + plotH + 4, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#e0e0e0';
+  ctx.font = '12px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('|F(\u03C3 + j0)| for the windows T = ' + T.toFixed(2) + ', 2T = ' + (2 * T).toFixed(2) +
+    ', 4T = ' + (4 * T).toFixed(2) + '   (log10 scale, ' + mode + ' integral)', W / 2, 16);
+  ctx.fillText('\u03C3  (1/s)', W / 2, H - 6);
+  ctx.save();
+  ctx.translate(13, pad.top + plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('log10 |F|', 0, 0);
+  ctx.restore();
+
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const y = yMin + (yMax - yMin) * i / 4;
+    ctx.fillText(y.toFixed(1), pad.left - 6, ty(y) + 4);
+  }
+  ctx.textAlign = 'center';
+  for (let i = 0; i <= 6; i++) {
+    const sg = sigmaMin + (sigmaMax - sigmaMin) * i / 6;
+    ctx.fillText(sg.toFixed(2), tx(sg), pad.top + plotH + 20);
+  }
+
+  // legend
+  const labels = ['T', '2T', '4T'];
+  ctx.textAlign = 'left';
+  ctx.font = '11px sans-serif';
+  for (let c = 0; c < 3; c++) {
+    const lx = pad.left + 12 + c * 62;
+    const ly = pad.top + plotH - 14;
+    ctx.strokeStyle = colors[c];
+    ctx.lineWidth = widths[c] + 0.6;
+    ctx.beginPath();
+    ctx.moveTo(lx, ly);
+    ctx.lineTo(lx + 20, ly);
+    ctx.stroke();
+    ctx.fillStyle = '#e0e0e0';
+    ctx.fillText(labels[c], lx + 26, ly + 4);
+  }
+}
+
+// ============================================================
+//  SECTION 6: the spiral in three dimensions
+// ============================================================
+function projectPoint(x, y, z, S, cx, cy) {
+  // spin about the vertical axis, then a fixed slight pitch; orthographic, no scaling
+  const cq = Math.cos(thetaY), sq = Math.sin(thetaY);
+  const xr = x * cq + z * sq;
+  const zr = -x * sq + z * cq;
+  const cp = Math.cos(PITCH), sp = Math.sin(PITCH);
+  const yr = y * cp - zr * sp;
+  const lim = 1e5;
+  const px = cx + xr * S, py = cy - yr * S;
+  return {
+    sx: isFinite(px) ? clampTo(px, -lim, lim) : cx,
+    sy: isFinite(py) ? clampTo(py, -lim, lim) : cy
+  };
+}
+
+function drawSpiral() {
+  const ctx = ctxSpiral;
+  const W = ctx.canvas.width, H = ctx.canvas.height;
+  const cx = W / 2, cy = H * 0.56;
+  const S = Math.min(W, H) * 0.30 / Math.max(1, signalMax);
+  const tSpan = (tMax - tMin) || 1;
+  const tMid = (tMax + tMin) / 2;
+  const depthOf = t => (t - tMid) / (tSpan / 2);
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#16213e';
+  ctx.fillRect(0, 0, W, H);
+  if (!tArr.length) return;
+
+  // the depth axis is time
+  const a0 = projectPoint(0, 0, -1, S, cx, cy);
+  const a1 = projectPoint(0, 0, 1, S, cx, cy);
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(a0.sx, a0.sy);
+  ctx.lineTo(a1.sx, a1.sy);
+  ctx.stroke();
+  ctx.fillStyle = '#7b87a6';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('t = ' + tMin.toFixed(1), a0.sx, a0.sy + 16);
+  ctx.fillText('t = ' + tMax.toFixed(1), a1.sx, a1.sy - 8);
+  if (tMin < 0 && tMax > 0) {
+    const z0 = projectPoint(0, 0, depthOf(0), S, cx, cy);
+    ctx.fillText('t = 0', z0.sx + 24, z0.sy + 4);
+  }
+
+  // the kernel e^{-st}: radius e^{-sigma t}, turning at -omega per unit of t.
+  // Its radius is clipped at three frame lengths so a diverging envelope stays drawable.
+  ctx.strokeStyle = 'rgba(153,165,194,0.75)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let i = 0; i < tArr.length; i += 4) {
+    const r = clampTo(envExp(-curSigma * tArr[i]), 0, 3);
+    const ang = -curOmega * tArr[i];
+    const p = projectPoint(r * Math.cos(ang), r * Math.sin(ang), depthOf(tArr[i]), S, cx, cy);
+    if (i === 0) ctx.moveTo(p.sx, p.sy);
+    else ctx.lineTo(p.sx, p.sy);
+  }
+  ctx.stroke();
+
+  // the product f(t)e^{-st}: the curve whose centroid is F(s)
+  ctx.strokeStyle = '#f72585';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i = 0; i < animX.length; i += 2) {
+    const p = projectPoint(animX[i], animY[i], depthOf(tArr[i]), S, cx, cy);
+    if (i === 0) ctx.moveTo(p.sx, p.sy);
+    else ctx.lineTo(p.sx, p.sy);
+  }
+  ctx.stroke();
+
+  // the origin and the current sample
+  const org = projectPoint(0, 0, depthOf(tMin), S, cx, cy);
+  ctx.fillStyle = '#e0e0e0';
+  ctx.beginPath();
+  ctx.arc(org.sx, org.sy, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  const fi = curFrame();
+  if (fi < animX.length) {
+    const p = projectPoint(animX[fi], animY[fi], depthOf(tArr[fi]), S, cx, cy);
+    ctx.fillStyle = '#4cc9f0';
+    ctx.beginPath();
+    ctx.arc(p.sx, p.sy, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = '#e0e0e0';
+  ctx.font = '12px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('s = ' + curSigma.toFixed(3) + ' ' + (curOmega < 0 ? '\u2212' : '+') + ' j' +
+    Math.abs(curOmega).toFixed(3) + '   |   t = ' + tArr[fi < tArr.length ? fi : 0].toFixed(3) + ' s',
+    W / 2, H - 12);
+  ctx.fillStyle = '#7b87a6';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('drag horizontally to spin', 14, 20);
+}
+
+// ============================================================
+//  EVENT LISTENERS
+// ============================================================
+function onModeChange() {
+  // keep the canonical default function in step with the integration range
+  readModeFromRadios();
+  const el = document.getElementById('funcInput');
+  const txt = el.value.trim();
+  if (mode === 'bilateral' && txt === 'exp(-2*t)') el.value = 'exp(-2*abs(t))';
+  else if (mode === 'unilateral' && txt === 'exp(-2*abs(t))') el.value = 'exp(-2*t)';
+  generate();
+}
+
+function readModeFromRadios() {
+  mode = document.getElementById('modeBi').checked ? 'bilateral' : 'unilateral';
+}
+
+function applyPreset(which) {
+  const set = (id, v) => { document.getElementById(id).value = v; };
+  const setMode = m => {
+    document.getElementById('modeUni').checked = m === 'unilateral';
+    document.getElementById('modeBi').checked = m === 'bilateral';
+  };
+  if (which === 'exp') {
+    set('funcInput', 'exp(-2*t)');
+    setMode('unilateral');
+    set('winLen', 2);
+    set('sigmaMin', -5); set('sigmaMax', 1);
+    curSigma = -2; curOmega = 0;
+  } else if (which === 'ring') {
+    set('funcInput', 'exp(-0.5*t)*cos(2*pi*t)');
+    setMode('unilateral');
+    set('winLen', 8);
+    set('sigmaMin', -2); set('sigmaMax', 1);
+    curSigma = -0.5; curOmega = 2 * Math.PI;
+  } else {
+    set('funcInput', '(t>=0)');
+    setMode('unilateral');
+    set('winLen', 2);
+    set('sigmaMin', -3); set('sigmaMax', 3);
+    curSigma = 0; curOmega = 0;
+  }
+  generate();
+}
+
+document.getElementById('sigmaSlider').addEventListener('input', function() {
+  setSigma(numOr(this.value, curSigma));
+});
+document.getElementById('animSigma').addEventListener('input', function() {
+  setSigma(numOr(this.value, curSigma));
+});
+document.getElementById('animOmega').addEventListener('input', function() {
+  setOmega(numOr(this.value, curOmega));
+});
+document.getElementById('animFrame').addEventListener('input', function() {
+  drawAnim(curFrame());
+  drawSpiral();
+  updateReadouts();
+});
+
+// Allow Enter key to trigger generate
+document.getElementById('funcInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') generate();
+});
+
+document.getElementById('modeUni').addEventListener('change', onModeChange);
+document.getElementById('modeBi').addEventListener('change', onModeChange);
+document.getElementById('presetExp').addEventListener('click', function() { applyPreset('exp'); });
+document.getElementById('presetRing').addEventListener('click', function() { applyPreset('ring'); });
+document.getElementById('presetStep').addEventListener('click', function() { applyPreset('step'); });
+
+const spiralCanvas = document.getElementById('canvasSpiral');
+spiralCanvas.addEventListener('mousedown', function(e) {
+  spinning = true;
+  lastDragX = e.clientX;
+});
+spiralCanvas.addEventListener('mousemove', function(e) {
+  if (!spinning) return;
+  thetaY += (e.clientX - lastDragX) * 0.01;
+  lastDragX = e.clientX;
+  drawSpiral();
+});
+spiralCanvas.addEventListener('mouseup', function() { spinning = false; });
+spiralCanvas.addEventListener('mouseleave', function() { spinning = false; });
+spiralCanvas.addEventListener('touchstart', function(e) {
+  if (e.touches && e.touches.length) { spinning = true; lastDragX = e.touches[0].clientX; }
+});
+spiralCanvas.addEventListener('touchmove', function(e) {
+  if (!spinning || !e.touches || !e.touches.length) return;
+  thetaY += (e.touches[0].clientX - lastDragX) * 0.01;
+  lastDragX = e.touches[0].clientX;
+  drawSpiral();
+  if (e.preventDefault) e.preventDefault();
+});
+spiralCanvas.addEventListener('touchend', function() { spinning = false; });
+
+// ============================================================
+//  INIT: wait for math.js, then generate
+// ============================================================
+let mathReady = false;
+
+function onMathReady() {
+  mathReady = true;
+  const btn = document.getElementById('btnGenerate');
+  btn.disabled = false;
+  btn.textContent = 'Generate';
+  generate();
+}
+
+// Poll until math.js is available
+function checkMath() {
+  if (typeof math !== 'undefined' && math.compile) {
+    onMathReady();
+  } else {
+    setTimeout(checkMath, 150);
+  }
+}
+
+// Also listen for the script's load event
+document.querySelector('script[src*="mathjs"]').addEventListener('load', function() {
+  if (!mathReady) onMathReady();
+});
+
+// Start checking
+setTimeout(checkMath, 100);
+
+// Show a friendly message if math.js fails entirely (8s timeout)
+setTimeout(function() {
+  if (!mathReady) {
+    document.getElementById('btnGenerate').textContent = 'math.js failed to load \u2014 check network';
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('loading').textContent =
+      '\u26A0\uFE0F Failed to load math.js. Please check your internet connection and refresh.';
+  }
+}, 8000);
+</script>
+
+<script>
+// Render LaTeX in Section 7 with KaTeX
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof renderMathInElement === 'function') {
+    renderMathInElement(document.getElementById('section7'), {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false},
+        {left: '\\(', right: '\\)', display: false},
+        {left: '\\[', right: '\\]', display: true}
+      ],
+      throwOnError: false
+    });
+  }
+});
+</script>
+
+</body>
+</html>

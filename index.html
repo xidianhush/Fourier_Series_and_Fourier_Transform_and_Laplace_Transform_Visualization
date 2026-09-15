@@ -1,11 +1,125 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="0; url=./fourier_transform.html">
-<title>Fourier Transform - A Visual Introduction</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fourier &amp; Laplace — Visual Introductions</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --text: #e0e0e0;
+    --text-dim: #99a5c2;
+    --text-faint: #7b87a6;
+    --accent: #4cc9f0;
+    --accent2: #f72585;
+    --hairline: rgba(255, 255, 255, 0.10);
+    --radius: 14px;
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Source Han Serif SC', 'Songti SC', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+    --mono: 'Cascadia Mono', Consolas, 'SFMono-Regular', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: var(--sans);
+    background-color: var(--bg);
+    background-image: radial-gradient(1000px 560px at 50% -220px, rgba(76, 201, 240, 0.10), transparent 70%);
+    background-repeat: no-repeat;
+    color: var(--text);
+    line-height: 1.75; max-width: 940px; margin: 0 auto;
+    padding: clamp(28px, 6vw, 72px) clamp(18px, 5vw, 40px) 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: rgba(76, 201, 240, 0.3); }
+  h1 {
+    font-size: clamp(1.8rem, 4.4vw, 2.5rem); font-weight: 600;
+    text-align: center; color: #f4f8ff; margin: 0 0 16px;
+  }
+  h1::after {
+    content: ''; display: block; width: 68px; height: 2px; border-radius: 2px;
+    margin: 22px auto 0;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .lead {
+    text-align: center; color: var(--text-dim); font-size: 1rem;
+    line-height: 1.85; max-width: 58ch; margin: 0 auto 3rem;
+  }
+  .cards { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .card {
+    position: relative;
+    display: block; text-decoration: none; color: inherit;
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: var(--radius); padding: 26px 24px;
+    box-shadow: 0 26px 55px -34px rgba(0, 0, 0, 0.95);
+    transition: transform 0.16s, border-color 0.16s, box-shadow 0.2s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(76, 201, 240, 0.45);
+    box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 1);
+  }
+  .card .kern {
+    font-family: var(--mono); font-size: 0.82rem; color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .card.laplace .kern { color: var(--accent2); }
+  .card h2 { font-size: 1.16rem; font-weight: 600; color: #eaf2ff; margin: 0 0 10px; }
+  .card p { color: var(--text-dim); font-size: 0.92rem; margin: 0 0 14px; }
+  .card .go { font-size: 0.85rem; color: var(--accent); text-decoration: none; }
+  .card.laplace .go { color: var(--accent2); }
+  /* .go stretches across the whole card, so the card acts as one big link
+     without nesting one anchor inside another, which the parser splits apart */
+  .card .go::after { content: ''; position: absolute; inset: 0; }
+  .card p a { position: relative; z-index: 1; }
+  .foot {
+    margin: 3.4rem auto 0; text-align: center;
+    font-size: 0.82rem; color: var(--text-faint); max-width: 62ch;
+  }
+  .foot code { font-family: var(--mono); color: var(--text-dim); }
+  footer { margin-top: 2rem; text-align: center; font-size: 0.8rem; color: var(--text-faint); }
+  footer a { color: var(--text-dim); text-decoration: none; border-bottom: 1px solid var(--hairline); }
+  footer a:hover { color: var(--accent); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
 </head>
 <body>
-<p>Redirecting to <a href="./fourier_transform.html">Fourier Transform visualization</a>…</p>
+
+<h1>Fourier &amp; Laplace — Visual Introductions</h1>
+<p class="lead">
+  Two interactive pages, both single static HTML files.
+  No build step, no packages, no server: open one and start turning knobs.
+</p>
+
+<div class="cards">
+  <div class="card">
+    <div class="kern">kernel e<sup>−jωt</sup></div>
+    <h2>Fourier Transform</h2>
+    <p>
+      Wind a signal around a circle, watch the center of mass, and read its frequencies off the wobble.
+      Based on <a href="https://www.youtube.com/watch?v=spUNpyF58BY">3Blue1Brown's video</a>.
+    </p>
+    <a class="go" href="./fourier_transform.html">Open fourier_transform.html →</a>
+  </div>
+  <div class="card laplace">
+    <div class="kern">kernel e<sup>−st</sup>, s = σ + jω</div>
+    <h2>Laplace Transform</h2>
+    <p>
+      The same winding machine with a real exponent added: σ tilts the signal, the centroid runs away at a pole,
+      and the s-plane map exposes the region of convergence.
+    </p>
+    <a class="go" href="./laplace_transform.html">Open laplace_transform.html →</a>
+  </div>
+</div>
+
+<p class="foot">
+  Both pages load mathjs and KaTeX from a CDN and evaluate your function numerically — no symbolic algebra.
+  The original notebook, <code>Fourier Transform - A Visual Introduction.ipynb</code>, is still the Python version of the first page.
+</p>
+
+<footer>
+  <a href="https://github.com/thatSaneKid/fourier-transform">Original repository</a>
+</footer>
+
 </body>
 </html>

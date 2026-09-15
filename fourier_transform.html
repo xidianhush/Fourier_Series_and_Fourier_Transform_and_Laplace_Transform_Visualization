@@ -4,87 +4,216 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fourier Transform - A Visual Introduction</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"
-  onerror="this.onerror=null;this.src='https://unpkg.com/mathjs@12.4.1/lib/browser/math.js'"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjs@12.4.1/lib/browser/math.js"
+  onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js'"></script>
 <!-- KaTeX: render LaTeX in the explanation section -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"
-  onerror="this.onerror=null;this.src='https://unpkg.com/katex@0.16.9/dist/katex.min.js';"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
-  onerror="this.onerror=null;this.src='https://unpkg.com/katex@0.16.9/dist/contrib/auto-render.min.js';"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+  onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js';"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js';"></script>
 <style>
   :root {
     --bg: #1a1a2e;
-    --surface: #16213e;
-    --text: #e0e0e0;
+    --surface: #16213e;          /* must equal the canvas fill colour in the JS */
+    --text: #e0e0e0;             /* must equal the canvas label colour in the JS */
+    --text-dim: #99a5c2;
+    --text-faint: #7b87a6;
     --accent: #4cc9f0;
     --accent2: #f72585;
     --border: #2a2a4a;
+    --hairline: rgba(255, 255, 255, 0.10);
+    --radius: 14px;
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Source Han Serif SC', 'Songti SC', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+    --mono: 'Cascadia Mono', Consolas, 'SFMono-Regular', monospace;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
   body {
-    font-family: -apple-system, 'Segoe UI', sans-serif;
-    background: var(--bg); color: var(--text);
-    line-height: 1.7; max-width: 1100px; margin: 0 auto; padding: 20px;
+    font-family: var(--sans);
+    background-color: var(--bg);
+    background-image: radial-gradient(1000px 560px at 50% -220px, rgba(76, 201, 240, 0.10), transparent 70%);
+    background-repeat: no-repeat;
+    color: var(--text);
+    line-height: 1.75; max-width: 1180px; margin: 0 auto;
+    padding: clamp(20px, 4vw, 52px) clamp(16px, 4vw, 40px) 96px;
+    -webkit-font-smoothing: antialiased;
   }
-  h1 { font-size: 1.8rem; text-align: center; margin: 20px 0 10px; color: var(--accent); }
-  h2 { font-size: 1.3rem; color: var(--accent2); margin: 30px 0 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
-  h3 { font-size: 1.05rem; color: var(--accent); margin: 18px 0 8px; }
-  h4 { font-size: 0.95rem; color: var(--text); margin: 14px 0 6px; }
-  p, li { margin: 6px 0; }
-  .video-wrap { text-align: center; margin: 20px 0; }
-  iframe { max-width: 100%; border-radius: 8px; }
+  ::selection { background: rgba(76, 201, 240, 0.3); }
+
+  /* ---- Headings ---- */
+  h1 {
+    font-size: clamp(1.9rem, 4.2vw, 2.55rem); font-weight: 600;
+    letter-spacing: 0.005em; text-align: center; color: #f4f8ff;
+    margin: 0 0 14px;
+  }
+  h1::after {
+    content: ''; display: block; width: 68px; height: 2px; border-radius: 2px;
+    margin: 20px auto 0;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  h2 {
+    font-size: clamp(1.2rem, 2.4vw, 1.42rem); font-weight: 600;
+    letter-spacing: 0.01em; color: #eaf2ff;
+    margin: 4.6rem 0 0.8rem; padding-left: 0.9rem;
+    border-left: 3px solid var(--accent); scroll-margin-top: 24px;
+  }
+  h2:first-of-type { margin-top: 2.4rem; }
+  h3 { font-size: 1.05rem; color: var(--accent); margin: 2rem 0 0.5rem; }
+  h4 {
+    font-size: 0.79rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--accent); margin: 2.6rem 0 0.9rem;
+  }
+  p, li { margin: 0.55rem 0; max-width: 68ch; }
+
+  /* the one-line blurb under each numbered section heading */
+  h2 + p { color: var(--text-dim); font-size: 0.94rem; max-width: 62ch; }
+
+  /* ---- Hero ---- */
+  .lead {
+    text-align: center; color: var(--text-dim); font-size: 1rem;
+    line-height: 1.85; max-width: 56ch; margin: 0 auto 2.2rem;
+  }
+  .lead b { color: #ffffff; font-weight: 600; }
+
+  .video-wrap { text-align: center; margin: 2.4rem 0 1rem; }
+  .video-wrap iframe {
+    width: min(100%, 880px); aspect-ratio: 16 / 9; height: auto;
+    border: 1px solid var(--hairline); border-radius: var(--radius);
+    box-shadow: 0 30px 70px -40px rgba(0, 0, 0, 0.95);
+  }
+  img { max-width: 100%; }
 
   /* ---- Input Panel ---- */
   .input-panel {
-    background: var(--surface); border-radius: 10px; padding: 20px;
-    margin: 20px 0; display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: var(--radius); padding: clamp(18px, 2.6vw, 28px);
+    margin: 1.6rem 0; display: flex; flex-wrap: wrap; gap: 18px 22px; align-items: flex-end;
+    box-shadow: 0 24px 60px -40px rgba(0, 0, 0, 0.95);
   }
-  .input-panel label { font-size: 0.85rem; display: block; margin-bottom: 4px; color: #aaa; }
+  .input-panel label {
+    display: block; font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.13em; color: var(--text-faint); margin-bottom: 7px;
+  }
   .input-panel input {
-    padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);
-    background: var(--bg); color: var(--text); font-size: 0.95rem;
+    padding: 9px 13px; border-radius: 9px; border: 1px solid var(--border);
+    background: rgba(9, 13, 30, 0.6); color: var(--text); font-size: 0.95rem;
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
   }
-  .input-panel input[type="text"] { width: 220px; font-family: 'Consolas', monospace; }
-  .input-panel input[type="number"] { width: 80px; }
+  .input-panel input:focus {
+    outline: none; border-color: var(--accent);
+    background: rgba(9, 13, 30, 0.9);
+    box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.18);
+  }
+  .input-panel input[type="text"] { width: min(260px, 60vw); font-family: var(--mono); }
+  .input-panel input[type="number"] { width: 84px; }
   .btn {
-    padding: 8px 24px; border-radius: 6px; border: none; cursor: pointer;
-    font-size: 1rem; font-weight: 600; transition: 0.2s;
+    padding: 10px 26px; border-radius: 9px; border: none; cursor: pointer;
+    font-size: 0.95rem; font-weight: 600;
+    transition: transform 0.15s, box-shadow 0.2s, background 0.2s, color 0.2s;
   }
-  .btn-primary { background: var(--accent); color: #000; }
-  .btn-primary:hover { background: #80dfff; }
-  .btn-danger { background: var(--accent2); color: #fff; }
-  .btn-danger:hover { background: #ff5ca8; }
-  .note { font-size: 0.8rem; color: #888; margin-top: 4px; }
+  .btn:disabled { opacity: 0.55; cursor: progress; }
+  .btn-primary {
+    background: linear-gradient(180deg, #74daf9, var(--accent)); color: #04121c;
+    box-shadow: 0 12px 28px -16px rgba(76, 201, 240, 0.75);
+  }
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 32px -14px rgba(76, 201, 240, 0.9);
+  }
+  .btn-danger { background: linear-gradient(180deg, #ff64ad, var(--accent2)); color: #fff; }
+  .note { font-size: 0.78rem; color: var(--text-faint); margin-top: 7px; }
+  .note b { color: var(--text-dim); }
+  .btn:focus-visible, .anim-controls button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
 
   /* ---- Canvas containers ---- */
-  .canvas-box { background: var(--surface); border-radius: 10px; padding: 15px; margin: 15px 0; overflow-x: auto; }
-  canvas { display: block; max-width: 100%; }
+  .canvas-box {
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: var(--radius); padding: clamp(14px, 2vw, 22px);
+    margin: 1.4rem 0; overflow-x: auto;
+    box-shadow: 0 26px 55px -34px rgba(0, 0, 0, 0.95);
+  }
+  canvas { display: block; max-width: 100%; margin: 0 auto; }
 
   /* ---- Animation controls ---- */
   .anim-controls {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
-    padding: 10px 0;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 14px;
+    padding: 4px 2px 16px; margin-bottom: 10px;
+    border-bottom: 1px solid var(--hairline);
   }
-  .anim-controls label { font-size: 0.85rem; color: #aaa; }
-  .anim-controls input[type="range"] { flex: 1; min-width: 150px; accent-color: var(--accent); }
+  .anim-controls label {
+    font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.13em; color: var(--text-faint);
+  }
+  .anim-controls #animFreqLabel, .anim-controls #animFrameLabel {
+    font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0;
+    text-transform: none; color: var(--accent);
+  }
+  .anim-controls input[type="range"] { flex: 1; min-width: 160px; accent-color: var(--accent); }
   .anim-controls button {
-    padding: 6px 16px; border-radius: 6px; border: 1px solid var(--accent);
-    background: transparent; color: var(--accent); cursor: pointer; font-size: 0.9rem;
+    padding: 7px 18px; border-radius: 999px;
+    border: 1px solid rgba(76, 201, 240, 0.5);
+    background: rgba(76, 201, 240, 0.08); color: var(--accent);
+    cursor: pointer; font-size: 0.85rem;
+    transition: background 0.18s, color 0.18s;
   }
-  .anim-controls button:hover { background: var(--accent); color: #000; }
-  .anim-controls .play-btn { font-size: 1.2rem; padding: 4px 14px; }
+  .anim-controls button:hover { background: var(--accent); color: #04121c; }
+  .anim-controls .play-btn { font-size: 1rem; padding: 6px 16px; }
 
-  .com-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .com-row { display: flex; flex-wrap: wrap; gap: 12px; }
   .com-row canvas { flex: 1; min-width: 300px; }
 
-  .loading { text-align: center; padding: 40px; color: #888; display: none; }
+  .loading { text-align: center; padding: 28px; color: var(--text-faint); font-size: 0.9rem; display: none; }
+
+  /* ---- Section 5: the essay ---- */
+  #section5 {
+    /* a narrower card, so the reading column is framed instead of floating in a wide empty box */
+    max-width: 880px; margin: 2rem auto;
+    padding: clamp(26px, 4.5vw, 58px) clamp(20px, 5vw, 62px);
+  }
+  /* prose: one sentence per line, flush left, no centring */
+  #section5 p {
+    font-family: var(--serif); font-size: clamp(1rem, 1.3vw, 1.08rem);
+    line-height: 1.9; color: #dee5f4; max-width: 100%; margin: 1.6rem 0;
+  }
+  #section5 h4 { text-align: left; margin: 2.8rem 0 0.9rem; }
+  #section5 strong { color: #ffffff; font-weight: 600; }
+  #section5 em { color: #ffffff; }
+  #section5 img {
+    display: block; width: min(100%, 860px); height: auto;
+    margin: 2.4rem 0 0.5rem;
+    border: 1px solid var(--hairline); border-radius: 10px;
+    box-shadow: 0 34px 70px -46px rgba(0, 0, 0, 1);
+  }
+  #section5 .katex-display,
+  #section5 .katex-display > .katex { text-align: left; }
+  #section5 .katex-display { margin: 1.6em 0; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+
+  @media (max-width: 720px) {
+    body { padding: 22px 16px 64px; }
+    h2 { margin-top: 3rem; }
+    h4 { margin-top: 2rem; }
+    #section5 { padding: 26px 20px; }
+    .input-panel > div:first-child { flex: 1 1 100%; }
+    .input-panel input[type="text"] { width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; animation: none !important; }
+  }
 </style>
 </head>
 <body>
 
 <h1>Fourier Transform — A Visual Introduction</h1>
-<p style="text-align:center;color:#888;">
+<p class="lead">
   Based on the amazing video by <b>3Blue1Brown</b>.
   Enter any function, and watch the Fourier winding machine in action!
 </p>
@@ -99,12 +228,11 @@
 <div class="input-panel">
   <div>
     <label for="funcInput">Function f(t) =</label>
-    <input type="text" id="funcInput" value="exp(-2*t)" placeholder="e.g. exp(-2*t)">
-    <div class="note">Variable: <b>t</b>. Available: exp, sin, cos, abs, sqrt, log, pi</div>
+    <input type="text" id="funcInput" value="exp(-2*abs(t))" placeholder="e.g. exp(-2*abs(t))">
   </div>
   <div>
     <label for="tMin">t min</label>
-    <input type="number" id="tMin" value="0" step="0.1">
+    <input type="number" id="tMin" value="-2" step="0.1">
   </div>
   <div>
     <label for="tMax">t max</label>
@@ -112,7 +240,7 @@
   </div>
   <div>
     <label for="freqMin">Freq min (Hz)</label>
-    <input type="number" id="freqMin" value="0" step="0.1">
+    <input type="number" id="freqMin" value="-10" step="0.1">
   </div>
   <div>
     <label for="freqMax">Freq max (Hz)</label>
@@ -120,11 +248,12 @@
   </div>
   <button class="btn btn-primary" id="btnGenerate" onclick="generate()" disabled>Loading math.js...</button>
 </div>
+<div class="note">Variable: <b>t</b>. Available: exp, sin, cos, abs, sqrt, log, pi. The transform is two-sided, so the time axis covers the negative half: keep <b>t min</b> below 0, and <b>Freq min</b> below 0 to include negative frequencies.</div>
 <div class="loading" id="loading">Computing... please wait...</div>
 
 <!-- ========== SECTION 1: Signal ========== -->
 <h2>1. Generating the Signal</h2>
-<p>Your input function f(t) plotted over the time range.</p>
+<p>Your input function f(t) plotted over the whole time axis, centred on <b>t = 0</b>.</p>
 <div class="canvas-box">
   <canvas id="canvasSignal" width="1000" height="350"></canvas>
 </div>
@@ -168,139 +297,138 @@ The <span style="color:#ff4444;">red dot</span> marks the center of mass.</p>
 <h2>5. Understanding the Geometric Meaning of Fourier Transform &amp; Spectral Density</h2>
 <div class="canvas-box" id="section5">
   <p>
-    Understanding the Fourier transform from the physical perspective of the
-    <strong>center of mass</strong> and of the signal
-    <strong>superposed in a rotating polar coordinate system</strong> is essentially
-    constructing a method that brings out the differences among the different
-    frequency components of a signal.
+    Winding a signal around a circle at frequency $f$ tells frequencies apart.<br>
+    A frequency present in the signal bunches the curve on one side.<br>
+    That pulls the center of mass away from the origin.<br>
+    A frequency that is absent spreads the curve evenly.<br>
+    The center of mass then stays near the origin.
   </p>
 
   <p>
-    Displayed on the complex plane, the geometric meaning of the Fourier transform
-    intuitively reveals how the frequency components of a signal differ. The
-    difference revealed here is the difference in <em>spectral density</em>
-    $F(j\omega)$ (the spectral density will be covered in full later). $F(j\omega)$
-    may be a complex number:
+    That center of mass is what the Fourier transform measures.<br>
+    Writing it down shows why the transform has that shape.
   </p>
-  <ul>
-    <li>its <strong>magnitude</strong> carries the amplitude of the frequency component (note the unit: <strong>V/Hz</strong>);</li>
-    <li>its <strong>phase angle</strong> represents the phase of that frequency component.</li>
-  </ul>
-
-  <p>Next, let's see how the Fourier transform is constructed.</p>
-
-  <p>First, recall the definition of the <em>definite integral</em> — essentially, a limit of a sum.</p>
 
   <h4>Sampling the signal</h4>
   <p>
-    Over the time interval $0 \to T$, sample the signal every $\Delta t$, obtaining
-    $N$ sample points $t_1, t_2, \dots, t_N$; each sample point corresponds to a
-    sampled value $f(t_k)$.
+    Sample the signal every $\Delta t$ over the window $-T/2 \to T/2$.<br>
+    This gives $N$ sample points $t_k = -T/2 + k\,\Delta t$, each with a value $f(t_k)$.<br>
+    The samples and the step size are tied to the window by:
   </p>
+  $$
+  N \cdot \Delta t = T \qquad \Longrightarrow \qquad \frac{\Delta t}{T} = \frac{1}{N}
+  $$
 
-  <h4>The physical center-of-mass viewpoint</h4>
+  <h4>The center of mass as a sum</h4>
   <p>
-    Assume the total mass of the curve is $1$. Divide the curve into $N$ small
-    segments, each of length $\Delta t$:
+    Give the curve a total mass of $1$.<br>
+    The $N$ samples sit in the window $-T/2 \to T/2$, each carrying the mass $1/N$.<br>
+    At step $k$ the curve has wound to the point $e^{-j 2 \pi f t_k}$.<br>
+    So the sample adds the mass $1/N$ at the position $f(t_k)\,e^{-j 2 \pi f t_k}$.<br>
+    The center of mass is therefore:
   </p>
   $$ \sum_{k=1}^{N} \frac{1}{N} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}} $$
 
-  <p>
-    How are the $N$ tiny segments of the curve chosen? At every step of $\Delta t$,
-    the curve has wound to some position in the polar coordinate system — take the
-    coordinates and the mass $1/N$ at that position to compute the center of mass.
-    Do this for all $N$ steps of $\Delta t$.
-  </p>
-
-  <p>And we have the relations:</p>
-  $$
-  \begin{aligned}
-  N \cdot \Delta t & = T \\
-  \frac{\Delta t}{T} & = \frac{1}{N}
-  \end{aligned}
-  $$
-
-  <p>Hence we also have:</p>
-  $$
-  \begin{aligned}
-  & \sum_{k=1}^{N} \frac{\Delta t}{T} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}} \\
-  = & \sum_{k=1}^{N} \frac{\Delta t}{T} f\left(\frac{k \Delta t}{T}\right) e^{-j 2 \pi f \frac{k \Delta t}{T}} \\
-  = & \frac{1}{T} \sum_{k=1}^{N} f\left(\frac{k \Delta t}{T}\right) e^{-j 2 \pi f \frac{k \Delta t}{T}} \Delta t
-  \end{aligned}
-  $$
-
   <h4>Taking the limit — a Riemann sum</h4>
   <p>
-    Here, suppose the function $f(t)$ is bounded on $[0,T]$. Divide the interval
-    $[0,T]$ into $n$ sub-intervals
-    $[t_0,t_1],\ [t_1,t_2],\ \dots,\ [t_{n-1},t_n]$, where the sub-intervals all have
-    the same length $\Delta t = t_1 - t_0,\ \Delta t = t_2 - t_1,\ \dots,\ \Delta t = t_n - t_{n-1}$.
-    On each sub-interval $[t_{k-1},t_k]$ pick an arbitrary point $\xi_{k}$; here we take
-    $\xi_{k} = \dfrac{k \Delta t}{T}$.
-  </p>
-  <p>
-    Form the product of the function value $f(\xi_k)$ and the sub-interval length
-    $\Delta t$: $f(\xi_k)\,\Delta t\ (k=1,2,\dots,N)$, and form the sum:
-  </p>
-  $$ \sum_{k=1}^{N} f\left(\frac{k \Delta t}{T}\right) e^{-j 2 \pi f \frac{k \Delta t}{T}} \Delta t $$
-
-  <p>
-    If the limit of this sum always exists as $\Delta t \to 0$, then multiplying back
-    by the factor $T$ gives:
+    Since $1/N = \Delta t / T$, the sum is an average over $[-T/2, T/2]$:
   </p>
   $$
-  \lim_{\Delta t \to 0} \frac{1}{T} \sum_{k=1}^{N} f\left(\frac{k \Delta t}{T}\right) e^{-j 2 \pi f \frac{k \Delta t}{T}} \Delta t
-  \longrightarrow \frac{1}{T} \int_{0}^{T} f(t) e^{-j 2 \pi f t} \mathrm{d}t
+  \begin{aligned}
+  \sum_{k=1}^{N} \frac{1}{N} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}}
+  & = \sum_{k=1}^{N} \frac{\Delta t}{T} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}} \\
+  & = \frac{1}{T} \sum_{k=1}^{N} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}} \Delta t
+  \end{aligned}
+  $$
+  <p>
+    This is a Riemann sum.<br>
+    The window $[-T/2,T/2]$ is cut into $N$ sub-intervals of length $\Delta t$.<br>
+    On each one, take the point $\xi_k = t_k$.<br>
+    This forms the product $f(\xi_k)\,e^{-j 2 \pi f \xi_k}\,\Delta t$.<br>
+    If $f(t)$ is bounded on $[-T/2,T/2]$, the limit as $\Delta t \to 0$ exists:
+  </p>
+  $$
+  \lim_{\Delta t \to 0} \frac{1}{T} \sum_{k=1}^{N} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}} \Delta t
+  \longrightarrow \frac{1}{T} \int_{-T/2}^{T/2} f(t) e^{-j 2 \pi f t} \mathrm{d}t
   $$
 
-  <h4>Periodic vs. non-periodic signals</h4>
-  <ul>
-    <li>
-      If the signal under study is <strong>periodic</strong>: as $T \to \infty$, the
-      center of mass of this periodic signal has a <strong>finite</strong> coordinate amplitude.
-    </li>
-    <li>
-      If the signal under study is <strong>non-periodic</strong>: as $T \to \infty$, the
-      center of mass wanders very close to the origin — its coordinate amplitude becomes
-      <strong>infinitesimal</strong>.
-    </li>
-  </ul>
+  <h4>An average, not a density</h4>
   <p>
-    This is exactly the point at which we need to introduce the spectral density and the
-    true Fourier transform.
+    Watch the factor $1/T$.<br>
+    What we computed is the <em>average</em> position of the wound curve.<br>
+    The mass was spread over the window, not over the curve itself.
+  </p>
+  <p>
+    For a periodic signal, every period draws the same figure.<br>
+    The center of mass keeps a finite amplitude.<br>
+    The average therefore settles on a definite value.<br>
+    For a non-periodic signal, a longer $T$ spreads the curve over more time.<br>
+    The average is diluted and the center of mass creeps inward.<br>
+    Its amplitude becomes infinitesimal as $T \to \infty$.
+  </p>
+  <p>
+    The information has not disappeared.<br>
+    It was only divided by an ever larger $T$.<br>
+    So the average is the wrong thing to keep.<br>
+    What we want is the <em>density</em>, the center of mass per unit time.
   </p>
 
-  <h4>The true Fourier transform — scaling up the center of mass</h4>
+  <h4>The Fourier transform — scaling the center of mass up</h4>
   <p>
-    The true Fourier transform <em>scales up</em> the center of mass: the longer the
-    integration interval $[0,T]$, the larger the scaled center of mass, until the
-    interval becomes $[0,\infty)$ and even $(-\infty,\infty)$. Multiplying by $T$
-    scales up the center-of-mass coordinates (dimensionally, this corresponds exactly
-    to the spectral density, V/Hz).
+    Multiplying the average by $T$ undoes the normalization.<br>
+    The coordinate of the center of mass then grows with the interval.<br>
+    This step also turns an amplitude in volts into a density.<br>
+    That unit is V/Hz, an amplitude per unit frequency.<br>
+    It is why the result is called a spectral density.
   </p>
-  <p>This gives the true Fourier transform:</p>
-  $$
-  F(j\omega) \stackrel{\mathrm{def}}{=} \int_{-\infty}^{\infty} f(t) e^{-j 2 \pi f t} \mathrm{d}t
-  $$
 
+  <h4>From a finite window to the whole time axis</h4>
   <p>
-    The coordinates of the center of mass on the complex plane correspond to the
-    spectral density:
+    $T$ was only the length of our observation window.<br>
+    It says nothing about the signal itself.<br>
+    A transform should not remember it.<br>
+    So let the window grow at both ends.<br>
+    For a signal that dies out, the new samples carry no amplitude.<br>
+    This exponential is down to about 0.02 when the window closes.<br>
+    Past either end, the sample weight is $0 \cdot e^{-j 2 \pi f t_k} = 0$.<br>
+    That cannot move the center of mass.<br>
+    Both ends therefore stretch out together, and $T$ drops out of the result.<br>
+    Then $\int_{-T/2}^{T/2}$ becomes $\int_{-\infty}^{\infty}$, the two-sided transform.<br>
+    It privileges no starting time.<br>
+    A signal that never dies out, a periodic one say, differs.<br>
+    Extending its window keeps adding fresh periods instead.<br>
+    Letting $t$ cover the whole line also lets $f$ be negative.<br>
+    That is the winding travelling the other way around the circle.<br>
+    A real signal satisfies $F(-f) = \overline{F(f)}$.<br>
+    Its spectrum is therefore conjugate symmetric about $f = 0$.<br>
+    The two halves of the frequency axis are mirror images.<br>
+    The default range here sweeps both of them, and Section 4 shows the symmetric hump.
   </p>
-  <ul>
-    <li>
-      its <strong>magnitude</strong> $|F(j\omega)|$ — the amplitude of the frequency
-      component (note the unit: V/Hz);
-    </li>
-    <li>
-      its <strong>phase angle</strong> $\angle F(j\omega)$ — the phase of the frequency component.
-    </li>
-  </ul>
+  <p>
+    With the window opened out, $T$ has dropped out.<br>
+    The definition of the Fourier transform reads:
+  </p>
+  $$
+  F(j\omega) \stackrel{\mathrm{def}}{=} \int_{-\infty}^{\infty} f(t) e^{-j \omega t} \mathrm{d}t,
+  \qquad \omega = 2\pi f
+  $$
+  <p>
+    Here $\omega$ is the angular frequency for the winding frequency $f$.
+  </p>
+
+  <h4>What the transform tells you</h4>
+  <p>
+    The center of mass of the wound curve lies on the complex plane.<br>
+    So $F(j\omega)$ is in general a complex number.<br>
+    Its magnitude $|F(j\omega)|$ is how far the curve bunches to one side.<br>
+    That carries the amplitude of the frequency component, in V/Hz.<br>
+    Its phase angle $\angle F(j\omega)$ is the direction it bunches in.<br>
+    That carries the phase of the frequency component.
+  </p>
 
   <p>A figure makes this easier to understand:</p>
   <img src="b0ef0ca70073a40eba9fcd213d1a1b5b.jpg"
-    alt="Geometric meaning of the Fourier transform"
-    style="max-width:100%;border-radius:8px;margin-top:10px;">
+    alt="Geometric meaning of the Fourier transform">
 </div>
 
 <script>
@@ -401,7 +529,7 @@ function generate() {
         let sumX = 0;
         for (let i = 0; i < NUM_POINTS; i++) {
           const amp = signal[i];
-          const angle = t[i] * twoPiSF;
+          const angle = -t[i] * twoPiSF;  // winding e^(-j2*pi*f*t), the convention of Section 5
           xk[i] = amp * Math.cos(angle);
           yk[i] = amp * Math.sin(angle);
           sumX += xk[i];
@@ -475,6 +603,20 @@ function drawSignal() {
     ctxSignal.moveTo(pad.left, py);
     ctxSignal.lineTo(W - pad.right, py);
     ctxSignal.stroke();
+  }
+
+  // t = 0 reference line, drawn only when the time axis crosses the origin
+  if (t.length && t[0] < 0 && t[t.length - 1] > 0) {
+    const x0 = tx(0);
+    ctxSignal.save();
+    ctxSignal.setLineDash([4, 4]);
+    ctxSignal.strokeStyle = '#2a2a4a';
+    ctxSignal.lineWidth = 1;
+    ctxSignal.beginPath();
+    ctxSignal.moveTo(x0, pad.top);
+    ctxSignal.lineTo(x0, H - pad.bottom);
+    ctxSignal.stroke();
+    ctxSignal.restore();
   }
 
   // Axes
@@ -583,11 +725,11 @@ function drawWindingCell(ctx, k, numPoints, rect, opts) {
 
 function drawGrid() {
   const W = ctxGrid.canvas.width;
-  const H = ctxGrid.canvas.height;
   const cols = 10;
   const rows = Math.ceil(sfList.length / cols);
   const cellW = W / cols;
-  const cellH = H / rows;
+  const cellH = cellW;                   // 正方形格子
+  ctxGrid.canvas.height = rows * cellH;  // 201 个频率 → 21 行 → 1890
 
   for (let k = 0; k < sfList.length; k++) {
     const col = k % cols;
@@ -613,7 +755,7 @@ function drawAnim(freqIdx, frame) {
   const W = ctxAnim.canvas.width;
   const H = ctxAnim.canvas.height;
 
-  if (sfList.length === 0 || xCord.length === 0) return;
+  if (sfList.length === 0 || xCord.length === 0 || t.length === 0) return;
 
   const k = freqIdx;
   // Same rendering as the Section 2 grid cell for this frequency:
@@ -625,7 +767,7 @@ function drawAnim(freqIdx, frame) {
   ctxAnim.fillStyle = '#e0e0e0';
   ctxAnim.font = '14px sans-serif';
   ctxAnim.textAlign = 'center';
-  ctxAnim.fillText(`Freq = ${sfList[k].toFixed(2)} Hz | Frame ${frame}/${NUM_POINTS-1}`, W/2, H - 10);
+  ctxAnim.fillText(`Freq = ${sfList[k].toFixed(2)} Hz | t = ${t[frame].toFixed(2)} s | Frame ${frame}/${NUM_POINTS-1}`, W/2, H - 10);
 }
 
 function togglePlay() {
@@ -670,16 +812,16 @@ function drawCOMPlots() {
   if (sfList.length === 0) return;
 
   // --- Raw line plot ---
-  drawLinePlot(ctxRaw, sfList, meanList, 'Raw COM x-coordinate', 'Frequency (Hz)', 'COM-x');
+  drawLinePlot(ctxRaw, sfList, meanList, 'Raw COM x-coordinate (two-sided)', 'Frequency (Hz)', 'COM-x');
 
   // --- Smoothed ---
   const maxAbs = Math.max(...meanList.map(Math.abs));
   const threshold = 0.2 * maxAbs;
-  const smoothed = meanList.map(v => (v > 0 && v > threshold) ? v : 0);
-  drawLinePlot(ctxSmooth, sfList, smoothed, 'Smoothed (threshold 20% max)', 'Frequency (Hz)', 'COM-x');
+  const smoothed = meanList.map(v => Math.abs(v) > threshold ? v : 0);
+  drawLinePlot(ctxSmooth, sfList, smoothed, 'Smoothed (threshold 20% of max |value|, two-sided)', 'Frequency (Hz)', 'COM-x');
 
   // --- Bar chart ---
-  drawBarPlot(ctxBar, sfList, smoothed, 'Bar Chart View', 'Frequency (Hz)', 'COM-x');
+  drawBarPlot(ctxBar, sfList, smoothed, 'Bar Chart View (two-sided)', 'Frequency (Hz)', 'COM-x');
 }
 
 function drawLinePlot(ctx, xData, yData, title, xLabel, yLabel) {
@@ -757,16 +899,19 @@ function drawBarPlot(ctx, xData, yData, title, xLabel, yLabel) {
   ctx.fillStyle = '#16213e';
   ctx.fillRect(0, 0, W, H);
 
-  let yMin = 0, yMax = -Infinity;
-  for (const v of yData) { if (v > yMax) yMax = v; }
-  if (!isFinite(yMax)) yMax = 1;
+  let yMin = 0, yMax = 0;
+  for (const v of yData) {
+    if (v < yMin) yMin = v;
+    if (v > yMax) yMax = v;
+  }
   yMax *= 1.1;
+  if (yMax === yMin) { yMin = 0; yMax = 1; }
 
   const plotW = W - pad.left - pad.right;
   const plotH = H - pad.top - pad.bottom;
   const barW = Math.max(1, plotW / xData.length * 0.8);
   function tx(x) { return pad.left + (x - xData[0]) / (xData[xData.length-1] - xData[0]) * plotW; }
-  function ty(y) { return pad.top + plotH - (y / yMax) * plotH; }
+  function ty(y) { return pad.top + plotH - (y - yMin) / (yMax - yMin) * plotH; }
 
   // Axes
   ctx.strokeStyle = '#888';
@@ -777,14 +922,14 @@ function drawBarPlot(ctx, xData, yData, title, xLabel, yLabel) {
   ctx.lineTo(W - pad.right, H - pad.bottom);
   ctx.stroke();
 
-  // Bars
+  // Bars — measured from the zero line, so negative values hang below it
   ctx.fillStyle = '#f72585';
+  const zeroY = ty(0);
   for (let i = 0; i < xData.length; i++) {
-    if (yData[i] > 0) {
+    if (yData[i] !== 0) {
       const bx = tx(xData[i]) - barW / 2;
       const by = ty(yData[i]);
-      const bh = H - pad.bottom - by;
-      ctx.fillRect(bx, by, barW, bh);
+      ctx.fillRect(bx, Math.min(by, zeroY), barW, Math.abs(zeroY - by));
     }
   }
 
