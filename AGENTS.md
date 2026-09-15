@@ -112,12 +112,14 @@ Notebook 共 4 个章节:
 - 验证以人工为主:
   - Notebook:按顺序执行各单元格,确认四节图形与第 3 节动画正常;
   - 网页版:浏览器打开,确认四节渲染与动画/滑块交互正常。
-- notebook 每次重新运行后,会产生 `execution_count`、widget `model_id`、内嵌 base64 图像等大量 diff(当前分支的未提交改动正是这类产物),这是正常现象,不代表代码出错。
+- notebook 每次重新运行后,会产生 `execution_count`、widget `model_id`、内嵌 base64 图像等大量 diff,这是正常现象,不代表代码出错;提交时通常一并带上。
 
 ## 版本控制
 
-- 分支:`master`(上游)与 `feature/use_exponential_function_as_input`(当前分支,HEAD,工作区有未提交改动)。
-- 历史:2019 年原仓库由 thatSaneKid 创建;2026 年 7 月由 hushpro 扩展,新增动画与网页版。未提交改动只是 notebook 重跑产物(execution_count / widget model_id / 内嵌图像),提交时通常一并带上。
+- 仓库:origin = `git@github.com:xidianhush/Fourier_Series_and_Fourier_Transform_and_Laplace_Transform_Visualization`(SSH;2026-09 由原 `Fourier_Series_and_Fourier_Transform_Visualization` 改名而来,改名后 Pages 地址随之变化)。upstream = `https://github.com/thatSaneKid/fourier.git`(2019 年原仓库,仅作参考)。
+- 分支:origin 上只有 `main`(当前分支,跟踪 `origin/main`,工作区干净)。本地另有一个未推送的 `feature/use_exponential_function_as_input`。
+- 历史:2019-06 原仓库由 thatSaneKid 创建;2026-08 由 hushpro 扩展,新增逐帧动画、第 5 节讲解、网页版与 GitHub Pages 入口页;2026-09 把傅里叶页改成双边(时间与频率都跨 0),新增 `laplace_transform.html` 与落地页。
+- 本机环境(实测,换机器后需重新确认):github.com 直连不通,git 走 `http.proxy = http://127.0.0.1:7897`;SSH(`git@github.com`)可用,所以推送用 SSH 地址而不是 HTTPS。CDN 只有 jsdelivr 可达,cdnjs/unpkg 不通 —— 两个页面因此以 jsdelivr 为主地址、cdnjs 为回退。
 
 ## 安全注意事项
 
