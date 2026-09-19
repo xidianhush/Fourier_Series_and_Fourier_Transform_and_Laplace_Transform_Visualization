@@ -46,13 +46,20 @@ node tools/check.js
 `--dump-dom` 确认无脚本错误；对傅里叶反变换页截图做像素扫描（时域曲线、频谱谱线、
 轴标签确实画出来了）。Chrome 路径可用环境变量 `CHROME` 覆盖。
 
+## 在总仓库中的位置
+
+本工程是总仓库（`xidianhush/Fourier_Series_and_Fourier_Transform_and_Laplace_Transform_Visualization`）下的子目录 **`fs_inv_ft_inv_laplace/`**，与姊妹工程 `ft_laplace/`（傅里叶变换、拉普拉斯变换）并列。总仓库根目录的 `index.html` 是总览页，其中一张卡片指向本目录的 `index.html`。
+
+本目录内的引用全部是相对本目录的相对路径，合并时一行未改，因此下面的结构说明仍按本目录自身为根来写。
+
 ## 发布到 GitHub Pages
 
-1. 在 GitHub 新建一个公开仓库，把本目录推送上去（`git init && git add -A && git commit && git remote add origin … && git push -u origin main`）。
-2. 仓库 Settings → Pages → Source 选 `Deploy from a branch`，branch 选 `main`、目录选 `/ (root)`，Save。
-3. 稍等片刻，Settings → Pages 顶部给出站点 URL（`https://<用户名>.github.io/<仓库名>/`），枢纽页即 `index.html`。
+本工程不再单独发布，而是随总仓库一起发布：
 
-站点全部为相对路径引用，部署在任意子路径下均可工作。
+1. 总仓库的 Settings → Pages → Source 选 `Deploy from a branch`，branch 选 `main`、目录选 `/ (root)`。
+2. 站点 URL 形如 `https://<用户名>.github.io/<总仓库名>/`，本工程的枢纽页即 `…/fs_inv_ft_inv_laplace/index.html`。
+
+站点全部为相对路径引用，部署在任意子路径下均可工作——本工程正是这样被整体搬进子目录，而页面之间互不干扰。
 
 ## 浏览器支持
 

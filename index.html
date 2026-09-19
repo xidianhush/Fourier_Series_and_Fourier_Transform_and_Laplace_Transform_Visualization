@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>信号与系统 · 傅里叶 / 拉普拉斯可视化总览</title>
+<meta name="description" content="两套零构建的静态交互可视化：傅里叶变换与拉普拉斯变换，傅里叶级数与傅里叶/拉普拉斯反变换。">
+<meta name="theme-color" content="#1a1a2e">
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --text: #e0e0e0;
+    --text-dim: #99a5c2;
+    --text-faint: #7b87a6;
+    --accent: #4cc9f0;
+    --accent2: #f72585;
+    --hairline: rgba(255, 255, 255, 0.10);
+    --radius: 14px;
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Source Han Serif SC', 'Songti SC', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+    --mono: 'Cascadia Mono', Consolas, 'SFMono-Regular', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: var(--sans);
+    background-color: var(--bg);
+    background-image: radial-gradient(1000px 560px at 50% -220px, rgba(76, 201, 240, 0.10), transparent 70%);
+    background-repeat: no-repeat;
+    color: var(--text);
+    line-height: 1.75; max-width: 940px; margin: 0 auto;
+    padding: clamp(28px, 6vw, 72px) clamp(18px, 5vw, 40px) 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: rgba(76, 201, 240, 0.3); }
+  h1 {
+    font-size: clamp(1.7rem, 4.2vw, 2.4rem); font-weight: 600;
+    text-align: center; color: #f4f8ff; margin: 0 0 16px;
+  }
+  h1::after {
+    content: ''; display: block; width: 68px; height: 2px; border-radius: 2px;
+    margin: 22px auto 0;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .lead {
+    text-align: center; color: var(--text-dim); font-size: 1rem;
+    line-height: 1.85; max-width: 62ch; margin: 0 auto 3rem;
+  }
+  .cards { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .card {
+    position: relative;
+    display: block; text-decoration: none; color: inherit;
+    background: var(--surface); border: 1px solid var(--hairline);
+    border-radius: var(--radius); padding: 26px 24px;
+    box-shadow: 0 26px 55px -34px rgba(0, 0, 0, 0.95);
+    transition: transform 0.16s, border-color 0.16s, box-shadow 0.2s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(76, 201, 240, 0.45);
+    box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 1);
+  }
+  .card .kern {
+    font-family: var(--mono); font-size: 0.82rem; color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .card.series .kern { color: var(--accent2); }
+  .card h2 { font-size: 1.16rem; font-weight: 600; color: #eaf2ff; margin: 0 0 10px; }
+  .card p { color: var(--text-dim); font-size: 0.92rem; margin: 0 0 14px; }
+  .card .go { font-size: 0.85rem; color: var(--accent); text-decoration: none; }
+  .card.series .go { color: var(--accent2); }
+  /* .go stretches across the whole card, so the card acts as one big link
+     without nesting one anchor inside another, which the parser splits apart */
+  .card .go::after { content: ''; position: absolute; inset: 0; }
+  .card .path {
+    display: block; margin-top: 12px; font-family: var(--mono);
+    font-size: 0.76rem; color: var(--text-faint);
+  }
+  section {
+    margin-top: 3.2rem; padding-top: 1.6rem; border-top: 1px solid var(--hairline);
+  }
+  section h2 { font-size: 1.02rem; font-weight: 600; color: #eaf2ff; margin: 0 0 10px; }
+  section p { color: var(--text-dim); font-size: 0.9rem; margin: 6px 0; }
+  section code {
+    font-family: var(--mono); font-size: 0.84rem; color: #bcd0f2;
+    background: #0f1830; border: 1px solid var(--hairline); border-radius: 4px; padding: 1px 5px;
+  }
+  section a { color: var(--text-dim); text-decoration: none; border-bottom: 1px solid var(--hairline); }
+  section a:hover { color: var(--accent); }
+  footer { margin-top: 2.6rem; text-align: center; font-size: 0.8rem; color: var(--text-faint); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<h1>信号与系统 · 傅里叶 / 拉普拉斯可视化总览</h1>
+<p class="lead">
+  两套零构建的静态交互页面，各占一个子目录。逐页打开即可，无需安装任何依赖、无需编译打包。
+</p>
+
+<div class="cards">
+  <div class="card">
+    <div class="kern">kernel e<sup>−jωt</sup> &nbsp;/&nbsp; e<sup>−st</sup></div>
+    <h2>Fourier Transform &amp; Laplace Transform</h2>
+    <p>
+      缠绕机：把信号绕到圆上、盯住质心，从抖动里读出频率成分；再加上实部指数 σ，
+      同一台机器讲清 σ 包络、极点与收敛域。两页都是单文件页面，另一页是 Python notebook 版。
+    </p>
+    <a class="go" href="./ft_laplace/index.html">进入 ft_laplace/index.html →</a>
+    <span class="path">ft_laplace/ · 2 个交互页 + notebook</span>
+  </div>
+  <div class="card series">
+    <div class="kern">Σ 谐波 &nbsp;/&nbsp; ∫ 连续谱</div>
+    <h2>Fourier Series &amp; Inverse Transforms</h2>
+    <p>
+      一条主线：周期信号的谐波求和 → T→∞ 谱线变密而过渡为傅里叶变换 → 傅里叶反变换的黎曼和合成
+      → 换上 e<sup>(σ+jω)t</sup> 的拉普拉斯反变换。每页都用复平面上首尾相接的向量链展示"合成"。
+    </p>
+    <a class="go" href="./fs_inv_ft_inv_laplace/index.html">进入 fs_inv_ft_inv_laplace/index.html →</a>
+    <span class="path">fs_inv_ft_inv_laplace/ · 4 个交互页</span>
+  </div>
+</div>
+
+<section>
+  <h2>本地运行</h2>
+  <p>纯静态站点，没有任何构建步骤。直接双击本文件即可打开：卡片链接都指向具体的 <code>index.html</code>，所以在 <code>file://</code> 下同样能一层层点进去。</p>
+  <p>若浏览器对 <code>file://</code> 有限制，可在本目录启动一个静态服务器，例如 <code>python -m http.server</code>，再访问 <code>http://localhost:8000/</code>。</p>
+</section>
+
+<section>
+  <h2>后续可视化</h2>
+  <p>新增一个案例 = 在本仓库新建一个子目录，再在页面顶部的卡片区加一张卡片，无需改动已有子项目。</p>
+  <p>两个子项目内部一律使用相对路径引用资源，因此放在任意子路径下都能正常工作——这正是它们能被整体搬进子目录、而页面互不干扰的原因。</p>
+</section>
+
+<footer>
+  本仓库由两个独立的可视化工程合并而成，两套页面内部的相对路径与跳转关系保持原样。<br>
+  旧地址 <code>fourier_transform.html</code> 与 <code>laplace_transform.html</code> 会自动跳转到 <code>ft_laplace/</code> 下的对应页面。
+</footer>
+
+</body>
+</html>
