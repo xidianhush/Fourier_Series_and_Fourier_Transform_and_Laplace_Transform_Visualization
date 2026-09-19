@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>连续周期信号 = 谐波关系复指数信号的线性组合</title>
+<meta name="description" content="交互可视化：周期信号 x(t) = Re{F(t)}，F(t) = Σ w_k e^{jkω₀t}；谐波关系的复指数基矢量在复平面首尾相接成链，链末端向 Re 轴的投影就是合成波形。支持单边旋转链、双边复指数级数、共轭成对三种视图与自定义系数编辑。">
+<meta property="og:title" content="傅里叶级数线性叠加">
+<meta property="og:description" content="复平面矢量链末端 = F(t)，其 Re 轴投影 = x(t)；双边视图 c₋ₖ = cₖ* 使虚部两两抵消；下方面板画出 Re F(t) 并与理想波形对比（Gibbs 现象）。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0a1020">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='6' fill='none' stroke='%237fd1ff' stroke-width='2'/><line x1='8' y1='8' x2='13' y2='5' stroke='%23ff5d5d' stroke-width='2'/></svg>">
+<link rel="stylesheet" href="assets/common.css">
+<style>
+  /* 本页专有样式（common.css 已有的规则不重复）：视图单选组、系数编辑表格、折叠说明 */
+  .radios{display:flex; flex-direction:column; gap:5px; font-size:12.5px}
+  .radios label{display:flex; gap:6px; align-items:flex-start; cursor:pointer; color:#c8d6f0}
+  .radios .hint{display:block; color:var(--dim); font-size:11px; line-height:1.35}
+  table{width:100%; border-collapse:collapse; font-size:12px}
+  th,td{padding:3px 4px; text-align:left; border-bottom:1px solid #1b2942}
+  th{color:var(--dim); font-weight:500; font-size:11px}
+  td.kk{width:26px; color:var(--accent2); font-variant-numeric:tabular-nums}
+  td input[type=number]{width:66px; padding:2px 4px; font-size:12px}
+  td.out{color:#9fb3d6; font-variant-numeric:tabular-nums; font-size:11.5px; white-space:nowrap}
+  .edwrap{max-height:212px; overflow-y:auto; border:1px solid var(--line); border-radius:6px; margin-top:6px}
+  .dim{color:var(--dim)}
+  details summary{cursor:pointer; font-size:12.5px; color:#c8d6f0}
+</style>
+</head>
+<body>
+<noscript><div class="jsmissing">本页面需要启用 JavaScript 才能运行可视化动画。</div></noscript>
+
+<header>
+  <h1>连续周期信号 = 谐波关系复指数信号的线性组合</h1>
+  <div class="formula">
+    x(t) = <span class="hl">Re</span>{ F(t) } ,&nbsp;
+    F(t) = Σ<sub>k</sub> w<sub>k</sub> e<sup> j k ω<sub>0</sub> t</sup> ,&nbsp;
+    w<sub>k</sub> = A<sub>k</sub> e<sup> j φ<sub>k</sub></sup> ,&nbsp;
+    ω<sub>0</sub> = 2π/T （此处取 ω<sub>0</sub> = 1 rad/s，T = 2π s）
+  </div>
+</header>
+
+<main>
+  <div class="stage"><canvas id="cv" role="img" tabindex="0" aria-label="傅里叶级数线性叠加动画（谐波关系复指数基向量旋转叠加出合成向量与实部波形）"></canvas></div>
+
+  <aside>
+    <section>
+      <p class="cap">信号与谐波数</p>
+      <label class="row"><span>预设信号</span>
+        <select id="preset">
+          <option value="square">方波（±1，奇对称）</option>
+          <option value="cos">单频余弦 cos(ω₀t)</option>
+          <option value="multi">多音合成（初相位各不相同）</option>
+          <option value="saw">锯齿波 t/π</option>
+          <option value="tri">三角波 1−2|t|/π</option>
+          <option value="comb">周期冲激串（等幅同相）</option>
+          <option value="custom">自定义系数</option>
+        </select>
+      </label>
+      <label class="row"><span>N（最高次）</span>
+        <input type="range" id="N" min="1" max="40" step="1" value="8">
+        <span class="val" id="Nval">8</span>
+      </label>
+      <p class="note" id="Nnote"></p>
+    </section>
+
+    <section>
+      <p class="cap">复平面视图</p>
+      <div class="radios">
+        <label><input type="radio" name="view" value="oneside" checked>
+          <span>单边旋转链 k = 0…N<span class="hint">末端真的旋转 + 伸缩，Re 轴投影即下方波形</span></span></label>
+        <label><input type="radio" name="view" value="double">
+          <span>双边复指数级数 k = −N…N<span class="hint">c₋ₖ = cₖ*，虚部两两抵消 ⟹ 和恒为实数</span></span></label>
+        <label><input type="radio" name="view" value="pair">
+          <span>共轭成对 → 实谐波<span class="hint">±k 合成 A_k cos(kω₀t+φ_k)，全部沿 Re 轴</span></span></label>
+      </div>
+    </section>
+
+    <section>
+      <p class="cap">播放</p>
+      <div class="btns">
+        <button id="play" class="primary">⏸ 暂停</button>
+        <button id="reset">t = 0</button>
+        <button id="step">单步 +T/64</button>
+      </div>
+      <label class="row"><span>速度</span>
+        <input type="range" id="speed" min="0.1" max="3" step="0.1" value="1">
+        <span class="val" id="speedval">1.0×</span>
+      </label>
+    </section>
+
+    <section>
+      <p class="cap">显示</p>
+      <div class="checks">
+        <label><input type="checkbox" id="cCircles" checked>旋转轨迹圆</label>
+        <label><input type="checkbox" id="cLabels" checked>矢量标号</label>
+        <label><input type="checkbox" id="cTrail" checked>末端轨迹</label>
+        <label><input type="checkbox" id="cIdeal" checked>理想波形对比</label>
+      </div>
+    </section>
+
+    <section>
+      <p class="cap">实时数值</p>
+      <div class="ro">
+        <b>t</b><span id="r_t">0.000 s</span>
+        <b>ω₀t</b><span id="r_wt">0.000 rad = 0.000 T</span>
+        <b>Re F(t)</b><span id="r_re">0.000</span>
+        <b>Im F(t)</b><span id="r_im">0.000</span>
+        <b>|F(t)|</b><span id="r_abs">0.000</span>
+        <b>arg F(t)</b><span id="r_arg">0.0°</span>
+      </div>
+    </section>
+
+    <section>
+      <p class="cap">自定义系数编辑器</p>
+      <div class="btns">
+        <button id="loadPreset">从当前预设载入</button>
+        <button id="clearCust">清空</button>
+      </div>
+      <p class="note">
+        每行给一个谐波：A<sub>k</sub> = |w<sub>k</sub>|，φ<sub>k</sub> = 初相位（单位 π）。
+        表中列出教材复指数系数 c<sub>k</sub> = (A<sub>k</sub>/2)e<sup>jφ<sub>k</sub></sup>；
+        k&lt;0 不必填，由 c<sub>−k</sub> = c<sub>k</sub>* 自动生成。改动后自动切到「自定义系数」。
+      </p>
+      <div class="edwrap">
+        <table>
+          <thead><tr><th>k</th><th>A<sub>k</sub></th><th>φ<sub>k</sub>/π</th><th>c<sub>k</sub></th></tr></thead>
+          <tbody id="edBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <details>
+        <summary>三个视图为什么末端一样？</summary>
+        <p class="note">
+          实信号的复指数系数必然共轭对称：c<sub>−k</sub> = c<sub>k</sub>*。于是<br>
+          Σ<sub>k=−N…N</sub> c<sub>k</sub>e<sup>jkω₀t</sup>
+          = c<sub>0</sub> + Σ<sub>k=1…N</sub> 2Re{c<sub>k</sub>e<sup>jkω₀t</sup>}
+          = A<sub>0</sub> + Σ A<sub>k</sub>cos(kω₀t+φ<sub>k</sub>)，恒为实数。<br>
+          「单边旋转链」把权重放大一倍（w<sub>k</sub> = 2c<sub>k</sub>，k≥1）后只保留 k≥0，
+          得到一个真正旋转、伸缩的复向量 F(t)，而 x(t) = Re{F(t)} 与上面完全相同 —— 这就是下方面板画的那条曲线。
+        </p>
+      </details>
+    </section>
+  </aside>
+</main>
+
+<script src="assets/common.js"></script>
+<script src="assets/fsls.js"></script>
+</body>
+</html>

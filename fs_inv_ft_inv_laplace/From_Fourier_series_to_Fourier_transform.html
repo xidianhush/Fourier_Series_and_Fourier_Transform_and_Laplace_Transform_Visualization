@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>从傅里叶级数到傅里叶反变换</title>
+<meta name="description" content="交互可视化：周期 T 增大时谱线间隔 Δω=2π/T 变密、谱线 F_n 变矮而 F_n·T 贴上包络 |X(jω)|，傅里叶级数的离散和逐步趋于傅里叶反变换积分。">
+<meta property="og:title" content="从傅里叶级数到傅里叶反变换">
+<meta property="og:description" content="时域周期延拓、频谱谱线与复平面向量链三图联动：T→∞ 时黎曼和 Σ[F_n·T](Δω/2π)e^{jnω₀t} 收敛为 (1/2π)∫X(jω)e^{jωt}dω。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0a1020">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='6' fill='none' stroke='%237fd1ff' stroke-width='2'/><line x1='8' y1='8' x2='13' y2='5' stroke='%23ff5d5d' stroke-width='2'/></svg>">
+<link rel="stylesheet" href="assets/common.css">
+</head>
+<body>
+<noscript><div class="jsmissing">本页面需要启用 JavaScript 才能运行可视化动画。</div></noscript>
+
+<header>
+  <h1>从傅里叶级数到傅里叶反变换：T 增大 → 谱线变密、F<sub>n</sub> 变矮，离散和 → 积分</h1>
+  <div class="formula">
+    x<sub>T</sub>(t) = Σ<sub>n</sub> F<sub>n</sub> e<sup>jnω₀t</sup>
+    = Σ<sub>n</sub> [<span class="hl">F<sub>n</sub>·T</span>]·(Δω/2π)·e<sup>jnω₀t</sup>
+    &nbsp;─(T→∞, Δω=ω₀→0)→&nbsp;
+    (1/2π)∫<sub>−∞</sub><sup>+∞</sup> X(jω) e<sup>jωt</sup> dω ,&nbsp;
+    F<sub>n</sub>·T → X(jnω₀)
+  </div>
+</header>
+
+<main>
+  <div class="stage"><canvas id="cv" role="img" tabindex="0" aria-label="从傅里叶级数到傅里叶变换的过渡动画（周期增大、谱线变密、离散和趋于积分）"></canvas></div>
+
+  <aside>
+    <section>
+      <p class="cap">信号与周期（主角滑条：T）</p>
+      <label class="row"><span>预设信号</span>
+        <select id="preset">
+          <option value="rect">矩形脉冲（时限）</option>
+          <option value="tri">三角脉冲（时限）</option>
+          <option value="gauss">高斯脉冲（近似时限）</option>
+          <option value="dexp">双边指数 e^{-a|t|}</option>
+          <option value="sexp">单边指数 e^{-at}u(t)（非时限）</option>
+        </select>
+      </label>
+      <label class="row"><span id="shapeLab">τ</span>
+        <input type="range" id="shape" min="0.5" max="4" step="0.05" value="2">
+        <span class="val" id="shapeval">2.00</span>
+      </label>
+      <label class="row"><span>周期 T</span>
+        <input type="range" id="logT" min="0" max="1000" step="1" value="500">
+        <span class="val" id="Tval">—</span>
+      </label>
+      <div class="btns">
+        <button id="autoT">自动增大 T（8 s 扫全程）</button>
+      </div>
+      <label class="row"><span>Ωmax</span>
+        <input type="range" id="omx" min="1" max="64" step="1" value="8">
+        <span class="val" id="omxval">8 主瓣</span>
+      </label>
+      <p class="note">把非周期 x(t) 以 T 为周期延拓成 x<sub>T</sub>(t)。T 小：副本重叠，是周期信号、谱线稀而高；T 大：副本出窗、Δω=2π/T 变密、F<sub>n</sub>·T 贴上包络 |X(jω)|，黎曼和即反变换积分。</p>
+    </section>
+
+    <section>
+      <p class="cap">播放（t 驱动复平面矢量链）</p>
+      <div class="btns">
+        <button id="play" class="primary">⏸ 暂停</button>
+        <button id="step">单步 +T/128</button>
+      </div>
+      <label class="row"><span>t</span>
+        <input type="range" id="tsl" min="0" max="1" step="0.001" value="0">
+        <span class="val" id="tval">0.000</span>
+      </label>
+    </section>
+
+    <section>
+      <p class="cap">显示</p>
+      <div class="checks">
+        <label><input type="checkbox" id="ckEnv" checked>包络 |X(jω)|</label>
+        <label><input type="checkbox" id="ckRaw">纵轴原始 |F<sub>n</sub>|</label>
+        <label><input type="checkbox" id="ckBrk" checked>周期括号 T</label>
+        <label><input type="checkbox" id="ckIdeal" checked>理想 x(t)</label>
+      </div>
+    </section>
+
+    <section>
+      <p class="cap">实时数值</p>
+      <div class="ro">
+        <b>T</b><span id="r_T">—</span>
+        <b>ω₀ = Δω</b><span id="r_w0">—</span>
+        <b>谱线数</b><span id="r_N">—</span>
+        <b>F₀</b><span id="r_F0">—</span>
+        <b>F₀·T vs X(0)</b><span id="r_F0T">—</span>
+        <b>|链端点 − x(t)|</b><span id="r_err">—</span>
+      </div>
+      <p class="note" id="r_capNote"></p>
+    </section>
+
+    <section>
+      <p class="cap">三块面板怎么看</p>
+      <p class="note">上：时域。灰虚线 = 目标非周期 x(t)；彩色 = 周期延拓合成 s<sub>T</sub>(t)=Σ F<sub>n</sub>e<sup>jnω₀t</sup>（泊松：=Σ<sub>k</sub> x(t−kT)）。<br>
+      左下：频谱。谱线 = |F<sub>n</sub>|·T（切「原始 |F<sub>n</sub>|」看按 1/T 变矮），灰包络 = |X(jω)|。<br>
+      右下：复平面。v<sub>n</sub>=F<sub>n</sub>e<sup>jnω₀t</sup>（n=−N…N）首尾相接成链，端点即 s<sub>T</sub>(t)；T 大时段长缩到肉眼难辨，链收敛成光滑曲线 —— 和即积分。</p>
+    </section>
+  </aside>
+</main>
+
+<script src="assets/common.js"></script>
+<script src="assets/bridge.js"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>信号与系统 · 傅里叶 / 拉普拉斯可视化合集</title>
+<meta name="description" content="四个交互可视化：傅里叶级数线性叠加、从傅里叶级数到傅里叶变换、傅里叶反变换合成信号、拉普拉斯反变换合成信号。">
+<meta property="og:title" content="信号与系统 · 傅里叶 / 拉普拉斯可视化合集">
+<meta property="og:description" content="用复平面上旋转伸缩的向量链，看信号如何由复指数信号线性组合 / 积分合成。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0a1020">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='none' stroke='%237fd1ff' stroke-width='1.6'/%3E%3Cline x1='8' y1='8' x2='12.5' y2='4.5' stroke='%23ff5d5d' stroke-width='1.6'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/common.css">
+<style>
+  body{overflow:auto; display:block; height:auto; min-height:100%}
+  .hub{max-width:880px; margin:0 auto; padding:30px 20px 56px}
+  .hub h1{font-size:22px; margin:0 0 8px; letter-spacing:.3px}
+  .hub .lead{color:var(--dim); font-size:14px; line-height:1.75; margin:0 0 24px}
+  .cards{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  @media (max-width:760px){ .cards{grid-template-columns:1fr} }
+  a.card{
+    display:block; padding:14px 16px 15px; border:1px solid var(--line); border-radius:10px;
+    background:var(--panel); color:var(--fg); text-decoration:none;
+  }
+  a.card:hover{border-color:#3d6bb0; background:#152540}
+  a.card b{display:block; font-size:15px; margin-bottom:6px}
+  a.card span{display:block; color:var(--dim); font-size:12.5px; line-height:1.6}
+  .hub section{margin-top:26px; padding-top:16px; border-top:1px solid var(--line)}
+  .hub h2{font-size:15px; margin:0 0 8px}
+  .hub section p{color:var(--dim); font-size:13px; line-height:1.75; margin:6px 0}
+  .hub code{background:#0b1424; border:1px solid var(--line); border-radius:4px; padding:1px 5px; font-size:12px; color:#bcd0f2}
+</style>
+</head>
+<body>
+<noscript><div class="jsmissing">本合集的四个可视化均依赖 JavaScript 绘制画布，请启用 JavaScript 后刷新。</div></noscript>
+<div class="hub">
+  <h1>信号与系统 · 傅里叶 / 拉普拉斯可视化合集</h1>
+  <p class="lead">
+    一条主线：信号 = 复指数信号的线性组合。从周期信号的傅里叶级数（离散谐波求和），
+    到周期 T→∞ 时谱线变密、系数变矮而过渡为傅里叶变换（连续积分），
+    再到把积分换到 s = σ+jω 线上得到拉普拉斯反变换。每一页都用复平面上首尾相接、
+    旋转伸缩的向量链展示"合成"这件事，下方同步显示该向量链在实轴上的投影随 t 的变化。
+  </p>
+  <div class="cards">
+    <a class="card" href="Fourier_series_linear_superposition.html">
+      <b>① 傅里叶级数线性叠加</b>
+      <span>周期信号 = 谐波关系的复指数信号之和。复平面内若干旋转基向量加权首尾相接，端点轨迹的实部即波形。</span>
+    </a>
+    <a class="card" href="From_Fourier_series_to_Fourier_transform.html">
+      <b>② 从傅里叶级数到傅里叶变换</b>
+      <span>T 增大 → 谱线变密、Fₙ 变矮：离散和如何在视觉上过渡为 (1/2π)∫F(jω)e^{jωt}dω。</span>
+    </a>
+    <a class="card" href="Fourier_inverse_transform_synthesis.html">
+      <b>③ 傅里叶反变换合成信号</b>
+      <span>非周期信号 = 遍布 ω 轴的 e^{jωt} 的加权积分。黎曼和向量链、频谱谱线与三维 s 平面视图联动。</span>
+    </a>
+    <a class="card" href="Laplace_inverse_transform_synthesis.html">
+      <b>④ 拉普拉斯反变换合成信号</b>
+      <span>把合成基换成 e^{(σ+jω)t}、权重换成 X(σ+jω)：旋转之外还有伸缩的向量链。</span>
+    </a>
+  </div>
+  <section>
+    <h2>本地运行</h2>
+    <p>纯静态站点，无需构建：直接双击 <code>index.html</code> 用浏览器打开即可。</p>
+    <p>若浏览器对 <code>file://</code> 有限制，可把本目录作为静态根启动一个本地服务器，例如 <code>python -m http.server</code>，然后访问 <code>http://localhost:8000/</code>。</p>
+  </section>
+</div>
+<script src="assets/common.js"></script>
+</body>
+</html>

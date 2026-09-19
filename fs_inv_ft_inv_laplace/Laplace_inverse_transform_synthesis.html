@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拉普拉斯反变换合成信号</title>
+<meta name="description" content="交互可视化：拉普拉斯反变换 Bromwich 积分 f(t)=(1/2πj)∫X(s)e^{st}ds 沿竖线 Re s=σ 的离散合成；s 平面极点/零点/ROC、旋转向量链、谱线与黎曼和时域波形联动。">
+<meta property="og:title" content="拉普拉斯反变换合成信号">
+<meta property="og:description" content="s 平面绿带 = ROC，青竖线 = 积分路径 Re s=σ；向量链首尾相接、端点 = s(t)，e^{σt} 让整条链呼吸；时域黎曼和收敛到理想 f(t)，副本权重 e^{−σkTr}。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0a1020">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='6' fill='none' stroke='%237fd1ff' stroke-width='2'/><line x1='8' y1='8' x2='13' y2='5' stroke='%23ff5d5d' stroke-width='2'/></svg>">
+<link rel="stylesheet" href="assets/common.css">
+</head>
+<body>
+<noscript><div class="jsmissing">本页面需要启用 JavaScript 才能运行可视化动画。</div></noscript>
+
+<header>
+  <h1>拉普拉斯反变换合成信号：遍布 s 平面竖线 Re s = σ 的复指数 e<sup>st</sup> 的线性加权积分，权重 = X(s)ds/2πj</h1>
+  <div class="formula">
+    f(t) = (1/2πj)∫<sub>σ−j∞</sub><sup>σ+j∞</sup> X(s) e<sup>st</sup> ds
+    = (1/2π)∫<sub>−∞</sub><sup>+∞</sup> X(σ+jω) e<sup>σt</sup>e<sup>jωt</sup> dω
+    = lim<sub>Δω→0</sub> Σ<sub>n</sub> X(σ+jnΔω)·<span class="hl">(Δω/2π)</span>·e<sup>(σ+jnΔω)t</sup>
+    &nbsp;—&nbsp; 权重 = <span class="hl">X(s)ds/2πj</span>（无穷小）；e<sup>σt</sup> 让整条矢量链呼吸，矢量链端点 = f(t)
+  </div>
+</header>
+
+<main>
+  <div class="stage"><canvas id="cv" role="img" tabindex="0" aria-label="拉普拉斯反变换合成动画（复平面 s=σ+jω 旋转向量链合成时域信号）"></canvas></div>
+
+  <aside>
+    <section>
+      <p class="cap">信号、收敛横坐标 σ 与频率粒度（主角滑条：Δω 与 σ）</p>
+      <label class="row"><span>预设信号</span>
+        <select id="preset">
+          <option value="sexp" selected>单边指数 e^{-at}u(t)</option>
+          <option value="dsin">衰减正弦 e^{-t}sin(ω0 t)u(t)</option>
+          <option value="dpole">双重极点 t·e^{-at}u(t)</option>
+          <option value="dexp">双边指数 e^{-a|t|}（带状 ROC）</option>
+          <option value="gauss">高斯 e^{-t²/2s²}（全 s 面收敛）</option>
+        </select>
+      </label>
+      <label class="row"><span id="shapeLab">a</span>
+        <input type="range" id="shape" min="0.5" max="4" step="0.05" value="1">
+        <span class="val" id="shapeval">1.00</span>
+      </label>
+      <label class="row"><span>σ (Re s)</span>
+        <input type="range" id="sig" min="-1" max="1" step="0.01" value="0.5">
+        <span class="val" id="sigval">0.50</span>
+      </label>
+      <label class="row"><span>Δω</span>
+        <input type="range" id="logdw" min="0" max="1000" step="1" value="199">
+        <span class="val" id="dwval">—</span>
+      </label>
+      <label class="row"><span>Ω max</span>
+        <input type="range" id="omx" min="4" max="48" step="1" value="8">
+        <span class="val" id="omxval">8 主瓣</span>
+      </label>
+      <p class="note">反变换把 f(t) 写成 s 平面竖线 Re s=σ 上全体复指数 e<sup>st</sup> 的「连续和」：权重 = X(s)ds/2πj。σ 必须落在收敛域 ROC（s 平面绿色带）内：因果信号 σ &gt; 最左极点，双边信号夹在两极点之间。基向量 v<sub>n</sub> 一面旋转（e<sup>jωt</sup>）一面整体呼吸（e<sup>σt</sup>）；σ=0 就退化为傅里叶反变换。计算以 Δω 离散化，共 2N+1 个分量。把 Δω 拖小：谱线变密、权重按 Δω 比例变矮、矢量链段缩到肉眼难辨（用放大镜看），黎曼和贴紧积分；代价是和式以 Tr=2π/Δω 为严格周期，且副本权重为 e<sup>−σkTr</sup>：σ&gt;0 压低未来副本、但把过去副本放大 e<sup>+σTr</sup> 倍。</p>
+    </section>
+
+    <section>
+      <p class="cap">播放（t 驱动复平面矢量链）</p>
+      <div class="btns">
+        <button id="play" class="primary">⏸ 暂停</button>
+        <button id="step">单步 +Tw/64</button>
+      </div>
+      <label class="row"><span>速度</span>
+        <input type="range" id="speed" min="0.1" max="4" step="0.1" value="1">
+        <span class="val" id="speedval">1.0×</span>
+      </label>
+      <label class="row"><span>t</span>
+        <input type="range" id="tsl" min="-1" max="1" step="0.001" value="0">
+        <span class="val" id="tval">0.000</span>
+      </label>
+      <p class="note">播放时 t 在观测窗 ±Tw 内回绕（1× 时 8 s 一圈）；t 滑条可在整轴 ±Xw 内定位；也可直接在下方时域面板按住拖动刮擦。e<sup>σt</sup> 随 t 变化：σ&gt;0 时整条链随时间膨胀、σ&lt;0 收缩、σ=0 只旋转。</p>
+    </section>
+
+    <section>
+      <p class="cap">显示</p>
+      <div class="checks">
+        <label><input type="checkbox" id="ckIdeal" checked>理想 f(t)</label>
+        <label><input type="checkbox" id="ckEnv" checked>包络 |X|·Δω/2π</label>
+        <label><input type="checkbox" id="ckRaw">原始 |X(σ+jω)|</label>
+        <label><input type="checkbox" id="ckLens" checked>放大镜</label>
+        <label><input type="checkbox" id="ckBrk" checked>窗/副本括号+鬼影</label>
+      </div>
+    </section>
+
+    <section>
+      <p class="cap">实时数值</p>
+      <div class="ro">
+        <b>Δω</b><span id="r_dw">—</span>
+        <b>基向量数 2N+1</b><span id="r_N">—</span>
+        <b>max|权重|</b><span id="r_mag">—</span>
+        <b>σ 与 ROC</b><span id="r_sig">—</span>
+        <b>e^{σt}</b><span id="r_esig">—</span>
+        <b>黎曼周期 Tr</b><span id="r_Tr">—</span>
+        <b>观测窗 ±Tw</b><span id="r_Tw">—</span>
+        <b>窗内 max|Re(s−f)|</b><span id="r_err">—</span>
+        <b>t</b><span id="r_t">—</span>
+        <b>端点 s(t)</b><span id="r_end">—</span>
+      </div>
+      <p class="note">误差在观测窗 ±Tw 内计算，含 Ω 截断误差与 Δω 离散误差，也含副本混叠（σ&gt;0 时过去副本被 e<sup>+σTr</sup> 放大冲入窗内会把误差推爆——这正是理论警告的）。双击 s 平面恢复全部被静音分量。</p>
+      <p class="note" id="r_capNote"></p>
+    </section>
+
+    <section>
+      <p class="cap">三块面板怎么看</p>
+      <p class="note">左上：复平面。v<sub>n</sub>=X(σ+jnΔω)(Δω/2π)e<sup>(σ+jnΔω)t</sup>（n=−N…N）首尾相接成链，端点 = 合成 s(t)；红向量 = s(t)，它在 Re 轴上的投影就是时域曲线的高度。所有 v<sub>n</sub> 共享呼吸因子 e<sup>σt</sup>：播放时整条链一边转一边胀缩。Δω 小时段长缩到肉眼难辨 —— 右上圆放大镜把鼠标附近的链放大 ×g 画出来。<br>
+      右上：s 平面。× = 极点、○ = 零点、绿色竖带 = ROC；青色竖线 = 积分路径 Re s=σ（滑条可调，出 ROC 即不收敛）。横谱线 = 权重 |X(σ+jnΔω)|·Δω/2π（随 Δω 成比例缩矮 = 无穷小），灰包络 = 连续 ω 的 |X|·Δω/2π；切「原始 |X|」看包络本身不随 Δω 变。悬停谱线 → 链上同色段白色加粗；点击谱线 → 静音该分量。<br>
+      下：时域。彩色 = 黎曼和合成 Re s(t)（以 Tr=2π/Δω 严格周期，副本权重 e<sup>−σkTr</sup>）；灰虚线 = 理想 f(t)；粉虚线 = 副本鬼影 e<sup>−σkTr</sup>f(t+kTr)。红括号 = 观测窗 ±Tw，黄括号 = 一个黎曼周期 Tr。按住拖动可刮擦 t。</p>
+    </section>
+  </aside>
+</main>
+
+<script src="assets/common.js"></script>
+<script src="assets/laplace.js"></script>
+</body>
+</html>
