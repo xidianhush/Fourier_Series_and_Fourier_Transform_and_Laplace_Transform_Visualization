@@ -24,8 +24,7 @@ const PAGES = [
   { key: 'laplace', file: 'Laplace_inverse_transform_synthesis.html', js: 'assets/laplace.js' },
 ];
 
-/* —— 步骤 B 桩 DOM 配置：IFT 页侧栏控件 id 与加载期默认值（迁移时校准） —— */
-const IFT_IDS = { pre: 'ePre', dw: 'eDw', tw: 'eTw', xw: 'eXw', tsl: 'eTsl' };
+/* —— 步骤 B 桩 DOM 配置：IFT 页加载期默认值 —— */
 const IFT_SEED_VALUES = {};               // 形如 { eDw: '0.05' }；init 会自行写入的控件不必种
 const IFT_SEED_CHECKED = { ckIdeal: true, ckEnv: true, ckRaw: false, ckLens: true, ckBrk: true, ck3d: false };
 const IFT_EXPECT = {
@@ -160,7 +159,7 @@ function stepStubMath() {
     const factory = new Function(
       'window', 'self', 'globalThis', 'document', 'performance',
       'requestAnimationFrame', 'cancelAnimationFrame', 'matchMedia', 'setTimeout', 'clearTimeout',
-      commonSrc + '\n;\n' + iftSrc + '\n;\nreturn window.__IFT;'
+      commonSrc + '\n;\nvar colFor=window.colFor, fmt=window.fmt, fmtG=window.fmtG, bucketOf=window.bucketOf, clamp=window.clamp, attachPointer=window.attachPointer;\n' + iftSrc + '\n;\nreturn window.__IFT;'
     );
     H = factory(stub.win, stub.win, stub.win, stub.win.document, stub.win.performance,
       stub.win.requestAnimationFrame, stub.win.cancelAnimationFrame, stub.win.matchMedia,
@@ -172,31 +171,28 @@ function stepStubMath() {
   if (!H) { report('FAIL', 'stub-math ift', '未导出 window.__IFT'); return; }
   const bad = [];
   const near = (a, b, tol) => Math.abs(a - b) <= tol;
-  if (!H.comp || H.comp.N !== IFT_EXPECT.N) bad.push('N=' + (H.comp && H.comp.N));
+  const C = H.comp();
+  if (!C || C.N !== IFT_EXPECT.N) bad.push('N=' + (C && C.N));
   const e0 = H.chainAt(0).end;
   if (!near(e0[0], IFT_EXPECT.chain0Re, 1e-9)) bad.push('chainAt(0).end[0]=' + e0[0]);
-  const C = H.curve;
-  if (C && C.re && C.t) {
+  const CV = H.curve();
+  if (CV && CV.re && CV.ts) {
     let maxd = 0;
-    for (let i = 0; i < C.re.length; i++) maxd = Math.max(maxd, Math.abs(C.re[i] - H.sExact(C.t[i])));
+    for (let i = 0; i < CV.re.length; i++) maxd = Math.max(maxd, Math.abs(CV.re[i] - H.sExact(CV.ts[i])[0]));
     if (!(maxd < IFT_EXPECT.curveMaxDev)) bad.push('max|curve.re-sExact|=' + maxd);
-  } else bad.push('curve 字段形状不符（re/t）');
-  for (let n = -H.comp.N; n <= H.comp.N; n++) {
+  } else bad.push('curve 字段形状不符（re/ts）');
+  for (let n = -C.N; n <= C.N; n++) {
     if (H.phaseFrac(n) !== 0.5) { bad.push('dexp phaseFrac(' + n + ')=' + H.phaseFrac(n)); break; }
   }
   const reg = H.regime();
   if (!reg || reg.k !== IFT_EXPECT.regimeK) bad.push('regime.k=' + (reg && reg.k));
-  /* 切到 sexp 预设：模拟 UI —— 改 select 值后触发 change（bind 里监听） */
-  const sel = stub.els.get(IFT_IDS.pre);
-  if (sel) {
-    sel.value = 'sexp';
-    (sel._ls.change || []).forEach(f => f({ target: sel }));
-    const N2 = H.comp.N;
-    const pm = H.phaseFrac(-N2), pp = H.phaseFrac(N2), p0 = H.phaseFrac(0);
-    if (!near(pm, IFT_EXPECT.sexpPhaseAtNegN, 1e-3)) bad.push('sexp phaseFrac(-N)=' + pm);
-    if (!near(pp, IFT_EXPECT.sexpPhaseAtPosN, 1e-3)) bad.push('sexp phaseFrac(N)=' + pp);
-    if (!near(p0, 0.5, 1e-9)) bad.push('sexp phaseFrac(0)=' + p0);
-  } else bad.push('找不到预设 select#' + IFT_IDS.pre);
+  /* 切到 sexp 预设：走 apply（内部重算；桩里 frame 不跑、dirty 不消费，勿用 change 事件） */
+  H.apply({ preset: 'sexp', p: H.PRESETS.sexp.pdef });
+  const N2 = H.comp().N;
+  const pm = H.phaseFrac(-N2), pp = H.phaseFrac(N2), p0 = H.phaseFrac(0);
+  if (!near(pm, IFT_EXPECT.sexpPhaseAtNegN, 1e-3)) bad.push('sexp phaseFrac(-N)=' + pm);
+  if (!near(pp, IFT_EXPECT.sexpPhaseAtPosN, 1e-3)) bad.push('sexp phaseFrac(N)=' + pp);
+  if (!near(p0, 0.5, 1e-9)) bad.push('sexp phaseFrac(0)=' + p0);
   if (bad.length === 0) report('ok', 'stub-math ift', 'N/chain0/curve/phaseFrac/regime 全部符合');
   else report('FAIL', 'stub-math ift', bad.join('; '));
 }
