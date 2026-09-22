@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>信号与系统 · 傅里叶 / 拉普拉斯可视化合集</title>
-<meta name="description" content="四个交互可视化：傅里叶级数线性叠加、从傅里叶级数到傅里叶变换、傅里叶反变换合成信号、拉普拉斯反变换合成信号。">
-<meta property="og:title" content="信号与系统 · 傅里叶 / 拉普拉斯可视化合集">
-<meta property="og:description" content="用复平面上旋转伸缩的向量链，看信号如何由复指数信号线性组合 / 积分合成。">
+<title>Signals &amp; Systems · Fourier / Laplace Visualization Collection</title>
+<meta name="description" content="Four interactive visualizations: Fourier series linear superposition, from Fourier series to Fourier transform, signal synthesis by the inverse Fourier transform, and signal synthesis by the inverse Laplace transform.">
+<meta property="og:title" content="Signals &amp; Systems · Fourier / Laplace Visualization Collection">
+<meta property="og:description" content="Watch signals being synthesized as linear combinations / integrals of complex exponentials — drawn as rotating, scaling vector chains in the complex plane.">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#0a1020">
@@ -33,39 +33,42 @@
 </style>
 </head>
 <body>
-<noscript><div class="jsmissing">本合集的四个可视化均依赖 JavaScript 绘制画布，请启用 JavaScript 后刷新。</div></noscript>
+<noscript><div class="jsmissing">All four visualizations in this collection draw on canvas with JavaScript — enable JavaScript and reload.</div></noscript>
 <div class="hub">
-  <h1>信号与系统 · 傅里叶 / 拉普拉斯可视化合集</h1>
+  <h1>Signals &amp; Systems · Fourier / Laplace Visualization Collection</h1>
   <p class="lead">
-    一条主线：信号 = 复指数信号的线性组合。从周期信号的傅里叶级数（离散谐波求和），
-    到周期 T→∞ 时谱线变密、系数变矮而过渡为傅里叶变换（连续积分），
-    再到把积分换到 s = σ+jω 线上得到拉普拉斯反变换。每一页都用复平面上首尾相接、
-    旋转伸缩的向量链展示"合成"这件事，下方同步显示该向量链在实轴上的投影随 t 的变化。
+    One storyline: a signal is a linear combination of complex exponentials. From the Fourier series of a
+    periodic signal (a discrete sum over harmonics), to spectral lines growing denser and shorter as the
+    period T→∞ — the Fourier transform (a continuous integral) — and finally to moving the integration onto
+    the line s = σ+jω, which gives the inverse Laplace transform. Every page shows this "synthesis" as a
+    chain of rotating, scaling vectors placed tip-to-tail in the complex plane, while the lower panel plots
+    the projection of the chain tip onto the real axis as a function of t.
   </p>
   <div class="cards">
     <a class="card" href="Fourier_series_linear_superposition.html">
-      <b>① 傅里叶级数线性叠加</b>
-      <span>周期信号 = 谐波关系的复指数信号之和。复平面内若干旋转基向量加权首尾相接，端点轨迹的实部即波形。</span>
+      <b>① Fourier Series Linear Superposition</b>
+      <span>A periodic signal is a sum of harmonically related complex exponentials. Weighted rotating basis vectors join tip-to-tail in the complex plane; the real part of the chain tip's trajectory is the waveform.</span>
     </a>
     <a class="card" href="From_Fourier_series_to_Fourier_transform.html">
-      <b>② 从傅里叶级数到傅里叶变换</b>
-      <span>T 增大 → 谱线变密、Fₙ 变矮：离散和如何在视觉上过渡为 (1/2π)∫F(jω)e^{jωt}dω。</span>
+      <b>② From Fourier Series to Fourier Transform</b>
+      <span>As T grows, the spectral lines grow denser and <span class="tex">F_n</span> shorter: watch the discrete sum turn into <span class="tex">(1/2\pi)\int F(j\omega)e^{j\omega t}\,d\omega</span>.</span>
     </a>
     <a class="card" href="Fourier_inverse_transform_synthesis.html">
-      <b>③ 傅里叶反变换合成信号</b>
-      <span>非周期信号 = 遍布 ω 轴的 e^{jωt} 的加权积分。黎曼和向量链、频谱谱线与三维 s 平面视图联动。</span>
+      <b>③ Signal Synthesis by the Inverse Fourier Transform</b>
+      <span>An aperiodic signal is a weighted integral of <span class="tex">e^{j\omega t}</span> spread over the whole <span class="tex">\omega</span> axis. The Riemann-sum vector chain moves in sync with the spectral lines, and the spectrum can switch to a 3D fence (standing on <span class="tex">\sigma=0</span> — the <span class="tex">\sigma</span> axis is reserved for the inverse Laplace transform).</span>
     </a>
     <a class="card" href="Laplace_inverse_transform_synthesis.html">
-      <b>④ 拉普拉斯反变换合成信号</b>
-      <span>把合成基换成 e^{(σ+jω)t}、权重换成 X(σ+jω)：旋转之外还有伸缩的向量链。</span>
+      <b>④ Signal Synthesis by the Inverse Laplace Transform</b>
+      <span>The synthesis basis becomes <span class="tex">e^{(\sigma+j\omega)t}</span> and the weights <span class="tex">X(\sigma+j\omega)</span>: a vector chain that scales as it rotates. In the 3D s-plane view at top right, the whole fence stands on the integration path <span class="tex">\mathrm{Re}\,s=\sigma</span>; bar height = weight, color = phase.</span>
     </a>
   </div>
   <section>
-    <h2>本地运行</h2>
-    <p>纯静态站点，无需构建：直接双击 <code>index.html</code> 用浏览器打开即可。</p>
-    <p>若浏览器对 <code>file://</code> 有限制，可把本目录作为静态根启动一个本地服务器，例如 <code>python -m http.server</code>，然后访问 <code>http://localhost:8000/</code>。</p>
+    <h2>Run locally</h2>
+    <p>A purely static site with no build step: just double-click <code>index.html</code> to open it in a browser.</p>
+    <p>If your browser restricts <code>file://</code>, serve this directory as a static root, e.g. <code>python -m http.server</code>, then visit <code>http://localhost:8000/</code>.</p>
   </section>
 </div>
 <script src="assets/common.js"></script>
+<script src="assets/tex.js"></script>
 </body>
 </html>

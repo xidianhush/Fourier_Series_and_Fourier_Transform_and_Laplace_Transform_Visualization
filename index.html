@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>信号与系统 · 傅里叶 / 拉普拉斯可视化总览</title>
-<meta name="description" content="两套零构建的静态交互可视化：傅里叶变换与拉普拉斯变换，傅里叶级数与傅里叶/拉普拉斯反变换。">
+<title>Signals &amp; Systems · Fourier / Laplace Visualization Overview</title>
+<meta name="description" content="Two sets of zero-build static interactive visualizations: the Fourier transform and the Laplace transform, Fourier series and the inverse Fourier/Laplace transforms.">
 <meta name="theme-color" content="#1a1a2e">
 <style>
   :root {
@@ -94,9 +94,9 @@
 </head>
 <body>
 
-<h1>信号与系统 · 傅里叶 / 拉普拉斯可视化总览</h1>
+<h1>Signals &amp; Systems · Fourier / Laplace Visualization Overview</h1>
 <p class="lead">
-  两套零构建的静态交互页面，各占一个子目录。逐页打开即可，无需安装任何依赖、无需编译打包。
+  Two sets of zero-build static interactive pages, one subdirectory each. Just open the pages — nothing to install, nothing to compile.
 </p>
 
 <div class="cards">
@@ -104,39 +104,41 @@
     <div class="kern">kernel e<sup>−jωt</sup> &nbsp;/&nbsp; e<sup>−st</sup></div>
     <h2>Fourier Transform &amp; Laplace Transform</h2>
     <p>
-      缠绕机：把信号绕到圆上、盯住质心，从抖动里读出频率成分；再加上实部指数 σ，
-      同一台机器讲清 σ 包络、极点与收敛域。两页都是单文件页面，另一页是 Python notebook 版。
+      The winding machine: wrap the signal around a circle, watch the center of mass,
+      and read the frequency content out of the wobble. Add a real exponent σ and the same
+      machine explains the σ envelope, poles and the region of convergence. Two single-file pages, plus a Python notebook version.
     </p>
-    <a class="go" href="./ft_laplace/index.html">进入 ft_laplace/index.html →</a>
-    <span class="path">ft_laplace/ · 2 个交互页 + notebook</span>
+    <a class="go" href="./ft_laplace/index.html">Open ft_laplace/index.html →</a>
+    <span class="path">ft_laplace/ · 2 interactive pages + notebook</span>
   </div>
   <div class="card series">
-    <div class="kern">Σ 谐波 &nbsp;/&nbsp; ∫ 连续谱</div>
+    <div class="kern">Σ harmonics &nbsp;/&nbsp; ∫ continuous spectrum</div>
     <h2>Fourier Series &amp; Inverse Transforms</h2>
     <p>
-      一条主线：周期信号的谐波求和 → T→∞ 谱线变密而过渡为傅里叶变换 → 傅里叶反变换的黎曼和合成
-      → 换上 e<sup>(σ+jω)t</sup> 的拉普拉斯反变换。每页都用复平面上首尾相接的向量链展示"合成"。
+      One storyline: harmonic summation of periodic signals → as T→∞ the spectral lines crowd together
+      and become the Fourier transform → Riemann-sum synthesis of the inverse Fourier transform
+      → the inverse Laplace transform with e<sup>(σ+jω)t</sup> swapped in. Every page shows the synthesis as a chain of head-to-tail vectors on the complex plane.
     </p>
-    <a class="go" href="./fs_inv_ft_inv_laplace/index.html">进入 fs_inv_ft_inv_laplace/index.html →</a>
-    <span class="path">fs_inv_ft_inv_laplace/ · 4 个交互页</span>
+    <a class="go" href="./fs_inv_ft_inv_laplace/index.html">Open fs_inv_ft_inv_laplace/index.html →</a>
+    <span class="path">fs_inv_ft_inv_laplace/ · 4 interactive pages</span>
   </div>
 </div>
 
 <section>
-  <h2>本地运行</h2>
-  <p>纯静态站点，没有任何构建步骤。直接双击本文件即可打开：卡片链接都指向具体的 <code>index.html</code>，所以在 <code>file://</code> 下同样能一层层点进去。</p>
-  <p>若浏览器对 <code>file://</code> 有限制，可在本目录启动一个静态服务器，例如 <code>python -m http.server</code>，再访问 <code>http://localhost:8000/</code>。</p>
+  <h2>Run locally</h2>
+  <p>A purely static site with no build step. Just double-click this file to open it: the card links point to concrete <code>index.html</code> files, so you can click your way down even under <code>file://</code>.</p>
+  <p>If your browser restricts <code>file://</code> pages, start a static server in this directory, e.g. <code>python -m http.server</code>, then visit <code>http://localhost:8000/</code>.</p>
 </section>
 
 <section>
-  <h2>后续可视化</h2>
-  <p>新增一个案例 = 在本仓库新建一个子目录，再在页面顶部的卡片区加一张卡片，无需改动已有子项目。</p>
-  <p>两个子项目内部一律使用相对路径引用资源，因此放在任意子路径下都能正常工作——这正是它们能被整体搬进子目录、而页面互不干扰的原因。</p>
+  <h2>Future visualizations</h2>
+  <p>Adding a new case = create a new subdirectory in this repository and add a card to the card row above — no need to touch the existing sub-projects.</p>
+  <p>Both sub-projects reference their resources with relative paths only, so they work when served from any sub-path — which is exactly why they could be moved into subdirectories wholesale without the pages interfering with each other.</p>
 </section>
 
 <footer>
-  本仓库由两个独立的可视化工程合并而成，两套页面内部的相对路径与跳转关系保持原样。<br>
-  旧地址 <code>fourier_transform.html</code> 与 <code>laplace_transform.html</code> 会自动跳转到 <code>ft_laplace/</code> 下的对应页面。
+  This repository merges two formerly independent visualization projects; the relative paths and cross-links inside each set of pages are unchanged.<br>
+  The old addresses <code>fourier_transform.html</code> and <code>laplace_transform.html</code> automatically redirect to the corresponding pages under <code>ft_laplace/</code>.
 </footer>
 
 </body>

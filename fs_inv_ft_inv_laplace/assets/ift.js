@@ -3,7 +3,7 @@
 
 var PRESETS = {
   rect: {
-    name:'矩形脉冲', plab:'τ', pmin:0.5, pmax:4, pstep:0.05, pdef:2,
+    name:'Rect pulse', plab:'τ', pmin:0.5, pmax:4, pstep:0.05, pdef:2,
     sup:function(p){return p/2;}, lobe:function(p){return 2*Math.PI/p;}, tail:function(p){return p/2;},
     area:function(p){return p;},
     x:function(u,p){return Math.abs(u)<p/2?1:0;},
@@ -12,7 +12,7 @@ var PRESETS = {
     breaks:function(p){return [-p/2,p/2];}
   },
   tri: {
-    name:'三角脉冲', plab:'τ', pmin:0.5, pmax:4, pstep:0.05, pdef:2,
+    name:'Tri pulse', plab:'τ', pmin:0.5, pmax:4, pstep:0.05, pdef:2,
     sup:function(p){return p;}, lobe:function(p){return 2*Math.PI/p;}, tail:function(p){return p;},
     area:function(p){return p;},
     x:function(u,p){var a=Math.abs(u); return a<p?1-a/p:0;},
@@ -21,7 +21,7 @@ var PRESETS = {
     breaks:function(p){return [-p,0,p];}
   },
   gauss: {
-    name:'高斯脉冲', plab:'s', pmin:0.3, pmax:2, pstep:0.05, pdef:1,
+    name:'Gauss pulse', plab:'s', pmin:0.3, pmax:2, pstep:0.05, pdef:1,
     sup:function(p){return 3*p;}, lobe:function(p){return 1/p;}, tail:function(p){return 6*p;},
     area:function(p){return p*Math.sqrt(2*Math.PI);},
     x:function(u,p){return Math.exp(-u*u/(2*p*p));},
@@ -30,7 +30,7 @@ var PRESETS = {
     breaks:function(p){return [];}
   },
   dexp: {
-    name:'双边指数', plab:'a', pmin:0.5, pmax:4, pstep:0.05, pdef:1,
+    name:'Two-sided exp', plab:'a', pmin:0.5, pmax:4, pstep:0.05, pdef:1,
     sup:function(p){return 4/p;}, lobe:function(p){return p;}, tail:function(p){return 16/p;},
     area:function(p){return 2/p;},
     x:function(u,p){return Math.exp(-p*Math.abs(u));},
@@ -39,7 +39,7 @@ var PRESETS = {
     breaks:function(p){return [0];}
   },
   sexp: {
-    name:'单边指数', plab:'a', pmin:0.5, pmax:4, pstep:0.05, pdef:1,
+    name:'One-sided exp', plab:'a', pmin:0.5, pmax:4, pstep:0.05, pdef:1,
     sup:function(p){return 4/p;}, lobe:function(p){return p;}, tail:function(p){return 40/p;},
     area:function(p){return 1/p;},
     x:function(u,p){return u>=0?Math.exp(-p*u):0;},
@@ -52,6 +52,7 @@ var PRESETS = {
 var st = {
   preset:'dexp', p:1, dw:0.05, omxUnits:8, t:0, playing:true, speed:1,
   ckIdeal:true, ckEnv:true, ckRaw:false, ckLens:true, ckBrk:true, ck3d:false,
+  freezeScale:true,
   yaw:0.55, pitch:0.34,
   Ncapped:false, mask:null, hoverN:null
 };
@@ -85,6 +86,7 @@ function computeComp(){
   }
   if(!st.mask || st.mask.length!==2*N+1){ st.mask=new Uint8Array(2*N+1); st.mask.fill(1); }
   COMP={N:N,dw:dw,re:re,im:im};
+  computeScale();                                  /* 复平面量程（勾了冻结时）随之刷新 */
 }
 
 function computeCurve(){
@@ -149,7 +151,39 @@ function refIntegral(om,t){
 var cv=document.getElementById('cv');
 var ctx=cv.getContext('2d');
 var R={};
-var lastChain=null, mainSc=1, lensFocus=null, scrubbing=false;
+var lastChain=null, mainSc=1, mainMx=1, lensFocus=null, scrubbing=false;
+
+/* 复平面量程冻结 + 比例尺（与拉普拉斯页同款，**默认也一致：勾上**）：
+   量程取「观测窗 ±Tw 内整条链伸得最远」的幅度 ×1.15，播放/拖动 t 时不重算（`mainMx`；
+   0 是「每帧自适应」的哨兵），于是端点大小可以跨 t 比较，同一组参数下两页画出来一样大；
+   左下角始终有一条 `|s| = …（比例尺）` 给出绝对值。
+   注意纯傅里叶合成（σ=0）里链幅度的起伏来自相位相消而不是 e^{σt}，实测窗内就差
+   34%（rect）～99%（sexp、dexp），所以 t 离开 0 之后链会缩得很小——那是它真实的幅度
+   （拉普拉斯页同理）；想随时看清链就取消勾选，退回每帧自适应（链永远铺满面板、但大小不可比）。 */
+function chainExtentOf(ch){
+  var mx=1e-9, i;
+  for(i=0;i<ch.M;i++){
+    var ax=Math.abs(ch.pts[2*i]), ay=Math.abs(ch.pts[2*i+1]);
+    if(ax>mx)mx=ax; if(ay>mx)mx=ay;
+  }
+  return mx;
+}
+function chainExtent(t){ return chainExtentOf(chainAt(t)); }
+function computeScale(){
+  if(!st.freezeScale){ mainMx=0; return; }
+  var Tw=twNow(), K=20, i, m=1e-9;   /* 21 个采样点、必含 t=0：K 取偶数才能采到中点；
+                                         K=9（10 点）会正好跳过中点，窗内最大幅度被低估、t≈0 时链冲出面板（2026-09 修） */
+  for(i=0;i<=K;i++){ var e=chainExtent(-Tw+2*Tw*i/K); if(e>m)m=e; }
+  if(!(m>0)||!isFinite(m)) m=1;
+  mainMx=m*1.15;
+}
+/* 比例尺上的"整数"刻度：1/2/5×10ⁿ 里最接近且不小于 v 的那个 */
+function niceScaleNum(v){
+  if(!(v>0)||!isFinite(v)) return 1;
+  var e=Math.floor(Math.log(v)/Math.LN10), m=v/Math.pow(10,e);
+  var n=m<=1?1:(m<=2?2:(m<=5?5:10));
+  return n*Math.pow(10,e);
+}
 var rotDrag=false, rotLast=null, lastV3=null;
 
 function fit(){
@@ -181,10 +215,10 @@ function phaseBucket(n){ var b=Math.floor(24*phaseFrac(n)); if(b<0)b=0; if(b>23)
 
 function regime(){
   var Tw=twNow(), Tr=trNow(), Xw=xwNow(), dw=st.dw, lobe=P().lobe(st.p);
-  if(Tr<=2*Tw) return {k:0, txt:'Tr = 2π/Δω = '+fmt(Tr,2)+' ≤ 2·Tw：相邻黎曼周期副本 Σₖ f(t−kTr) 在窗内重叠混叠 —— Δω 太大，继续减小 Δω'};
-  if(Tr<=Xw+Tw) return {k:1, txt:'副本已分开（Tr > 2·Tw），但轴上仍看得到一个完整周期 Tr：s(t) 还是严格周期的黎曼和；继续减小 Δω 把副本推出窗'};
-  if(dw<lobe/8) return {k:2, txt:'Δω 已足够小（< 主瓣/8）且副本出窗：黎曼和 Σ F(jnΔω)(Δω/2π)e^{jnΔω t} ≈ (1/2π)∫F(jω)e^{jωt}dω，窗内即非周期 f(t)；链段已缩到肉眼难辨，用放大镜看'};
-  return {k:3, txt:'副本已出窗，但 Δω='+fmt(dw,4)+' 还不够小（需 < 主瓣/8='+fmt(lobe/8,4)+'）：继续减小 Δω，黎曼和才会贴紧积分'};
+  if(Tr<=2*Tw) return {k:0, txt:'Tr = 2π/Δω = '+fmt(Tr,2)+' ≤ 2·Tw: replicas Σₖ f(t−kTr) of adjacent Riemann periods overlap in the window (aliasing) — Δω too large, keep decreasing Δω'};
+  if(Tr<=Xw+Tw) return {k:1, txt:'Replicas are separate (Tr > 2·Tw), but one full period Tr is still visible on the axis: s(t) is still a strictly periodic Riemann sum; decrease Δω further to push replicas out of the window'};
+  if(dw<lobe/8) return {k:2, txt:'Δω small enough (< lobe/8) and replicas out of window: Riemann sum Σ F(jnΔω)(Δω/2π)e^{jnΔω t} ≈ (1/2π)∫F(jω)e^{jωt}dω — inside the window it is the aperiodic f(t); chain segments too small to see, use the magnifier'};
+  return {k:3, txt:'Replicas out of window, but Δω='+fmt(dw,4)+' not small enough yet (need < lobe/8='+fmt(lobe/8,4)+'): keep decreasing Δω for the Riemann sum to hug the integral'};
 }
 
 function arrow(x1,y1,x2,y2){
@@ -227,7 +261,7 @@ function drawLens(ch){
   ctx.restore();
   ctx.strokeStyle='#33507f'; ctx.beginPath(); ctx.arc(lx,ly,LR,0,6.2832); ctx.stroke();
   ctx.fillStyle='#bcd0f2'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('放大 ×'+fmtG(g), lx-LR+4, ly+LR+14);
+  ctx.fillText('zoom ×'+fmtG(g), lx-LR+4, ly+LR+14);
 }
 
 function drawComplex(){
@@ -235,15 +269,9 @@ function drawComplex(){
   ctx.save();
   ctx.fillStyle='#0e1626'; ctx.fillRect(r.x,r.y,r.w,r.h);
   ctx.strokeStyle='#22314d'; ctx.strokeRect(r.x,r.y,r.w,r.h);
+  ctx.beginPath(); ctx.rect(r.x+1,r.y+1,r.w-2,r.h-2); ctx.clip();
   var ch=chainAt(st.t);
-  var mx=1e-9, i;
-  for(i=0;i<ch.M;i++){
-    var ax=Math.abs(ch.pts[2*i]), ay=Math.abs(ch.pts[2*i+1]);
-    if(ax>mx)mx=ax; if(ay>mx)mx=ay;
-  }
-  if(Math.abs(ch.end[0])>mx)mx=Math.abs(ch.end[0]);
-  if(Math.abs(ch.end[1])>mx)mx=Math.abs(ch.end[1]);
-  mx*=1.15;
+  var mx=mainMx>0?mainMx:chainExtentOf(ch)*1.15, i;   /* 勾了冻结：量程固定；否则每帧自适应 */
   var cx=r.x+r.w/2, cy=r.y+r.h/2+6;
   var sc=Math.min((r.w/2-14)/mx,(r.h/2-22)/mx);
   mainSc=sc;
@@ -254,16 +282,19 @@ function drawComplex(){
   ctx.moveTo(cx,r.y+18); ctx.lineTo(cx,r.y+r.h-8);
   ctx.stroke();
   ctx.fillStyle='#8fa2c4'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('复平面：vₙ=F(jnΔω)(Δω/2π)e^{jnΔω t} 首尾相接（n=−N…N），端点 = s(t)；颜色 = t=0 初相位', r.x+8, r.y+14);
+  ctx.fillText('Complex plane: vₙ=F(jnΔω)(Δω/2π)e^{jnΔω t} joined head-to-tail (n=−N…N), endpoint = s(t); color = initial phase at t=0'+
+    (st.freezeScale?'; scale frozen over window ±Tw (scale bar, lower left)':'; scale auto-fits each frame, scale bar lower left gives absolute value'), r.x+8, r.y+14);
   ctx.fillText('Re', r.x+r.w-20, cy-4);
   ctx.fillText('Im', cx+4, r.y+28);
   var N=COMP.N;
-  var B=24, paths=[];
+  var B=24, paths=[], chainB=new Int16Array(ch.M);
   for(i=0;i<B;i++) paths.push(null);
-  for(i=1;i<ch.M;i++){
-    var b=phaseBucket(i-N);
+  for(i=0;i<ch.M;i++){
+    var nseg=i-N, b=phaseBucket(nseg);         /* 第 i 段 = 分量 v_{i−N}：i=0 那段从原点出发（原先从 i=1 起画，漏了 v_{−N}） */
+    chainB[nseg+N]=b;
+    var x1=(i===0?cx:X(ch.pts[2*i-2])), y1=(i===0?cy:Y(ch.pts[2*i-1]));
     if(!paths[b]) paths[b]=[];
-    paths[b].push(X(ch.pts[2*i-2]),Y(ch.pts[2*i-1]),X(ch.pts[2*i]),Y(ch.pts[2*i+1]));
+    paths[b].push(x1,y1,X(ch.pts[2*i]),Y(ch.pts[2*i+1]));
   }
   for(i=0;i<B;i++){
     if(!paths[i]) continue;
@@ -282,18 +313,45 @@ function drawComplex(){
     }
   }
   var ex=X(ch.end[0]), ey=Y(ch.end[1]);
+  var eLen=Math.hypot(ex-cx,ey-cy), eStub=false;
   ctx.strokeStyle='#ff5d5d'; ctx.fillStyle='#ff5d5d'; ctx.lineWidth=2;
-  if(Math.hypot(ex-cx,ey-cy)>3) arrow(cx,cy,ex,ey);
+  if(eLen>3){
+    arrow(cx,cy,ex,ey);
+  } else if(eLen>1e-3){
+    /* 端点太短：按真实方向画一支虚线"示意箭头"（固定 12px），并标注它不是实长 */
+    var ux=(ex-cx)/eLen, uy=(ey-cy)/eLen, SL=12;
+    ctx.save();
+    ctx.globalAlpha=0.55; ctx.setLineDash([3,3]);
+    arrow(cx,cy,cx+ux*SL,cy+uy*SL);
+    ctx.restore();
+    eStub=true;
+    ctx.fillStyle='#ffb0b0';
+    ctx.fillText('≈0 (arrow symbolic, magnified '+fmtG(SL/eLen)+'×)', cx+ux*SL+6, cy+uy*SL+14);
+  } else {
+    ctx.fillStyle='#ffb0b0';
+    ctx.fillText('≈0 (|s(t)| too small to draw a direction)', cx+8, cy+14);
+  }
   ctx.lineWidth=1;
-  ctx.fillText('s(t)', (cx+ex)/2+6, (cy+ey)/2-6);
   ctx.strokeStyle='#8fa2c4'; ctx.setLineDash([4,4]); ctx.beginPath();
   ctx.moveTo(ex,ey); ctx.lineTo(ex,cy); ctx.stroke(); ctx.setLineDash([]);
   ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(ex,ey,3.5,0,6.2832); ctx.fill();
-  ctx.fillStyle='#e8eefc';
+  ctx.fillStyle='#e8eefc'; ctx.font='11px Segoe UI, sans-serif';
   ctx.fillText('Re s(t) = '+fmt(ch.end[0],4), ex+6, ey-6);
+  if(eLen>20) ctx.fillText('s(t)', (cx+ex)/2+6, (cy+ey)/2-6);   /* 端点贴近原点时这行会和上一行叠在一起 */
+  /* 比例尺：把量程的一段按实长画出来并标数值，任何 t 下都能读绝对值 */
+  var barV=niceScaleNum(66/sc), barL=barV*sc;
+  if(barL>r.w*0.34){ barV=niceScaleNum(barL/2/sc); barL=barV*sc; }
+  var bx=r.x+14, by=r.y+r.h-16;
+  ctx.strokeStyle='#8fa2c4'; ctx.fillStyle='#8fa2c4'; ctx.lineWidth=1; ctx.beginPath();
+  ctx.moveTo(bx,by); ctx.lineTo(bx+barL,by);
+  ctx.moveTo(bx,by-4); ctx.lineTo(bx,by+4);
+  ctx.moveTo(bx+barL,by-4); ctx.lineTo(bx+barL,by+4);
+  ctx.stroke();
+  var barTxt=(barV>=1)?fmtG(barV):(barV>=0.01?barV.toFixed(3):barV.toExponential(2));  /* fmtG 对 <0.1 会退化成 0.0，这里补足有效数字 */
+  ctx.fillText('|s| = '+barTxt+' (scale)', bx+barL+7, by+4);
   if(st.ckLens && ch.M>=13) drawLens(ch);
   ctx.restore();
-  lastChain={pts:ch.pts,M:ch.M,cx:cx,cy:cy,sc:sc};
+  lastChain={pts:ch.pts,M:ch.M,cx:cx,cy:cy,sc:sc,endPx:eLen,stub:eStub,buckets:chainB};
   return ch;
 }
 
@@ -320,7 +378,7 @@ function drawSpec(){
   var y0=Y(0);
   ctx.strokeStyle='#2a3b5c'; ctx.beginPath(); ctx.moveTo(r.x,y0); ctx.lineTo(r.x+r.w,y0); ctx.stroke();
   ctx.fillStyle='#8fa2c4'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('频谱：谱线 = '+(raw?'原始 |F(jnΔω)|':'权重 |F(jnΔω)|·Δω/2π（点击静音，双击恢复）')+(st.ckEnv?('，灰包络 '+(raw?'|F(jω)|':'|F(jω)|·Δω/2π')):'')+'；颜色 = t=0 初相位 arg F(jnΔω)', r.x+8, r.y+14);
+  ctx.fillText('Spectrum: lines = '+(raw?'raw |F(jnΔω)|':'weights |F(jnΔω)|·Δω/2π (click to mute, double-click to restore)')+(st.ckEnv?(', gray envelope '+(raw?'|F(jω)|':'|F(jω)|·Δω/2π')):'')+'; color = initial phase arg F(jnΔω) at t=0', r.x+8, r.y+14);
   ctx.fillText('ω', r.x+r.w-10, y0-4);
   if(st.ckEnv){
     ctx.strokeStyle='#9aa8c0'; ctx.beginPath();
@@ -394,10 +452,10 @@ function drawSpec3d(){
   var h1=pj(-om,-sv,0), h2=pj(-om,-sv,ymax);
   ctx.strokeStyle='#2a3b5c'; ctx.beginPath(); ctx.moveTo(h1[0],h1[1]); ctx.lineTo(h2[0],h2[1]); ctx.stroke();
   ctx.fillStyle='#8fa2c4'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('3D 频谱：σ=0 栅栏 = 权重 |F(jnΔω)|·Δω/2π，颜色 = t=0 初相位，按住拖动旋转；双击恢复静音；点击静音请用 2D 模式', r.x+8, r.y+14);
-  ctx.fillText('σ 轴为拉普拉斯反变换预留：将来栅栏沿 σ 滑动、脚下铺出 |X(σ+jω)| 高度曲面', r.x+8, r.y+28);
+  ctx.fillText('3D spectrum: σ=0 fence = weights |F(jnΔω)|·Δω/2π, color = initial phase at t=0, drag to rotate; double-click to unmute all; to mute by click use 2D mode', r.x+8, r.y+14);
+  ctx.fillText('The σ axis is reserved for the inverse Laplace page: its top-right panel is a 3D s-plane, with the fence slid along σ onto Re s=σ', r.x+8, r.y+28);
   ctx.fillText('ω', a2[0]+6, a2[1]+4);
-  ctx.fillText('σ（预留）', b2[0]+6, b2[1]-2);
+  ctx.fillText('σ (reserved)', b2[0]+6, b2[1]-2);
   ctx.fillText('|W|', h2[0]-4, h2[1]-6);
   if(st.ckEnv){
     var M=200, gp=[], tp=[];
@@ -459,7 +517,7 @@ function drawTime(){
   ctx.strokeStyle='#2a3b5c'; ctx.beginPath();
   ctx.moveTo(r.x,Y(0)); ctx.lineTo(r.x+r.w,Y(0)); ctx.stroke();
   ctx.fillStyle='#8fa2c4'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('时域：彩色 = 黎曼和合成 Re s(t)（以 Tr=2π/Δω 周期），灰虚线 = 理想 f(t)；按住拖动刮擦 t', r.x+8, r.y+14);
+  ctx.fillStyle='#8fa2c4'; ctx.fillText('Time domain: colored = Riemann-sum synthesis Re s(t) (periodic with Tr=2π/Δω, ≈ f(t) inside window, replicas/truncation residue outside), gray dashed = ideal f(t); drag to scrub t', r.x+8, r.y+14);
   ctx.fillText('t', r.x+r.w-10, Y(0)-4);
   ctx.save();
   ctx.translate(r.x+12, r.y+r.h/2);
@@ -467,9 +525,6 @@ function drawTime(){
   ctx.textAlign='center';
   ctx.fillText('Re s(t)', 0, 0);
   ctx.restore();
-  ctx.strokeStyle='#9fe8b4'; ctx.setLineDash([3,4]); ctx.beginPath();
-  ctx.moveTo(X(0), r.y+18); ctx.lineTo(X(0), r.y+r.h-8); ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle='#9fe8b4'; ctx.fillText('t=0', X(0)+5, r.y+30);
   if(st.ckIdeal){
     ctx.strokeStyle='#7a8db0'; ctx.setLineDash([5,4]); ctx.beginPath();
     for(i=0;i<=400;i++){ var u2=-Xw+2*Xw*i/400; var y2=Y(xOf(u2)); if(i===0)ctx.moveTo(X(u2),y2); else ctx.lineTo(X(u2),y2); }
@@ -478,6 +533,22 @@ function drawTime(){
   ctx.strokeStyle='#7fd1ff'; ctx.lineWidth=2; ctx.beginPath();
   for(i=0;i<CURVE.NT;i++){ var y3=Y(CURVE.re[i]); if(i===0)ctx.moveTo(X(CURVE.ts[i]),y3); else ctx.lineTo(X(CURVE.ts[i]),y3); }
   ctx.stroke(); ctx.lineWidth=1;
+  /* 时间原点 t=0 的那条轴再画一次（放在曲线之后，免得被因果信号在 t=0 的跳变盖住）：
+     顺便在它左侧标幅值刻度，步长取 1/2/5×10ⁿ 的整数倍。 */
+  var xa0=X(0), vstep=niceScaleNum(ymax/3.4), k6;
+  ctx.strokeStyle='#9fe8b4'; ctx.setLineDash([3,4]); ctx.beginPath();
+  ctx.moveTo(xa0+0.5,r.y+18); ctx.lineTo(xa0+0.5,r.y+r.h-8); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='#9fe8b4'; ctx.fillText('t=0 (time origin & amplitude axis)', xa0+5, r.y+30);
+  ctx.fillStyle='#8fa2c4'; ctx.strokeStyle='#8fa2c4'; ctx.font='10px Segoe UI, sans-serif';
+  for(k6=-6;k6<=6;k6++){
+    if(k6===0) continue;
+    var vv6=k6*vstep; if(Math.abs(vv6)>ymax*1.02) continue;
+    var yy6=Y(vv6);
+    ctx.beginPath(); ctx.moveTo(xa0-5.5,yy6+0.5); ctx.lineTo(xa0+0.5,yy6+0.5); ctx.stroke();
+    ctx.textAlign='right'; ctx.fillText(fmtG(vv6), xa0-7, yy6+3.5); ctx.textAlign='left';
+  }
+  ctx.textAlign='right'; ctx.fillText('0', xa0-7, Y(0)+3.5); ctx.textAlign='left';
+  ctx.font='11px Segoe UI, sans-serif';
   if(st.ckBrk){
     var yb=r.y+r.h-34;
     ctx.strokeStyle='#ff5d5d'; ctx.beginPath();
@@ -485,7 +556,7 @@ function drawTime(){
     ctx.moveTo(X(-Tw),yb-5); ctx.lineTo(X(-Tw),yb+5);
     ctx.moveTo(X(Tw),yb-5); ctx.lineTo(X(Tw),yb+5);
     ctx.stroke();
-    ctx.fillStyle='#ff5d5d'; ctx.fillText('观测窗 ±Tw='+fmt(Tw,2), X(0)-40, yb-6);
+    ctx.fillStyle='#ff5d5d'; ctx.fillText('window ±Tw='+fmt(Tw,2), X(0)-40, yb-6);
     if(Tr/2<=Xw){
       var yp=r.y+r.h-18;
       ctx.strokeStyle='#ffd479'; ctx.beginPath();
@@ -493,7 +564,7 @@ function drawTime(){
       ctx.moveTo(X(-Tr/2),yp-5); ctx.lineTo(X(-Tr/2),yp+5);
       ctx.moveTo(X(Tr/2),yp-5); ctx.lineTo(X(Tr/2),yp+5);
       ctx.stroke();
-      ctx.fillStyle='#ffd479'; ctx.fillText('黎曼周期 Tr='+fmt(Tr,2), X(0)-44, yp-6);
+      ctx.fillStyle='#ffd479'; ctx.fillText('Riemann period Tr='+fmt(Tr,2), X(0)-44, yp-6);
     }
   }
   var xt=X(st.t), se=sExact(st.t);
@@ -532,7 +603,7 @@ var ePreset=el('preset'), eShape=el('shape'), eShapeLab=el('shapeLab'), eShapeVa
 var eLogDw=el('logdw'), eDwVal=el('dwval'), eOmx=el('omx'), eOmxVal=el('omxval');
 var ePlay=el('play'), eStep=el('step'), eSpeed=el('speed'), eSpeedVal=el('speedval');
 var eTsl=el('tsl'), eTval=el('tval');
-var eIdeal=el('ckIdeal'), eEnv=el('ckEnv'), eRaw=el('ckRaw'), eLens=el('ckLens'), eBrk=el('ckBrk'), eCk3d=el('ck3d');
+var eIdeal=el('ckIdeal'), eEnv=el('ckEnv'), eRaw=el('ckRaw'), eLens=el('ckLens'), eBrk=el('ckBrk'), eCk3d=el('ck3d'), eFreeze=el('ckFreeze');
 var rDw=el('r_dw'), rN=el('r_N'), rMag=el('r_mag'), rTr=el('r_Tr'), rTw=el('r_Tw'), rErr=el('r_err'), rT=el('r_t'), rEnd=el('r_end'), rNote=el('r_capNote');
 
 var dirty=true;
@@ -548,7 +619,8 @@ function syncDw(){
   eLogDw.value=Math.round(u*1000);
   eDwVal.textContent=fmt(st.dw,4);
 }
-function syncOmx(){ eOmxVal.textContent=st.omxUnits+' 主瓣'; }
+function syncOmx(){ eOmxVal.textContent=st.omxUnits+' lobes'; }
+function syncChecks(){ eFreeze.checked=st.freezeScale; }
 function syncSpeed(){ eSpeed.value=st.speed; eSpeedVal.textContent=(+st.speed).toFixed(1)+'×'; }
 function syncTsl(){
   var Xw=xwNow();
@@ -559,13 +631,13 @@ function syncTsl(){
 
 function readouts(ch){
   var N=COMP.N, dw=st.dw, n;
-  rDw.textContent=fmt(dw,5)+' rad/s'+(st.Ncapped?'（N 已封顶 2048）':'');
+  rDw.textContent=fmt(dw,5)+' rad/s'+(st.Ncapped?' (N capped at 2048)':'');
   rN.textContent=''+(2*N+1);
   var mmax=0;
   for(n=-N;n<=N;n++){ var m=Math.hypot(COMP.re[n+N],COMP.im[n+N]); if(m>mmax)mmax=m; }
   rMag.textContent=mmax.toExponential(2);
   rTr.textContent=fmt(trNow(),2)+' s';
-  rTw.textContent='±'+fmt(twNow(),2)+' s（轴 ±'+fmt(CURVE.Xw,2)+'）';
+  rTw.textContent='±'+fmt(twNow(),2)+' s (axis ±'+fmt(CURVE.Xw,2)+')';
   var Tw=twNow(), e=0;
   for(var i=0;i<CURVE.NT;i++){
     var t=CURVE.ts[i]; if(Math.abs(t)>Tw) continue;
@@ -575,7 +647,7 @@ function readouts(ch){
   rT.textContent=fmt(st.t,3);
   rEnd.textContent=fmt(ch.end[0],4)+(ch.end[1]<0?' − j':' + j')+fmt(Math.abs(ch.end[1]),4);
   var rg=regime();
-  rNote.textContent=['阶段 1/4：Δω 太大，副本重叠混叠','阶段 2/4：副本分开但仍见周期 Tr','阶段 3/4：和 ≈ 积分（非周期极限）','阶段 2.5/4：副本出窗但 Δω 仍偏大'][rg.k];
+  rNote.textContent=['Stage 1/4: Δω too large, replicas overlap (aliasing)','Stage 2/4: replicas separate but period Tr still visible','Stage 3/4: sum ≈ integral (aperiodic limit)','Stage 2.5/4: replicas out of window but Δω still too big'][rg.k];
 }
 
 function canvasPos(e){ var rc=cv.getBoundingClientRect(); return [e.clientX-rc.left, e.clientY-rc.top]; }
@@ -592,9 +664,9 @@ function bind(){
   eShape.addEventListener('input',function(e){ st.p=parseFloat(e.target.value); eShapeVal.textContent=(+st.p).toFixed(2); syncTsl(); dirty=true; });
   eLogDw.addEventListener('input',function(e){ var u=(+e.target.value)/1000; st.dw=0.02*Math.pow(100,u); syncDw(); syncTsl(); dirty=true; });
   eOmx.addEventListener('input',function(e){ st.omxUnits=+e.target.value; syncOmx(); dirty=true; });
-  ePlay.addEventListener('click',function(){ st.playing=!st.playing; ePlay.textContent=st.playing?'⏸ 暂停':'▶ 播放'; });
+  ePlay.addEventListener('click',function(){ st.playing=!st.playing; ePlay.textContent=st.playing?'⏸ Pause':'▶ Play'; });
   eStep.addEventListener('click',function(){
-    st.playing=false; ePlay.textContent='▶ 播放';
+    st.playing=false; ePlay.textContent='▶ Play';
     var Tw=twNow(); st.t+=Tw/64; if(st.t>Tw) st.t-=2*Tw;
     eTsl.value=st.t;
   });
@@ -605,6 +677,7 @@ function bind(){
   eRaw.addEventListener('change',function(e){ st.ckRaw=e.target.checked; });
   eLens.addEventListener('change',function(e){ st.ckLens=e.target.checked; });
   eBrk.addEventListener('change',function(e){ st.ckBrk=e.target.checked; });
+  eFreeze.addEventListener('change',function(e){ st.freezeScale=e.target.checked; dirty=true; });
   eCk3d.addEventListener('change',function(e){ st.ck3d=e.target.checked; st.hoverN=null; });
   attachPointer(cv,{
   move:function(e){
@@ -644,7 +717,7 @@ function bind(){
       rotDrag=true; rotLast=p; e.preventDefault(); return;
     }
     if(inRect(p,R.time)){
-      scrubbing=true; st.playing=false; ePlay.textContent='▶ 播放';
+      scrubbing=true; st.playing=false; ePlay.textContent='▶ Play';
       setTFromX(p[0]); e.preventDefault();
     }
   },
@@ -653,7 +726,7 @@ function bind(){
   cv.addEventListener('mouseleave',function(){ st.hoverN=null; lensFocus=null; rotDrag=false; rotLast=null; });
   cv.addEventListener('keydown',function(e){
     if(e.key==='ArrowLeft'||e.key==='ArrowRight'){
-      st.playing=false; ePlay.textContent='▶ 播放';
+      st.playing=false; ePlay.textContent='▶ Play';
       st.t=clamp(st.t+(e.key==='ArrowRight'?1:-1)*twNow()/64,-xwNow(),xwNow());
       eTsl.value=st.t; e.preventDefault();
     } else if(e.key===' '||e.key==='Spacebar'){
@@ -702,8 +775,8 @@ function init(){
   st.preset='dexp'; st.p=P().pdef; st.dw=0.05; st.omxUnits=8; st.t=0; st.speed=1;
   var rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   st.playing=!rm;
-  syncShape(); syncDw(); syncOmx(); syncSpeed(); syncTsl();
-  ePlay.textContent=st.playing?'⏸ 暂停':'▶ 播放';
+  syncShape(); syncDw(); syncOmx(); syncSpeed(); syncTsl(); syncChecks();
+  ePlay.textContent=st.playing?'⏸ Pause':'▶ Play';
   bind();
   computeComp(); computeCurve(); dirty=false;
   readouts(draw());
@@ -715,8 +788,9 @@ function apply(o){
   if(o.p!==undefined){ st.p=o.p; }
   if(o.dw!==undefined){ st.dw=o.dw; }
   if(o.omxUnits!==undefined){ st.omxUnits=o.omxUnits; }
+  if(o.freezeScale!==undefined){ st.freezeScale=o.freezeScale; }
   if(o.t!==undefined){ st.t=o.t; }
-  syncShape(); syncDw(); syncOmx(); syncTsl();
+  syncShape(); syncDw(); syncOmx(); syncTsl(); syncChecks();
   computeComp(); computeCurve(); dirty=false;
 }
 
@@ -728,7 +802,10 @@ globalThis.__IFT={
   computeComp:computeComp, computeCurve:computeCurve,
   chainAt:chainAt, sExact:sExact, xOf:xOf, Xof:Xof, refIntegral:refIntegral,
   xwNow:xwNow, apply:apply, regime:regime, draw:draw,
-  proj3:proj3, view3:function(){return lastV3;}, phaseFrac:phaseFrac
+  proj3:proj3, view3:function(){return lastV3;}, phaseFrac:phaseFrac, phaseBucket:phaseBucket,
+  chainExtent:chainExtent, mxRef:function(){return mainMx;}, drawSc:function(){return lastChain?lastChain.sc:0;},
+  chainBuckets:function(){return lastChain?lastChain.buckets:null;},
+  arrowInfo:function(){return lastChain?{px:lastChain.endPx,stub:lastChain.stub}:null;}
 };
 
 globalThis.__VIZ={st:st,draw:draw,apply:apply};

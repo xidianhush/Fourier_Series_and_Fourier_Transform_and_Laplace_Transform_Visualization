@@ -341,11 +341,11 @@ function drawComplex(sp, r, tip, sc){
   ctx.save();
   ctx.font='600 13px "Segoe UI","Microsoft YaHei",sans-serif';
   ctx.fillStyle='#cfe0ff'; ctx.textAlign='left'; ctx.textBaseline='top';
-  ctx.fillText('复平面 · 谐波关系复指数基矢量的加权叠加', r.x+12, r.y+9);
+  ctx.fillText('Complex plane · weighted sum of harmonic complex-exponential phasors', r.x+12, r.y+9);
   ctx.font='11.5px "Segoe UI","Microsoft YaHei",sans-serif'; ctx.fillStyle='#8fa2c4';
-  const sub = state.view==='oneside' ? '单边链 k=0…N：末端旋转 + 伸缩，向 Re 轴的垂足即 x(t)'
-            : state.view==='double'  ? '双边链 k=−N…N：c₋ₖ=cₖ* 使虚部两两抵消，末端恒落在 Re 轴上'
-            : '共轭成对：±k 合成实谐波 Aₖcos(kω₀t+φₖ)，全部沿 Re 轴伸缩';
+  const sub = state.view==='oneside' ? 'One-sided chain k=0…N: tip rotates & stretches; its projection on the Re axis is x(t)'
+            : state.view==='double'  ? 'Two-sided chain k=−N…N: c₋ₖ=cₖ* cancels imaginary parts pairwise, tip always lands on the Re axis'
+            : 'Conjugate pairs: ±k combine into real harmonics Aₖcos(kω₀t+φₖ), all stretching along the Re axis';
   ctx.fillText(sub, r.x+12, r.y+27);
   ctx.restore();
 }
@@ -431,9 +431,9 @@ function drawTime(sp, r, cur, sc){
   ctx.save();
   ctx.font='600 13px "Segoe UI","Microsoft YaHei",sans-serif';
   ctx.fillStyle='#cfe0ff'; ctx.textAlign='left'; ctx.textBaseline='top';
-  ctx.fillText('Re(F(t)) 随 t 变化 —— 复平面合成向量在 Re 轴上的投影', r.x+12, r.y+9);
+  ctx.fillText('Re(F(t)) versus t — projection of the complex-plane sum vector onto the Re axis', r.x+12, r.y+9);
   ctx.font='11.5px "Segoe UI","Microsoft YaHei",sans-serif'; ctx.fillStyle='#8fa2c4';
-  ctx.fillText('窗口宽 2T，右端为当前时刻 t，曲线向左流动'+(state.ideal&&idealWave(state.preset,0)!==null?'；灰虚线 = 理想波形（对比 Gibbs 现象）':''), r.x+12, r.y+27);
+  ctx.fillText('Window width 2T, right edge is the current time t, curve flows left'+(state.ideal&&idealWave(state.preset,0)!==null?'; gray dashed = ideal waveform (compare Gibbs phenomenon)':''), r.x+12, r.y+27);
   ctx.restore();
 }
 
@@ -494,7 +494,7 @@ function buildEditor(){
       '<td class="kk">'+k+'</td>'+
       '<td><input type="number" min="0" step="0.01" value="'+(+state.customA[k]).toFixed(3)+'" data-k="'+k+'" data-f="A"></td>'+
       '<td>'+(k===0
-        ? '<span class="dim">0（实）</span>'
+        ? '<span class="dim">0 (real)</span>'
         : '<input type="range" min="-1" max="1" step="0.01" value="'+(state.customPhi[k]/Math.PI).toFixed(3)+'" data-k="'+k+'" data-f="P" style="width:88px">')+'</td>'+
       '<td class="out" data-out="'+k+'"></td>';
     body.appendChild(tr);
@@ -548,12 +548,12 @@ function updateNnote(){
   const N = state.N;
   const cnt = state.view==='double' ? (2*N+1) : (N+1);
   $('Nval').textContent = N;
-  $('Nnote').textContent = 'N = '+N+'：'+
+  $('Nnote').textContent = 'N = '+N+': '+
     (state.view==='double'
-      ? 'k = −'+N+'…'+N+'，共 '+cnt+' 支复指数基信号'
+      ? 'k = −'+N+'…'+N+', '+cnt+' complex-exponential basis signals in total'
       : state.view==='pair'
-        ? 'k = 0…'+N+'，共 '+cnt+' 支实谐波（含直流）'
-        : 'k = 0…'+N+'，共 '+cnt+' 支旋转基矢量（含直流）');
+        ? 'k = 0…'+N+', '+cnt+' real harmonics in total (incl. DC)'
+        : 'k = 0…'+N+', '+cnt+' rotating basis phasors in total (incl. DC)');
 }
 $('preset').addEventListener('change', e => {
   const v = e.target.value;
@@ -579,10 +579,10 @@ document.querySelectorAll('input[name=view]').forEach(el => {
 });
 $('play').addEventListener('click', () => {
   state.playing = !state.playing;
-  $('play').textContent = state.playing ? '⏸ 暂停' : '▶ 播放';
+  $('play').textContent = state.playing ? '⏸ Pause' : '▶ Play';
 });
 $('reset').addEventListener('click', () => { state.t = 0; });
-$('step').addEventListener('click', () => { state.playing=false; $('play').textContent='▶ 播放'; state.t += T/64; });
+$('step').addEventListener('click', () => { state.playing=false; $('play').textContent='▶ Play'; state.t += T/64; });
 $('speed').addEventListener('input', e => {
   state.speed = +e.target.value;
   $('speedval').textContent = state.speed.toFixed(1)+'×';
@@ -598,7 +598,7 @@ window.addEventListener('keydown', e => {
    空格在这里 stopPropagation，避免与上面的全局空格处理重复触发（两次点击等于没点）。 */
 cv.addEventListener('keydown', e => {
   if(e.key === 'ArrowLeft' || e.key === 'ArrowRight'){
-    state.playing = false; $('play').textContent = '▶ 播放';
+    state.playing = false; $('play').textContent = '▶ Play';
     state.t = clamp(state.t + (e.key==='ArrowRight'?1:-1)*T/64, 0, 1e5);
     e.preventDefault();
   }else if(e.key === ' ' || e.key === 'Spacebar'){
@@ -627,7 +627,7 @@ updateNnote();
 scaleC = scaleT = Math.min(W,H)/8;
 const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 state.playing = !reduced;
-$('play').textContent = state.playing ? '⏸ 暂停' : '▶ 播放';
+$('play').textContent = state.playing ? '⏸ Pause' : '▶ Play';
 requestAnimationFrame(frame);
 
 /* ========== 外部句柄 ========== */

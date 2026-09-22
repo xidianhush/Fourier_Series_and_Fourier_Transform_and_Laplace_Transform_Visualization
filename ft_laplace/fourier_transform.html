@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fourier Transform - A Visual Introduction</title>
 <script src="https://cdn.jsdelivr.net/npm/mathjs@12.4.1/lib/browser/math.js"
   onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js'"></script>
-<!-- KaTeX: render LaTeX in the explanation section -->
+<!-- KaTeX: render LaTeX across the whole page -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
   onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js';"></script>
@@ -227,7 +227,7 @@
 <h2>⚙️ Input Your Function</h2>
 <div class="input-panel">
   <div>
-    <label for="funcInput">Function f(t) =</label>
+    <label for="funcInput">Function $f(t) =$</label>
     <input type="text" id="funcInput" value="exp(-2*abs(t))" placeholder="e.g. exp(-2*abs(t))">
   </div>
   <div>
@@ -248,12 +248,12 @@
   </div>
   <button class="btn btn-primary" id="btnGenerate" onclick="generate()" disabled>Loading math.js...</button>
 </div>
-<div class="note">Variable: <b>t</b>. Available: exp, sin, cos, abs, sqrt, log, pi. The transform is two-sided, so the time axis covers the negative half: keep <b>t min</b> below 0, and <b>Freq min</b> below 0 to include negative frequencies.</div>
+<div class="note">Variable: <b>$t$</b>. Available: exp, sin, cos, abs, sqrt, log, pi. The transform is two-sided, so the time axis covers the negative half: keep <b>t min</b> below 0, and <b>Freq min</b> below 0 to include negative frequencies.</div>
 <div class="loading" id="loading">Computing... please wait...</div>
 
 <!-- ========== SECTION 1: Signal ========== -->
 <h2>1. Generating the Signal</h2>
-<p>Your input function f(t) plotted over the whole time axis, centred on <b>t = 0</b>.</p>
+<p>Your input function $f(t)$ plotted over the whole time axis, centred on <b>$t = 0$</b>.</p>
 <div class="canvas-box">
   <canvas id="canvasSignal" width="1000" height="350"></canvas>
 </div>
@@ -1004,10 +1004,10 @@ setTimeout(function() {
 </script>
 
 <script>
-// Render LaTeX in Section 5 with KaTeX
+// Render LaTeX across the page with KaTeX
 document.addEventListener('DOMContentLoaded', function() {
   if (typeof renderMathInElement === 'function') {
-    renderMathInElement(document.getElementById('section5'), {
+    renderMathInElement(document.body, {
       delimiters: [
         {left: '$$', right: '$$', display: true},
         {left: '$', right: '$', display: false},

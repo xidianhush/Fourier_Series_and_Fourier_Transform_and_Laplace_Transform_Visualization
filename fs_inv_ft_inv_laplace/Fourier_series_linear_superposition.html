@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>连续周期信号 = 谐波关系复指数信号的线性组合</title>
-<meta name="description" content="交互可视化：周期信号 x(t) = Re{F(t)}，F(t) = Σ w_k e^{jkω₀t}；谐波关系的复指数基矢量在复平面首尾相接成链，链末端向 Re 轴的投影就是合成波形。支持单边旋转链、双边复指数级数、共轭成对三种视图与自定义系数编辑。">
-<meta property="og:title" content="傅里叶级数线性叠加">
-<meta property="og:description" content="复平面矢量链末端 = F(t)，其 Re 轴投影 = x(t)；双边视图 c₋ₖ = cₖ* 使虚部两两抵消；下方面板画出 Re F(t) 并与理想波形对比（Gibbs 现象）。">
+<title>A continuous periodic signal = a linear combination of harmonically related complex exponentials</title>
+<meta name="description" content="Interactive visualization: a periodic signal x(t) = Re{F(t)}, F(t) = Σ w_k e^{jkω₀t}; harmonically related complex-exponential basis vectors join tip-to-tail in the complex plane, and the projection of the chain tip onto the Re axis is the synthesized waveform. Three views — one-sided rotating chain, two-sided complex-exponential series, conjugate pairs — plus a custom coefficient editor.">
+<meta property="og:title" content="Fourier Series Linear Superposition">
+<meta property="og:description" content="Complex-plane vector chain tip = F(t); its projection onto the Re axis = x(t). In the two-sided view c₋ₖ = cₖ* makes the imaginary parts cancel pairwise; the lower panel plots Re F(t) against the ideal waveform (Gibbs phenomenon).">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#0a1020">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='6' fill='none' stroke='%237fd1ff' stroke-width='2'/><line x1='8' y1='8' x2='13' y2='5' stroke='%23ff5d5d' stroke-width='2'/></svg>">
 <link rel="stylesheet" href="assets/common.css">
 <style>
-  /* 本页专有样式（common.css 已有的规则不重复）：视图单选组、系数编辑表格、折叠说明 */
+  /* Page-specific styles (rules already in common.css are not repeated): view radio group, coefficient editor table, collapsible note */
   .radios{display:flex; flex-direction:column; gap:5px; font-size:12.5px}
   .radios label{display:flex; gap:6px; align-items:flex-start; cursor:pointer; color:#c8d6f0}
   .radios .hint{display:block; color:var(--dim); font-size:11px; line-height:1.35}
@@ -29,36 +29,36 @@
 </style>
 </head>
 <body>
-<noscript><div class="jsmissing">本页面需要启用 JavaScript 才能运行可视化动画。</div></noscript>
+<noscript><div class="jsmissing">This page needs JavaScript to run the visualization animation.</div></noscript>
 
 <header>
-  <h1>连续周期信号 = 谐波关系复指数信号的线性组合</h1>
+  <h1>A continuous periodic signal = a linear combination of harmonically related complex exponentials</h1>
   <div class="formula">
     x(t) = <span class="hl">Re</span>{ F(t) } ,&nbsp;
     F(t) = Σ<sub>k</sub> w<sub>k</sub> e<sup> j k ω<sub>0</sub> t</sup> ,&nbsp;
     w<sub>k</sub> = A<sub>k</sub> e<sup> j φ<sub>k</sub></sup> ,&nbsp;
-    ω<sub>0</sub> = 2π/T （此处取 ω<sub>0</sub> = 1 rad/s，T = 2π s）
+    ω<sub>0</sub> = 2π/T (here ω<sub>0</sub> = 1 rad/s, T = 2π s)
   </div>
 </header>
 
 <main>
-  <div class="stage"><canvas id="cv" role="img" tabindex="0" aria-label="傅里叶级数线性叠加动画（谐波关系复指数基向量旋转叠加出合成向量与实部波形）"></canvas></div>
+  <div class="stage"><canvas id="cv" role="img" tabindex="0" aria-label="Fourier series linear superposition animation (harmonically related complex-exponential basis vectors rotate and add up to the resultant vector and the real-part waveform)"></canvas></div>
 
   <aside>
     <section>
-      <p class="cap">信号与谐波数</p>
-      <label class="row"><span>预设信号</span>
+      <p class="cap">Signal &amp; harmonic count</p>
+      <label class="row"><span>Preset signal</span>
         <select id="preset">
-          <option value="square">方波（±1，奇对称）</option>
-          <option value="cos">单频余弦 cos(ω₀t)</option>
-          <option value="multi">多音合成（初相位各不相同）</option>
-          <option value="saw">锯齿波 t/π</option>
-          <option value="tri">三角波 1−2|t|/π</option>
-          <option value="comb">周期冲激串（等幅同相）</option>
-          <option value="custom">自定义系数</option>
+          <option value="square">square wave (±1, odd symmetry)</option>
+          <option value="cos">single-tone cosine cos(ω₀t)</option>
+          <option value="multi">multi-tone mix (distinct initial phases)</option>
+          <option value="saw">sawtooth t/π</option>
+          <option value="tri">triangle wave 1−2|t|/π</option>
+          <option value="comb">periodic impulse train (equal amplitude, in phase)</option>
+          <option value="custom">custom coefficients</option>
         </select>
       </label>
-      <label class="row"><span>N（最高次）</span>
+      <label class="row"><span>N (highest harmonic)</span>
         <input type="range" id="N" min="1" max="40" step="1" value="8">
         <span class="val" id="Nval">8</span>
       </label>
@@ -66,45 +66,45 @@
     </section>
 
     <section>
-      <p class="cap">复平面视图</p>
+      <p class="cap">Complex-plane view</p>
       <div class="radios">
         <label><input type="radio" name="view" value="oneside" checked>
-          <span>单边旋转链 k = 0…N<span class="hint">末端真的旋转 + 伸缩，Re 轴投影即下方波形</span></span></label>
+          <span>One-sided rotating chain <span class="tex">k=0\ldots N</span><span class="hint">the tip really rotates and scales; its projection onto the Re axis is the waveform below</span></span></label>
         <label><input type="radio" name="view" value="double">
-          <span>双边复指数级数 k = −N…N<span class="hint">c₋ₖ = cₖ*，虚部两两抵消 ⟹ 和恒为实数</span></span></label>
+          <span>Two-sided complex-exponential series <span class="tex">k=-N\ldots N</span><span class="hint"><span class="tex">c_{-k}=c_k^{*}</span>, imaginary parts cancel pairwise ⟹ the sum is always real</span></span></label>
         <label><input type="radio" name="view" value="pair">
-          <span>共轭成对 → 实谐波<span class="hint">±k 合成 A_k cos(kω₀t+φ_k)，全部沿 Re 轴</span></span></label>
+          <span>Conjugate pairs → real harmonics<span class="hint">±k pairs combine into <span class="tex">A_k\cos(k\omega_0 t+\phi_k)</span>, all along the Re axis</span></span></label>
       </div>
     </section>
 
     <section>
-      <p class="cap">播放</p>
+      <p class="cap">Playback</p>
       <div class="btns">
-        <button id="play" class="primary">⏸ 暂停</button>
+        <button id="play" class="primary">⏸ Pause</button>
         <button id="reset">t = 0</button>
-        <button id="step">单步 +T/64</button>
+        <button id="step">Step +T/64</button>
       </div>
-      <label class="row"><span>速度</span>
+      <label class="row"><span>Speed</span>
         <input type="range" id="speed" min="0.1" max="3" step="0.1" value="1">
         <span class="val" id="speedval">1.0×</span>
       </label>
     </section>
 
     <section>
-      <p class="cap">显示</p>
+      <p class="cap">Display</p>
       <div class="checks">
-        <label><input type="checkbox" id="cCircles" checked>旋转轨迹圆</label>
-        <label><input type="checkbox" id="cLabels" checked>矢量标号</label>
-        <label><input type="checkbox" id="cTrail" checked>末端轨迹</label>
-        <label><input type="checkbox" id="cIdeal" checked>理想波形对比</label>
+        <label><input type="checkbox" id="cCircles" checked>Orbit circles</label>
+        <label><input type="checkbox" id="cLabels" checked>Vector labels</label>
+        <label><input type="checkbox" id="cTrail" checked>Tip trail</label>
+        <label><input type="checkbox" id="cIdeal" checked>Ideal waveform overlay</label>
       </div>
     </section>
 
     <section>
-      <p class="cap">实时数值</p>
+      <p class="cap">Live readouts</p>
       <div class="ro">
         <b>t</b><span id="r_t">0.000 s</span>
-        <b>ω₀t</b><span id="r_wt">0.000 rad = 0.000 T</span>
+        <b><span class="tex">\omega_0 t</span></b><span id="r_wt">0.000 rad = 0.000 T</span>
         <b>Re F(t)</b><span id="r_re">0.000</span>
         <b>Im F(t)</b><span id="r_im">0.000</span>
         <b>|F(t)|</b><span id="r_abs">0.000</span>
@@ -113,15 +113,15 @@
     </section>
 
     <section>
-      <p class="cap">自定义系数编辑器</p>
+      <p class="cap">Custom coefficient editor</p>
       <div class="btns">
-        <button id="loadPreset">从当前预设载入</button>
-        <button id="clearCust">清空</button>
+        <button id="loadPreset">Load from current preset</button>
+        <button id="clearCust">Clear</button>
       </div>
       <p class="note">
-        每行给一个谐波：A<sub>k</sub> = |w<sub>k</sub>|，φ<sub>k</sub> = 初相位（单位 π）。
-        表中列出教材复指数系数 c<sub>k</sub> = (A<sub>k</sub>/2)e<sup>jφ<sub>k</sub></sup>；
-        k&lt;0 不必填，由 c<sub>−k</sub> = c<sub>k</sub>* 自动生成。改动后自动切到「自定义系数」。
+        One row per harmonic: A<sub>k</sub> = |w<sub>k</sub>|, φ<sub>k</sub> = initial phase (in units of π).
+        The table lists the textbook complex-exponential coefficients c<sub>k</sub> = (A<sub>k</sub>/2)e<sup>jφ<sub>k</sub></sup>;
+        k&lt;0 needs no input — it is generated from c<sub>−k</sub> = c<sub>k</sub>* automatically. Any edit switches the preset to "custom coefficients".
       </p>
       <div class="edwrap">
         <table>
@@ -133,14 +133,14 @@
 
     <section>
       <details>
-        <summary>三个视图为什么末端一样？</summary>
+        <summary>Why do all three views end at the same tip?</summary>
         <p class="note">
-          实信号的复指数系数必然共轭对称：c<sub>−k</sub> = c<sub>k</sub>*。于是<br>
+          The complex-exponential coefficients of a real signal are always conjugate-symmetric: c<sub>−k</sub> = c<sub>k</sub>*. Hence<br>
           Σ<sub>k=−N…N</sub> c<sub>k</sub>e<sup>jkω₀t</sup>
           = c<sub>0</sub> + Σ<sub>k=1…N</sub> 2Re{c<sub>k</sub>e<sup>jkω₀t</sup>}
-          = A<sub>0</sub> + Σ A<sub>k</sub>cos(kω₀t+φ<sub>k</sub>)，恒为实数。<br>
-          「单边旋转链」把权重放大一倍（w<sub>k</sub> = 2c<sub>k</sub>，k≥1）后只保留 k≥0，
-          得到一个真正旋转、伸缩的复向量 F(t)，而 x(t) = Re{F(t)} 与上面完全相同 —— 这就是下方面板画的那条曲线。
+          = A<sub>0</sub> + Σ A<sub>k</sub>cos(kω₀t+φ<sub>k</sub>), which is always real.<br>
+          The "one-sided rotating chain" doubles the weights (w<sub>k</sub> = 2c<sub>k</sub>, k≥1) and keeps only k≥0,
+          giving a genuinely rotating, scaling complex vector F(t), while x(t) = Re{F(t)} is exactly the same as above — and that is the curve drawn in the lower panel.
         </p>
       </details>
     </section>
@@ -148,6 +148,7 @@
 </main>
 
 <script src="assets/common.js"></script>
+<script src="assets/tex.js"></script>
 <script src="assets/fsls.js"></script>
 </body>
 </html>

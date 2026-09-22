@@ -28,8 +28,8 @@
   .cap{font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:1px; margin:0 0 8px}
   label.row{display:flex; align-items:center; gap:8px; margin:7px 0; font-size:13px}
   label.row > span:first-child{flex:none; width:74px; color:var(--dim)}
-  select,input[type=range]{flex:1; min-width:0}
-  select,input[type=number]{
+  select,input[type=range],input[type=text]{flex:1; min-width:0}
+  select,input[type=number],input[type=text]{
     background:#0b1424; color:var(--fg); border:1px solid var(--line);
     border-radius:5px; padding:4px 6px; font-size:13px; font-family:inherit;
   }
@@ -47,6 +47,7 @@
   .ro{display:grid; grid-template-columns:auto 1fr; gap:3px 10px; font-size:12.5px; font-variant-numeric:tabular-nums}
   .ro b{color:var(--dim); font-weight:500}
   .note{font-size:11.5px; color:var(--dim); line-height:1.55; margin:6px 0 0}
+  .note.bad{color:#ff9d9d}                       /* 自定义 f(t) 的解析错误提示 */
   @media (max-width:900px){
     body{overflow:auto}
     main{flex-direction:column}
@@ -56,6 +57,33 @@
 
   /* —— 以下为共享层追加 —— */
   #cv{touch-action:none}
+  /* 自定义 f(t) 输入框（拉普拉斯反变换页）：等宽字体便于读表达式 */
+  #fexpr{font-family:Consolas,"Courier New",ui-monospace,monospace; font-size:12.5px}
+
+  /* —— TeX 子集公式：assets/tex.js 把 .tex / .tex-block 的文本排成下面这些结构 —— */
+  .tex{font-family:"Cambria Math",Cambria,Georgia,"Times New Roman",serif; font-style:normal; line-height:1.35}
+  .tex i{font-style:italic}
+  .tex .mfn,.tex .mtext,.tex .mop,.tex .mrad{font-style:normal}
+  .tex .msym{font-style:italic}          /* 希腊字母按数学惯例斜体 */
+  .tex .mop{font-size:1.1em; margin:0 .05em}
+  .tex .mfn{margin:0 .05em}
+  .tex .mtext{font-family:inherit}
+  .tex .mrel{margin:0 .26em}
+  .tex .mbin{margin:0 .16em}
+  .tex .msp0{display:inline-block; width:.18em}
+  .tex .msp1{display:inline-block; width:.34em}
+  .tex .msp2{display:inline-block; width:1.1em}
+  .tex sup,.tex sub{font-size:.7em; line-height:0}
+  .tex .mfrac{display:inline-flex; flex-direction:column; align-items:center; vertical-align:-.42em; margin:0 .16em; font-size:.94em}
+  .tex .mfrac>*{white-space:nowrap; padding:0 .18em}
+  .tex .mfrac>.mden{border-top:1px solid currentColor; padding-top:.06em}
+  .tex .msqrt>.mbody{border-top:1px solid currentColor; padding:.05em .14em 0}
+  .tex .mstack{display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 .12em}
+  .tex .mstack>*{white-space:nowrap; line-height:1.2}
+  .tex .mstack>.mup,.tex .mstack>.mdn{font-size:.7em; white-space:nowrap}
+  .tex .mstack>.mup:empty,.tex .mstack>.mdn:empty{display:none}
+  .tex .texerr{color:#ff9d9d; outline:1px dashed rgba(255,157,157,.6); padding:0 .2em}
+  .tex-block{display:block; text-align:center; margin:4px 0 0; line-height:1.95}
   button:focus-visible,select:focus-visible,input:focus-visible,[tabindex]:focus-visible{
     outline:2px solid #7fd1ff; outline-offset:2px;
   }

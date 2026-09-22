@@ -3,7 +3,7 @@
 
 var PRESETS = {
   rect: {
-    name:'矩形脉冲', plab:'τ', pmin:0.5, pmax:4, pstep:0.05, pdef:2,
+    name:'Rect pulse', plab:'τ', pmin:0.5, pmax:4, pstep:0.05, pdef:2,
     sup:function(p){return p/2;}, lobe:function(p){return 2*Math.PI/p;}, tail:function(p){return p/2;},
     area:function(p){return p;},
     x:function(u,p){return Math.abs(u)<p/2?1:0;},
@@ -12,7 +12,7 @@ var PRESETS = {
     breaks:function(p){return [-p/2,p/2];}
   },
   tri: {
-    name:'三角脉冲', plab:'τ', pmin:0.5, pmax:4, pstep:0.05, pdef:2,
+    name:'Tri pulse', plab:'τ', pmin:0.5, pmax:4, pstep:0.05, pdef:2,
     sup:function(p){return p;}, lobe:function(p){return 2*Math.PI/p;}, tail:function(p){return p;},
     area:function(p){return p;},
     x:function(u,p){var a=Math.abs(u); return a<p?1-a/p:0;},
@@ -21,7 +21,7 @@ var PRESETS = {
     breaks:function(p){return [-p,0,p];}
   },
   gauss: {
-    name:'高斯脉冲', plab:'s', pmin:0.3, pmax:2, pstep:0.05, pdef:1,
+    name:'Gauss pulse', plab:'s', pmin:0.3, pmax:2, pstep:0.05, pdef:1,
     sup:function(p){return 3*p;}, lobe:function(p){return 1/p;}, tail:function(p){return 6*p;},
     area:function(p){return p*Math.sqrt(2*Math.PI);},
     x:function(u,p){return Math.exp(-u*u/(2*p*p));},
@@ -30,7 +30,7 @@ var PRESETS = {
     breaks:function(p){return [];}
   },
   dexp: {
-    name:'双边指数', plab:'a', pmin:0.5, pmax:4, pstep:0.05, pdef:1,
+    name:'Two-sided exp', plab:'a', pmin:0.5, pmax:4, pstep:0.05, pdef:1,
     sup:function(p){return 4/p;}, lobe:function(p){return p;}, tail:function(p){return 16/p;},
     area:function(p){return 2/p;},
     x:function(u,p){return Math.exp(-p*Math.abs(u));},
@@ -39,7 +39,7 @@ var PRESETS = {
     breaks:function(p){return [0];}
   },
   sexp: {
-    name:'单边指数', plab:'a', pmin:0.5, pmax:4, pstep:0.05, pdef:1,
+    name:'One-sided exp', plab:'a', pmin:0.5, pmax:4, pstep:0.05, pdef:1,
     sup:function(p){return 4/p;}, lobe:function(p){return p;}, tail:function(p){return 40/p;},
     area:function(p){return 1/p;},
     x:function(u,p){return u>=0?Math.exp(-p*u):0;},
@@ -234,10 +234,10 @@ function layout(w,h){
 
 function regime(){
   var sup=supNow(), T=st.T, w0=2*Math.PI/T, lobe=P().lobe(st.p);
-  if(T<2.5*sup) return {k:0, txt:'T < 2.5×支撑：周期副本互相重叠 —— x_T(t) 是周期信号且已混叠；谱线稀而高，F_n·T 还远离包络'};
-  if(T<12*sup)  return {k:1, txt:'副本已分开：窗内只剩一个 x(t)，但 x_T 仍是周期信号；Δω='+fmt(w0,4)+' 仍肉眼可辨，F_n·T 正在贴向包络 |X(jω)|'};
-  if(w0<lobe/8) return {k:2, txt:'副本出窗且 Δω 小到人眼难辨：黎曼和 Σ[F_n·T](Δω/2π)e^{jnω₀t} ≈ (1/2π)∫X(jω)e^{jωt}dω —— 窗内即非周期 x(t)'};
-  return {k:3, txt:'副本已出窗，但 Δω='+fmt(w0,4)+' 还不够小（需 < 主瓣/8）：继续增大 T，离散和才会贴紧积分'};
+  if(T<2.5*sup) return {k:0, txt:'T < 2.5×support: periodic replicas overlap — x_T(t) is periodic and aliased; spectral lines sparse and tall, F_n·T still far from the envelope'};
+  if(T<12*sup)  return {k:1, txt:'Replicas separate: only one x(t) remains in the window, but x_T is still periodic; Δω='+fmt(w0,4)+' still visible to the eye, F_n·T approaching the envelope |X(jω)|'};
+  if(w0<lobe/8) return {k:2, txt:'Replicas out of window and Δω too small to see: Riemann sum Σ[F_n·T](Δω/2π)e^{jnω₀t} ≈ (1/2π)∫X(jω)e^{jωt}dω — inside the window it is the aperiodic x(t)'};
+  return {k:3, txt:'Replicas out of window, but Δω='+fmt(w0,4)+' not small enough yet (need < lobe/8): keep increasing T for the discrete sum to hug the integral'};
 }
 
 function drawTime(){
@@ -256,7 +256,7 @@ function drawTime(){
   ctx.strokeStyle='#2a3b5c'; ctx.beginPath();
   ctx.moveTo(r.x,Y(0)); ctx.lineTo(r.x+r.w,Y(0)); ctx.stroke();
   ctx.fillStyle='#8fa2c4'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('时域：彩色 = 周期延拓合成 s_T(t)，灰虚线 = 理想非周期 x(t)', r.x+8, r.y+14);
+  ctx.fillText('Time domain: colored = periodic-extension synthesis s_T(t), gray dashed = ideal aperiodic x(t)', r.x+8, r.y+14);
   ctx.fillText('t', r.x+r.w-10, Y(0)-4);
   if(st.ckIdeal){
     ctx.strokeStyle='#7a8db0'; ctx.setLineDash([5,4]); ctx.beginPath();
@@ -295,7 +295,7 @@ function drawSpec(){
   var y0=Y(0);
   ctx.strokeStyle='#2a3b5c'; ctx.beginPath(); ctx.moveTo(r.x,y0); ctx.lineTo(r.x+r.w,y0); ctx.stroke();
   ctx.fillStyle='#8fa2c4'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('频谱：谱线 |F_n|'+(st.ckRaw?'':'·T')+'（按 |n| 上色）'+(st.ckEnv?'，灰包络 |X(jω)|'+(st.ckRaw?'/T':''):''), r.x+8, r.y+14);
+  ctx.fillText('Spectrum: lines |F_n|'+(st.ckRaw?'':'·T')+' (colored by |n|)'+(st.ckEnv?', gray envelope |X(jω)|'+(st.ckRaw?'/T':''):''), r.x+8, r.y+14);
   ctx.fillText('ω', r.x+r.w-10, y0-4);
   if(st.ckEnv){
     ctx.strokeStyle=st.ckRaw?'#5b6a86':'#9aa8c0'; ctx.beginPath();
@@ -338,7 +338,7 @@ function drawChain(){
   ctx.moveTo(cx,r.y+18); ctx.lineTo(cx,r.y+r.h-8);
   ctx.stroke();
   ctx.fillStyle='#8fa2c4'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('复平面：v_n=F_n·e^{jnω₀t} 首尾相接（n=−N…N），端点 = s_T(t)', r.x+8, r.y+14);
+  ctx.fillText('Complex plane: v_n=F_n·e^{jnω₀t} joined head-to-tail (n=−N…N), endpoint = s_T(t)', r.x+8, r.y+14);
   ctx.fillText('Re', r.x+r.w-20, cy-4);
   ctx.fillText('Im', cx+4, r.y+28);
   var N=FN.N;
@@ -362,7 +362,7 @@ function drawChain(){
   ctx.moveTo(ex,ey); ctx.lineTo(ex,cy); ctx.stroke(); ctx.setLineDash([]);
   ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(ex,ey,3.5,0,6.2832); ctx.fill();
   ctx.fillStyle='#e8eefc';
-  ctx.fillText('Re 端点 = '+fmt(ch.end[0],4), ex+6, ey-6);
+  ctx.fillText('Re endpoint = '+fmt(ch.end[0],4), ex+6, ey-6);
   ctx.restore();
   return ch;
 }
@@ -415,11 +415,11 @@ function syncT(){
   eTsl.max=st.T; eTsl.step=st.T/1000;
   if(st.t>st.T) st.t=st.t%st.T;
 }
-function syncOmx(){ eOmxVal.textContent=st.omxUnits+' 主瓣'; }
+function syncOmx(){ eOmxVal.textContent=st.omxUnits+' lobes'; }
 
 function readouts(ch){
   var w0=2*Math.PI/st.T;
-  rT.textContent=fmt(st.T,3)+' s'+(st.Ncapped?'（N 已封顶 1500）':'');
+  rT.textContent=fmt(st.T,3)+' s'+(st.Ncapped?' (N capped at 1500)':'');
   rW.textContent=fmt(w0,5)+' rad/s';
   rN.textContent=''+(2*FN.N+1);
   rF0.textContent=fmt(FN.re[0],6);
@@ -430,17 +430,17 @@ function readouts(ch){
     rErr.textContent=fmt(d,6);
   }
   var rg=regime();
-  rNote.textContent=['阶段 1/3：周期且混叠','阶段 2/3：周期、副本分开','阶段 3/3：和 ≈ 积分（非周期极限）','阶段 2.5/3：副本出窗但 Δω 仍偏大'][rg.k];
+  rNote.textContent=['Stage 1/3: periodic and aliased','Stage 2/3: periodic, replicas separate','Stage 3/3: sum ≈ integral (aperiodic limit)','Stage 2.5/3: replicas out of window but Δω still too big'][rg.k];
 }
 
 function bind(){
   ePreset.addEventListener('change',function(e){ st.preset=e.target.value; st.p=P().pdef; syncShape(); syncT(); dirty=true; });
   eShape.addEventListener('input',function(e){ st.p=parseFloat(e.target.value); eShapeVal.textContent=(+st.p).toFixed(2); syncT(); dirty=true; });
-  eLogT.addEventListener('input',function(e){ var u=(+e.target.value)/1000; st.T=Tmin()*Math.pow(Tmax()/Tmin(),u); st.autoT=null; eAuto.textContent='自动增大 T（8 s 扫全程）'; syncT(); dirty=true; });
-  eAuto.addEventListener('click',function(){ st.autoT={start:null}; eAuto.textContent='扫描中…（点滑条可中断）'; });
+  eLogT.addEventListener('input',function(e){ var u=(+e.target.value)/1000; st.T=Tmin()*Math.pow(Tmax()/Tmin(),u); st.autoT=null; eAuto.textContent='Auto-increase T (full sweep in 8 s)'; syncT(); dirty=true; });
+  eAuto.addEventListener('click',function(){ st.autoT={start:null}; eAuto.textContent='Sweeping… (click slider to interrupt)'; });
   eOmx.addEventListener('input',function(e){ st.omxUnits=+e.target.value; syncOmx(); dirty=true; });
-  ePlay.addEventListener('click',function(){ st.playing=!st.playing; ePlay.textContent=st.playing?'⏸ 暂停':'▶ 播放'; });
-  eStep.addEventListener('click',function(){ st.playing=false; ePlay.textContent='▶ 播放'; st.t=(st.t+st.T/128)%st.T; eTsl.value=st.t; });
+  ePlay.addEventListener('click',function(){ st.playing=!st.playing; ePlay.textContent=st.playing?'⏸ Pause':'▶ Play'; });
+  eStep.addEventListener('click',function(){ st.playing=false; ePlay.textContent='▶ Play'; st.t=(st.t+st.T/128)%st.T; eTsl.value=st.t; });
   eTsl.addEventListener('input',function(e){ st.t=+e.target.value; });
   eEnv.addEventListener('change',function(e){ st.ckEnv=e.target.checked; });
   eRaw.addEventListener('change',function(e){ st.ckRaw=e.target.checked; });
@@ -448,7 +448,7 @@ function bind(){
   eIdeal.addEventListener('change',function(e){ st.ckIdeal=e.target.checked; });
   cv.addEventListener('keydown',function(e){
     if(e.key==='ArrowLeft'||e.key==='ArrowRight'){
-      st.playing=false; ePlay.textContent='▶ 播放';
+      st.playing=false; ePlay.textContent='▶ Play';
       st.t=clamp(st.t+(e.key==='ArrowRight'?1:-1)*st.T/64,0,st.T);
       eTsl.value=st.t; e.preventDefault();
     } else if(e.key===' '||e.key==='Spacebar'){
@@ -471,7 +471,7 @@ function frame(tsms){
   if(st.autoT){
     if(st.autoT.start===null) st.autoT.start=tsms;
     var u=(tsms-st.autoT.start)/8000;
-    if(u>=1){ st.T=Tmax(); st.autoT=null; eAuto.textContent='自动增大 T（8 s 扫全程）'; }
+    if(u>=1){ st.T=Tmax(); st.autoT=null; eAuto.textContent='Auto-increase T (full sweep in 8 s)'; }
     else st.T=Tmin()*Math.pow(Tmax()/Tmin(),u);
     syncT(); dirty=true;
   }
@@ -487,7 +487,7 @@ function init(){
   var rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   st.playing=!rm;
   syncShape(); syncT(); syncOmx();
-  ePlay.textContent=st.playing?'⏸ 暂停':'▶ 播放';
+  ePlay.textContent=st.playing?'⏸ Pause':'▶ Play';
   bind();
   computeFn(); computeTime(); dirty=false;
   readouts(draw());

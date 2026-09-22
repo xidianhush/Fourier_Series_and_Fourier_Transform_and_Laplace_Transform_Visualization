@@ -41,7 +41,7 @@
     bar.setAttribute('role', 'alert');
     g.document.body.appendChild(bar);
     var show = function (msg) {
-      bar.textContent = '页面脚本出错：' + msg;
+      bar.textContent = 'Script error: ' + msg;
       bar.classList.add('on');
     };
     g.addEventListener('error', function (e) { show(e.message || String(e.error || e)); });

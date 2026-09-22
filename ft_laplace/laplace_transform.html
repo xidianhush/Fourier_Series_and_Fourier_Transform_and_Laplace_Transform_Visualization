@@ -6,7 +6,7 @@
 <title>Laplace Transform - Envelopes, Poles and the s-Plane</title>
 <script src="https://cdn.jsdelivr.net/npm/mathjs@12.4.1/lib/browser/math.js"
   onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js'"></script>
-<!-- KaTeX: render LaTeX in the explanation section -->
+<!-- KaTeX: render LaTeX across the whole page -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
   onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js';"></script>
@@ -240,7 +240,7 @@
 <h1>Laplace Transform — Envelopes, Poles and the s&#8209;Plane</h1>
 <p class="lead">
   The winding machine from the Fourier page, with one extra knob: a real exponent.
-  Turn <b>σ</b> down and a signal that never decayed now explodes — that flare is a <b>pole</b>.
+  Turn <b>$\sigma$</b> down and a signal that never decayed now explodes — that flare is a <b>pole</b>.
   <br>Prefer the Fourier-only story? <a href="./fourier_transform.html">fourier_transform.html</a>
 </p>
 
@@ -248,38 +248,38 @@
 <h2>⚙️ Input Your Function</h2>
 <div class="input-panel">
   <div>
-    <label for="funcInput">Function f(t) =</label>
+    <label for="funcInput">Function $f(t) =$</label>
     <input type="text" id="funcInput" value="exp(-2*t)" placeholder="e.g. exp(-2*t)">
   </div>
   <div>
     <label>Integration range</label>
     <div class="radio-group">
-      <label><input type="radio" id="modeUni" name="mode" value="unilateral" checked> &#8747;<sub>0</sub><sup>T</sup> (unilateral)</label>
-      <label><input type="radio" id="modeBi" name="mode" value="bilateral"> &#8747;<sub>&#8722;T/2</sub><sup>T/2</sup> (bilateral)</label>
+      <label><input type="radio" id="modeUni" name="mode" value="unilateral" checked> $\int_{0}^{T}$ (unilateral)</label>
+      <label><input type="radio" id="modeBi" name="mode" value="bilateral"> $\int_{-T/2}^{T/2}$ (bilateral)</label>
     </div>
   </div>
   <div>
-    <label for="winLen">T (window length)</label>
+    <label for="winLen">$T$ (window length)</label>
     <input type="number" id="winLen" value="2" step="0.5" min="0.5">
   </div>
   <div>
-    <label for="sigmaMin">σ min</label>
+    <label for="sigmaMin">$\sigma$ min</label>
     <input type="number" id="sigmaMin" value="-5" step="0.5">
   </div>
   <div>
-    <label for="sigmaMax">σ max</label>
+    <label for="sigmaMax">$\sigma$ max</label>
     <input type="number" id="sigmaMax" value="1" step="0.5">
   </div>
   <div>
-    <label for="omegaMin">ω min (rad/s)</label>
+    <label for="omegaMin">$\omega$ min (rad/s)</label>
     <input type="number" id="omegaMin" value="-15" step="1">
   </div>
   <div>
-    <label for="omegaMax">ω max (rad/s)</label>
+    <label for="omegaMax">$\omega$ max (rad/s)</label>
     <input type="number" id="omegaMax" value="15" step="1">
   </div>
   <div>
-    <label for="tMap">T_map (map window)</label>
+    <label for="tMap">$T_{\mathrm{map}}$ (map window)</label>
     <input type="number" id="tMap" value="20" step="1" min="5" max="50">
   </div>
   <button class="btn btn-primary" id="btnGenerate" onclick="generate()" disabled>Loading math.js...</button>
@@ -291,34 +291,34 @@
   <button class="btn-preset" id="presetStep" onclick="applyPreset('step')">(t&gt;=0) — a step</button>
 </div>
 <div class="note">
-  Variable: <b>t</b> only. Available: exp, sin, cos, abs, sqrt, log, pi.
-  The window is <b>[0, T]</b> for the unilateral integral and <b>[−T/2, T/2]</b> for the bilateral one, so a single <b>T</b> controls both.
-  <b>T_map</b> is an internal, longer window used only by the s-plane map in Section 4.
+  Variable: <b>$t$</b> only. Available: exp, sin, cos, abs, sqrt, log, pi.
+  The window is <b>$[0, T]$</b> for the unilateral integral and <b>$[-T/2, T/2]$</b> for the bilateral one, so a single <b>$T$</b> controls both.
+  <b>$T_{\mathrm{map}}$</b> is an internal, longer window used only by the s-plane map in Section 4.
   Nothing here does symbolic maths: every value is a numeric sum, and the poles are read off the pictures.
 </div>
 <div class="loading" id="loading">Computing... please wait...</div>
 
 <!-- ========== SECTION 1: signal and envelope ========== -->
 <h2>1. The Signal and the Exponential Envelope</h2>
-<p>Multiplying by the kernel's real part first, before any winding: the signal f(t), the envelope e<sup>−σt</sup>, and the product that actually gets wound.</p>
+<p>Multiplying by the kernel's real part first, before any winding: the signal $f(t)$, the envelope $e^{-\sigma t}$, and the product that actually gets wound.</p>
 <div class="canvas-box">
   <div class="anim-controls">
-    <label for="sigmaSlider">σ</label>
+    <label for="sigmaSlider">$\sigma$</label>
     <input type="range" id="sigmaSlider" min="-5" max="1" value="0" step="0.015">
     <label id="envReadout">max|f·e^−σt| = —</label>
   </div>
   <canvas id="canvasSignal" width="1000" height="350"></canvas>
   <div class="legend-row">
-    <span><i class="swatch" style="background:#4cc9f0;"></i> f(t)</span>
-    <span><i class="swatch" style="background:#99a5c2;"></i> envelope e<sup>−σt</sup> (dashed)</span>
-    <span><i class="swatch" style="background:#f72585;"></i> product f(t)·e<sup>−σt</sup></span>
+    <span><i class="swatch" style="background:#4cc9f0;"></i> $f(t)$</span>
+    <span><i class="swatch" style="background:#99a5c2;"></i> envelope $e^{-\sigma t}$ (dashed)</span>
+    <span><i class="swatch" style="background:#f72585;"></i> product $f(t)\cdot e^{-\sigma t}$</span>
     <span><i class="swatch" style="background:rgba(255,255,255,0.18);height:14px;"></i> integration window</span>
   </div>
 </div>
 
 <!-- ========== SECTION 2: winding grid ========== -->
 <h2>2. Winding in the s-Plane</h2>
-<p>At the current σ, the envelope-weighted signal is wound once per ω — 121 cells, each labelled with its ω in rad/s.
+<p>At the current $\sigma$, the envelope-weighted signal is wound once per $\omega$ — 121 cells, each labelled with its $\omega$ in rad/s.
 The <span style="color:#ff4444;">red dot</span> is the center of mass, and <span style="color:#f72585;">⚠</span> marks a cell whose curve left the frame: the sum is running away.</p>
 <div class="canvas-box">
   <canvas id="canvasGrid" width="900" height="900"></canvas>
@@ -327,15 +327,15 @@ The <span style="color:#ff4444;">red dot</span> is the center of mass, and <span
 
 <!-- ========== SECTION 3: animation ========== -->
 <h2>3. Interactive Winding Animation</h2>
-<p>Two knobs and a play button. The curve grows out of the window sample by sample; the readout tracks the running sum, which converges to F(s) as the window fills.</p>
+<p>Two knobs and a play button. The curve grows out of the window sample by sample; the readout tracks the running sum, which converges to $F(s)$ as the window fills.</p>
 <div class="canvas-box">
   <div class="anim-controls">
-    <label for="animSigma">σ</label>
+    <label for="animSigma">$\sigma$</label>
     <input type="range" id="animSigma" min="-5" max="1" value="0" step="0.015">
     <label id="animSigmaLabel">σ = 0.000</label>
   </div>
   <div class="anim-controls">
-    <label for="animOmega">ω</label>
+    <label for="animOmega">$\omega$</label>
     <input type="range" id="animOmega" min="-15" max="15" value="0" step="0.075">
     <label id="animOmegaLabel">ω = 0.000</label>
     <button class="play-btn" id="animPlayBtn" onclick="togglePlay()">▶</button>
@@ -348,7 +348,7 @@ The <span style="color:#ff4444;">red dot</span> is the center of mass, and <span
 
 <!-- ========== SECTION 4: the s-plane map ========== -->
 <h2>4. The s-Plane Map</h2>
-<p>σ across, ω up, colour = log<sub>10</sub>|F(s)| computed over the internal window T_map. The dashed line marks where the numbers saturate — the numerical front, not the true boundary.</p>
+<p>$\sigma$ across, $\omega$ up, colour $= \log_{10}|F(s)|$ computed over the internal window $T_{\mathrm{map}}$. The dashed line marks where the numbers saturate — the numerical front, not the true boundary.</p>
 <div class="canvas-box">
   <canvas id="canvasMap" width="900" height="520"></canvas>
 </div>
@@ -359,14 +359,14 @@ The <span style="color:#ff4444;">red dot</span> is the center of mass, and <span
   </div>
 </div>
 <div class="note">
-  The map is a <b>ramp in σ, not a ridge</b>. With a finite window, pushing σ further left keeps enlarging the far end of the window, so |F| rises all the way to the edge of the grid.
-  The colour scale therefore clips four decades (anchored at the 10th percentile of log<sub>10</sub>|F|): everything past the front saturates into one solid slab, and just inside it sits the bright ridge of the pole.
-  How sharp that front looks is set by <b>T_map</b>; the real boundary is the T → ∞ limit. Section 5 is the honest way to see it.
+  The map is a <b>ramp in $\sigma$, not a ridge</b>. With a finite window, pushing $\sigma$ further left keeps enlarging the far end of the window, so $|F|$ rises all the way to the edge of the grid.
+  The colour scale therefore clips four decades (anchored at the 10th percentile of $\log_{10}|F|$): everything past the front saturates into one solid slab, and just inside it sits the bright ridge of the pole.
+  How sharp that front looks is set by <b>$T_{\mathrm{map}}$</b>; the real boundary is the $T \to \infty$ limit. Section 5 is the honest way to see it.
 </div>
 
 <!-- ========== SECTION 5: poles and ROC ========== -->
 <h2>5. Poles and the Region of Convergence</h2>
-<p>No colour scale, no clipping: the same signal over the windows T, 2T and 4T, plotted against σ at ω = 0.
+<p>No colour scale, no clipping: the same signal over the windows $T$, $2T$ and $4T$, plotted against $\sigma$ at $\omega = 0$.
 Where the three curves coincide the integral has converged; where they fan apart it diverges. The fork is the pole's real part.</p>
 <div class="canvas-box">
   <canvas id="canvasFamily" width="900" height="340"></canvas>
@@ -374,12 +374,12 @@ Where the three curves coincide the integral has converged; where they fan apart
 
 <!-- ========== SECTION 6: the 3D spiral ========== -->
 <h2>6. The Spiral in Three Dimensions</h2>
-<p>Time runs into the depth of the picture. The thin spiral is the kernel e<sup>−st</sup>, the thick curve is f(t)·e<sup>−st</sup>, and the centroid of that thick curve is F(s). <b>Drag horizontally</b> on the picture to turn it.</p>
+<p>Time runs into the depth of the picture. The thin spiral is the kernel $e^{-st}$, the thick curve is $f(t)\cdot e^{-st}$, and the centroid of that thick curve is $F(s)$. <b>Drag horizontally</b> on the picture to turn it.</p>
 <div class="canvas-box">
   <canvas id="canvasSpiral" width="760" height="520"></canvas>
   <div class="legend-row">
-    <span><i class="swatch" style="background:#99a5c2;"></i> kernel e<sup>−st</sup> (radius e<sup>−σt</sup>)</span>
-    <span><i class="swatch" style="background:#f72585;"></i> f(t)·e<sup>−st</sup></span>
+    <span><i class="swatch" style="background:#99a5c2;"></i> kernel $e^{-st}$ (radius $e^{-\sigma t}$)</span>
+    <span><i class="swatch" style="background:#f72585;"></i> $f(t)\cdot e^{-st}$</span>
     <span><i class="swatch" style="background:#4cc9f0;height:8px;width:8px;border-radius:50%;"></i> current sample</span>
   </div>
 </div>
@@ -2019,10 +2019,10 @@ setTimeout(function() {
 </script>
 
 <script>
-// Render LaTeX in Section 7 with KaTeX
+// Render LaTeX across the page with KaTeX
 document.addEventListener('DOMContentLoaded', function() {
   if (typeof renderMathInElement === 'function') {
-    renderMathInElement(document.getElementById('section7'), {
+    renderMathInElement(document.body, {
       delimiters: [
         {left: '$$', right: '$$', display: true},
         {left: '$', right: '$', display: false},

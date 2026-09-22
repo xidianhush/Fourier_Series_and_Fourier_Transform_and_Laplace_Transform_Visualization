@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>傅里叶反变换合成信号：复指数 e^{jωt} 的线性加权积分</title>
-<meta name="description" content="交互可视化：非周期信号 f(t) 表示为遍布 ω 轴的复指数 e^{jωt} 的线性加权积分，权重 = F(jω)dω/2π；复平面向量链、频谱谱线与黎曼和时域波形联动。">
-<meta property="og:title" content="傅里叶反变换合成信号">
-<meta property="og:description" content="复平面向量链首尾相接、端点 = s(t)；频谱谱线 = 权重 |F(jnΔω)|·Δω/2π；时域黎曼和收敛到理想 f(t)。">
+<title>Signal Synthesis by the Inverse Fourier Transform: A Weighted Integral of Complex Exponentials e^{jωt}</title>
+<meta name="description" content="Interactive visualization: an aperiodic signal f(t) expressed as a linearly weighted integral of complex exponentials e^{jωt} spread over the ω axis, weight = F(jω)dω/2π; the complex-plane vector chain, spectral lines, and Riemann-sum time-domain waveform move together.">
+<meta property="og:title" content="Signal Synthesis by the Inverse Fourier Transform">
+<meta property="og:description" content="Complex-plane vector chain tip-to-tail with endpoint = s(t); spectral lines = weights |F(jnΔω)|·Δω/2π; the time-domain Riemann sum converges to the ideal f(t).">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#0a1020">
@@ -14,54 +14,51 @@
 <link rel="stylesheet" href="assets/common.css">
 </head>
 <body>
-<noscript><div class="jsmissing">本页面需要启用 JavaScript 才能运行可视化动画。</div></noscript>
+<noscript><div class="jsmissing">This page needs JavaScript to run the visualization animation.</div></noscript>
 
 <header>
-  <h1>傅里叶反变换合成信号：遍布 ω 轴的复指数 e<sup>jωt</sup> 的线性加权积分，权重 = F(jω)dω/2π</h1>
-  <div class="formula">
-    f(t) = (1/2π)∫<sub>−∞</sub><sup>+∞</sup> F(jω) e<sup>jωt</sup> dω
-    = lim<sub>Δω→0</sub> Σ<sub>n</sub> F(jnΔω)·<span class="hl">(Δω/2π)</span>·e<sup>jnΔω t</sup>
-    &nbsp;—&nbsp; 每个分量的权重 = <span class="hl">F(jnΔω)·Δω/2π</span>（无穷小），矢量链端点 = f(t)
-  </div>
+  <h1>Signal synthesis by the inverse Fourier transform: a linearly weighted integral of the complex exponentials <span class="tex">e^{j\omega t}</span> spread over the whole <span class="tex">\omega</span> axis, weight = <span class="hl tex">F(j\omega)\,d\omega/2\pi</span></h1>
+  <div class="formula tex-block">f(t)=\frac{1}{2\pi}\int_{-\infty}^{+\infty}F(j\omega)e^{j\omega t}\,d\omega=\lim_{\Delta\omega\to 0}\sum_{n}F(jn\Delta\omega)\frac{\Delta\omega}{2\pi}e^{jn\Delta\omega t}</div>
+  <div class="formula">— weight of each component = <span class="tex">\frac{F(jn\Delta\omega)\,\Delta\omega}{2\pi}</span> (infinitesimal); vector-chain endpoint <span class="tex">= f(t)</span></div>
 </header>
 
 <main>
-  <div class="stage"><canvas id="cv" role="img" tabindex="0" aria-label="傅里叶反变换合成动画：复平面向量链、频谱与时域波形"></canvas></div>
+  <div class="stage"><canvas id="cv" role="img" tabindex="0" aria-label="Inverse Fourier transform synthesis animation: complex-plane vector chain, spectrum, and time-domain waveform"></canvas></div>
 
   <aside>
     <section>
-      <p class="cap">信号与频率粒度（主角滑条：Δω）</p>
-      <label class="row"><span>预设信号</span>
+      <p class="cap">Signal &amp; frequency granularity (hero slider: <span class="tex">\Delta\omega</span>)</p>
+      <label class="row"><span>Preset signal</span>
         <select id="preset">
-          <option value="rect">矩形脉冲（时限）</option>
-          <option value="tri">三角脉冲（时限）</option>
-          <option value="gauss">高斯脉冲（近似时限）</option>
-          <option value="dexp" selected>双边指数 e^{-a|t|}</option>
-          <option value="sexp">单边指数 e^{-at}u(t)（非时限）</option>
+          <option value="rect">rectangular pulse (time-limited)</option>
+          <option value="tri">triangular pulse (time-limited)</option>
+          <option value="gauss">Gaussian pulse (nearly time-limited)</option>
+          <option value="dexp" selected>two-sided exponential e^{-a|t|}</option>
+          <option value="sexp">one-sided exponential e^{-at}u(t) (not time-limited)</option>
         </select>
       </label>
       <label class="row"><span id="shapeLab">a</span>
         <input type="range" id="shape" min="0.5" max="4" step="0.05" value="1">
         <span class="val" id="shapeval">1.00</span>
       </label>
-      <label class="row"><span>Δω</span>
+      <label class="row"><span class="tex">\Delta\omega</span>
         <input type="range" id="logdw" min="0" max="1000" step="1" value="199">
         <span class="val" id="dwval">—</span>
       </label>
-      <label class="row"><span>Ω max</span>
+      <label class="row"><span class="tex">\Omega_{\max}</span>
         <input type="range" id="omx" min="4" max="48" step="1" value="8">
-        <span class="val" id="omxval">8 主瓣</span>
+        <span class="val" id="omxval">8 lobes</span>
       </label>
-      <p class="note">反变换把 f(t) 写成全体频率复指数 e<sup>jωt</sup> 的「连续和」：每个频率的权重 = F(jω)dω/2π。计算时以 Δω 离散化，共 N=⌊Ω/Δω⌋ 个分量。把 Δω 拖小：谱线变密、权重按 Δω 比例变矮、复平面矢量链的段缩到肉眼难辨（用放大镜看），黎曼和贴紧积分；代价是和式以 Tr=2π/Δω 为严格周期（黄括号），Tr 太小时周期副本 Σ<sub>k</sub> f(t−kTr) 会走进观测窗（红括号）。</p>
+      <p class="note">The inverse transform writes <span class="tex">f(t)</span> as a "continuous sum" of the complex exponentials <span class="tex">e^{j\omega t}</span> at every frequency: the weight of each frequency = <span class="tex">\frac{F(j\omega)\,d\omega}{2\pi}</span>. The computation discretizes with <span class="tex">\Delta\omega</span>, giving <span class="tex">2N+1</span> components (<span class="tex">N=\lfloor\Omega_{\max}/\Delta\omega\rfloor</span>). Drag <span class="tex">\Delta\omega</span> down: the spectral lines grow denser, the weights shrink in proportion to <span class="tex">\Delta\omega</span>, the chain segments in the complex plane shrink below visibility (use the magnifier), and the Riemann sum hugs the integral; the price is that the sum becomes strictly periodic with <span class="tex">T_r=2\pi/\Delta\omega</span> (yellow bracket), and when <span class="tex">T_r</span> is too small the periodic replicas <span class="tex">\sum_k f(t-kT_r)</span> walk into the observation window (red bracket).</p>
     </section>
 
     <section>
-      <p class="cap">播放（t 驱动复平面矢量链）</p>
+      <p class="cap">Playback (t drives the complex-plane vector chain)</p>
       <div class="btns">
-        <button id="play" class="primary">⏸ 暂停</button>
-        <button id="step">单步 +Tw/64</button>
+        <button id="play" class="primary">⏸ Pause</button>
+        <button id="step">Step +Tw/64</button>
       </div>
-      <label class="row"><span>速度</span>
+      <label class="row"><span>Speed</span>
         <input type="range" id="speed" min="0.1" max="4" step="0.1" value="1">
         <span class="val" id="speedval">1.0×</span>
       </label>
@@ -69,47 +66,50 @@
         <input type="range" id="tsl" min="-1" max="1" step="0.001" value="0">
         <span class="val" id="tval">0.000</span>
       </label>
-      <p class="note">播放时 t 在观测窗 ±Tw 内回绕（1× 时 8 s 一圈）；t 滑条可在整轴 ±Xw 内定位；也可直接在下方时域面板按住拖动刮擦。黎曼和以 Tr=2π/Δω 为严格周期，窗外的部分是周期副本。</p>
+      <p class="note">During playback t wraps inside the observation window <span class="tex">\pm T_w</span> (one lap in 8 s at 1×); the t slider can locate anywhere on the full axis <span class="tex">\pm X_w</span>; you can also drag directly on the time-domain panel below to scrub. The Riemann sum is strictly periodic with <span class="tex">T_r=2\pi/\Delta\omega</span>; what lies outside the window consists of periodic replicas (weight 1 — this page has <span class="tex">\sigma=0</span>, without the <span class="tex">e^{\pm\sigma kT_r}</span> amplification of the Laplace page).</p>
     </section>
 
     <section>
-      <p class="cap">显示</p>
+      <p class="cap">Display</p>
       <div class="checks">
-        <label><input type="checkbox" id="ckIdeal" checked>理想 f(t)</label>
-        <label><input type="checkbox" id="ckEnv" checked>包络 |F|·Δω/2π</label>
-        <label><input type="checkbox" id="ckRaw">纵轴原始 |F(jω)|</label>
-        <label><input type="checkbox" id="ckLens" checked>放大镜</label>
-        <label><input type="checkbox" id="ckBrk" checked>窗/副本括号</label>
-        <label><input type="checkbox" id="ck3d">3D 频谱栅栏</label>
+        <label><input type="checkbox" id="ckIdeal" checked>Ideal <span class="tex">f(t)</span></label>
+        <label><input type="checkbox" id="ckEnv" checked>Envelope <span class="tex">|F|\,\Delta\omega/2\pi</span></label>
+        <label><input type="checkbox" id="ckRaw">Raw-scale <span class="tex">|F(j\omega)|</span></label>
+        <label><input type="checkbox" id="ckLens" checked>Magnifier</label>
+        <label><input type="checkbox" id="ckBrk" checked>Window/replica brackets</label>
+        <label><input type="checkbox" id="ck3d">3D spectrum fence</label>
+        <label><input type="checkbox" id="ckFreeze" checked>Frozen complex-plane scale</label>
       </div>
+      <p class="note">A <u>scale bar</u> (<span class="tex">|s| = \ldots</span>) always sits at the bottom left of the complex plane, so absolute values stay readable however the scale changes. <b>"Frozen scale" is on by default</b> (consistent with the inverse Laplace page): the scale locks onto the largest extent the chain reaches within the observation window <span class="tex">\pm T_w</span>, so endpoint sizes can be compared across t and both pages draw the same size under the same parameters. The price is that once t leaves 0 the chain shrinks a lot — in pure Fourier synthesis the chain magnitude fluctuates through phase cancellation (34%–99% within the window, measured); that is not a drawing bug, it really is that small. Uncheck to return to per-frame auto-scaling (the chain always fills the panel, but sizes are not comparable). When the endpoint <span class="tex">s(t)</span> would draw shorter than 3 px, a dashed schematic arrow labeled "<span class="tex">\approx 0</span>" is drawn instead.</p>
     </section>
 
     <section>
-      <p class="cap">实时数值</p>
+      <p class="cap">Live readouts</p>
       <div class="ro">
-        <b>Δω</b><span id="r_dw">—</span>
-        <b>基向量数 2N+1</b><span id="r_N">—</span>
-        <b>max|权重|</b><span id="r_mag">—</span>
-        <b>黎曼周期 Tr</b><span id="r_Tr">—</span>
-        <b>观测窗 ±Tw</b><span id="r_Tw">—</span>
-        <b>窗内 max|Re(s−f)|</b><span id="r_err">—</span>
-        <b>t</b><span id="r_t">—</span>
-        <b>端点 s(t)</b><span id="r_end">—</span>
+        <b><span class="tex">\Delta\omega</span></b><span id="r_dw">—</span>
+        <b>Basis vectors <span class="tex">2N+1</span></b><span id="r_N">—</span>
+        <b><span class="tex">\max|\text{weight}|</span></b><span id="r_mag">—</span>
+        <b>Riemann period <span class="tex">T_r</span></b><span id="r_Tr">—</span>
+        <b>Window <span class="tex">\pm T_w</span></b><span id="r_Tw">—</span>
+        <b>In-window <span class="tex">\max|\mathrm{Re}(s-f)|</span></b><span id="r_err">—</span>
+        <b><span class="tex">t</span></b><span id="r_t">—</span>
+        <b>Chain tip <span class="tex">s(t)</span></b><span id="r_end">—</span>
       </div>
-      <p class="note">误差在观测窗 ±Tw 内计算，含 Ω 截断误差（只合成 |ω|≤Ω）与 Δω 离散误差；把 Δω 拖到最小、Ω 拖大可见其收敛。双击频谱恢复全部被静音分量。</p>
+      <p class="note">The error is computed inside the observation window <span class="tex">\pm T_w</span> and includes the <span class="tex">\Omega_{\max}</span> truncation error (only <span class="tex">|\omega|\le\Omega_{\max}</span> is synthesized) and the <span class="tex">\Delta\omega</span> discretization error; drag <span class="tex">\Delta\omega</span> to its minimum and <span class="tex">\Omega_{\max}</span> up to watch it converge. Double-click the spectrum to restore all muted components.</p>
       <p class="note" id="r_capNote"></p>
     </section>
 
     <section>
-      <p class="cap">三块面板怎么看</p>
-      <p class="note">左上：复平面。v<sub>n</sub>=F(jnΔω)(Δω/2π)e<sup>jnΔω t</sup>（n=−N…N）首尾相接成链，端点 = 合成 s(t)；链段颜色 = 该分量 t=0 初相位 arg F(jnΔω)（谱线、3D 栅栏同色）；红向量 = s(t)，它在 Re 轴上的投影就是时域曲线的高度。Δω 小时段长缩到肉眼难辨 —— 右上圆放大镜把鼠标附近的链放大 ×g 画出来。<br>
-      右上：频谱。谱线 = 权重 |F(jnΔω)|·Δω/2π（随 Δω 成比例缩矮 = 无穷小），灰包络 = |F(jω)|·Δω/2π；切「原始 |F(jω)|」看包络本身不随 Δω 变。悬停谱线 → 链上同色段白色加粗；点击谱线 → 静音该分量。勾「3D 频谱栅栏」后右上改画三维视图：站在 σ=0 平面里的同色栅栏（茎高 = 权重）加灰包络幕布，水平面是 jω 轴与 σ 轴，在面板内按住拖动可旋转视角（yaw/pitch）。σ 轴是给拉普拉斯反变换预留的空槽位：将来整排栅栏沿 σ 滑动、脚下铺出 |X(σ+jω)| 高度曲面，就是拉普拉斯页的舞台。点击静音只在 2D 模式生效；双击恢复全部静音两种模式都生效。<br>
-      下：时域。彩色 = 黎曼和合成 Re s(t)（以 Tr=2π/Δω 严格周期，即泊松 Σ<sub>k</sub> f(t−kTr)）；灰虚线 = 理想 f(t)。红括号 = 观测窗 ±Tw，黄括号 = 一个黎曼周期 Tr；绿虚线 = t=0 原点；纵轴 = Re s(t)。按住拖动可刮擦 t。</p>
+      <p class="cap">How to read the three panels</p>
+      <p class="note">Top left: complex plane. <span class="tex">v_n=F(jn\Delta\omega)\frac{\Delta\omega}{2\pi}e^{jn\Delta\omega t}</span> (<span class="tex">n=-N\ldots N</span>) join tip-to-tail into a chain whose endpoint = the synthesized <span class="tex">s(t)</span>; chain-segment color = that component's initial phase at t=0, <span class="tex">\arg F(jn\Delta\omega)</span> (the spectral lines and the 3D fence share the same colors); the red vector = <span class="tex">s(t)</span>, and its projection onto the Re axis is the height of the time-domain curve. The scale bar at bottom left gives absolute values. When <span class="tex">\Delta\omega</span> is small the segments shrink below visibility — the circular magnifier at top right redraws the chain near the mouse at ×g magnification.<br>
+      Top right: spectrum. Spectral lines = weights <span class="tex">|F(jn\Delta\omega)|\frac{\Delta\omega}{2\pi}</span> (they shrink in proportion to <span class="tex">\Delta\omega</span> = infinitesimal); the gray envelope = <span class="tex">|F(j\omega)|\frac{\Delta\omega}{2\pi}</span>; switch to "raw <span class="tex">|F(j\omega)|</span>" to see that the envelope itself does not change with <span class="tex">\Delta\omega</span>. Hover a line → the same-colored chain segment is highlighted in white; click a line → mute that component. With "3D spectrum fence" checked, the top-right panel switches to a 3D view: a same-colored fence standing in the <span class="tex">\sigma=0</span> plane (stem height = weight) plus a gray envelope curtain; the horizontal plane spans the <span class="tex">j\omega</span> axis and the <span class="tex">\sigma</span> axis — drag inside the panel to rotate the view (yaw/pitch). The σ axis is the slot reserved for the inverse Laplace transform, and the inverse Laplace page already puts that stage to use: there the top right is a true 3D s-plane with the whole fence standing on the integration path <span class="tex">\mathrm{Re}\,s=\sigma</span>, bar height = <span class="tex">|X(\sigma+jn\Delta\omega)|\frac{\Delta\omega}{2\pi}</span>, color = phase <span class="tex">\arg X</span>; dragging the σ slider slides the whole fence along σ (on this page the 3D fence stays fixed at <span class="tex">\sigma=0</span>, colored by the t=0 initial phases). Click-to-mute works only in 2D mode; double-click to restore all muted components works in both.<br>
+      Bottom: time domain. Colored = the Riemann-sum synthesis <span class="tex">\mathrm{Re}\,s(t)</span> (strictly periodic with <span class="tex">T_r=2\pi/\Delta\omega</span>, i.e. the Poisson sum <span class="tex">\sum_k f(t-kT_r)</span>); gray dashed = the ideal <span class="tex">f(t)</span>. Red bracket = observation window <span class="tex">\pm T_w</span>; yellow bracket = one Riemann period <span class="tex">T_r</span>; green dashed = the <span class="tex">t=0</span> origin, doubling as the magnitude axis (ticks labeled on its left); vertical axis = <span class="tex">\mathrm{Re}\,s(t)</span> (scaled over the whole axis; measured values outside the window are no larger than inside, so the scaling is not corrupted). Drag to scrub t.</p>
     </section>
   </aside>
 </main>
 
 <script src="assets/common.js"></script>
+<script src="assets/tex.js"></script>
 <script src="assets/ift.js"></script>
 </body>
 </html>

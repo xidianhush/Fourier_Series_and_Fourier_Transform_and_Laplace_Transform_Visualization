@@ -31,9 +31,9 @@
   - IPython.display(嵌入 YouTube 视频)
 - **网页版**(两个单文件页面):纯静态 HTML/CSS/JavaScript,零构建步骤、无包管理器
   - mathjs 12.4.1(CDN 加载:jsdelivr,失败时回退到 cdnjs),用 `math.compile` 编译用户输入的函数并数值求值
-  - KaTeX 0.16.9(CDN 加载:jsdelivr,失败时回退到 cdnjs;CSS 无回退),用于 `fourier_transform.html` 第 5 节与 `laplace_transform.html` 第 7 节的 LaTeX 公式渲染
+  - KaTeX 0.16.9(CDN 加载:jsdelivr,失败时回退到 cdnjs;CSS 无回退),用于两页全文的 LaTeX 公式渲染——auto-render 作用于 `document.body`,`$...$`/`$$...$$` 写在任何 prose、label、图例里都会被渲染,不限于第 5/7 节讲解
   - HTML5 Canvas 绘图;`laplace_transform.html` 第 4 节的热力图先画到离屏 canvas 再整块 `drawImage`,滑块拖动时不重算
-  - 单文件、深色主题、界面文案全英文(`laplace_transform.html` 与 `index.html` 的 `<html lang>` 为 en;`fourier_transform.html` 的 lang 属性仍是 2019 年留下的 zh-CN,内容同样是英文)
+  - 单文件、深色主题、界面文案全英文(三个页面的 `<html lang>` 均为 en;`fourier_transform.html` 的 lang 属性原是 2019 年留下的 zh-CN,2026-09-22 已改为 en)
 
 ## 仓库中的位置(2026-09 合并后)
 
@@ -77,7 +77,7 @@ Notebook 共 4 个章节:
 - `computeGlobalRange()` / `drawWindingCell(ctx, k, numPoints, rect, opts)` — 第 2、3 节共用的缠绕绘图:先对所有频率计算统一的全局范围 `gRange`,再按该范围绘制单个缠绕图(坐标轴穿过数据原点 (0,0));`drawGrid` 逐格调用、`drawAnim` 每帧调用(传 `frame+1` 只画到当前帧)。
 - `drawAnim(freqIdx, frame)` / `togglePlay()` / `animStep()` — 第 3 节:逐帧播放动画(每 40ms 前进 10 帧)。
 - `drawCOMPlots()` / `drawLinePlot()` / `drawBarPlot()` — 第 4 节:三个并排图(原始质心、平滑后、柱状);网页版阈值按 `|v| > 0.2*max|meanList|` 取并保留符号(与 notebook 的 `i>0` 规则不同),柱状图自零线起向正负两侧画。
-- 第 5 节为静态 HTML 讲解(英文,标题 "Understanding the Geometric Meaning of Fourier Transform & Spectral Density",推导按双边傅里叶变换展开:采样窗口 -T/2→T/2,终点积分区间 ∫_{-∞}^{∞}),数学公式用 KaTeX auto-render 渲染:页面末尾独立的 `<script>` 在 DOMContentLoaded 时对 `#section5` 调用 `renderMathInElement(...)`,支持内联 `$...$` 与独立 `$$...$$`。
+- 第 5 节为静态 HTML 讲解(英文,标题 "Understanding the Geometric Meaning of Fourier Transform & Spectral Density",推导按双边傅里叶变换展开:采样窗口 -T/2→T/2,终点积分区间 ∫_{-∞}^{∞}),数学公式用 KaTeX auto-render 渲染:页面末尾独立的 `<script>` 在 DOMContentLoaded 时对 `document.body` 调用 `renderMathInElement(...)`(2026-09-22 起从 `#section5` 扩大到全页),支持内联 `$...$` 与独立 `$$...$$`。
 - `onMathReady()` / `checkMath()` — 轮询等待 mathjs 就绪后自动 `generate()`;8 秒超时在页面上提示 math.js 加载失败。
 - 事件监听:频率/帧滑块 `input` 事件、输入框回车触发 `generate()`。
 
@@ -93,7 +93,7 @@ Notebook 共 4 个章节:
 - 第 4 节 `buildMap()` / `paintMapBitmap()` / `drawMapOverlay()` / `findFront()` / `colorFor(v)` / `computeSliceA()` / `computeSliceB()` / `drawSlices()` / `drawSlicePlot()` — 81(σ)×121(ω) 的 log10|F| 地图,用**内部长窗口 `T_map`(默认 20,可调 5–50)**,与显示窗口 T 无关;色标锚在 log10|F| 的 10% 分位数、跨 4 个数量级(默认信号下数值前沿落在 σ ≈ -2.3);叠加当前 (σ, ω) 十字光标与竖直前沿虚线;下面是两张切片(A:对 σ 定 ω;B:对 ω 定 σ)。热力图用 `ctxMap.drawImage(离屏 bitmap)`,所以拖滑块只重画叠加层。
 - 第 5 节 `buildFamily()` / `findFamilySplit()` / `drawFamily()` — 同一信号、窗口 T/2T/4T 三条 log10|F| 对 σ 曲线(ω = 0 切片);收敛域内三条重合,域外扇形张开;分岔判据是"最长窗与最短窗的差距超过窗长比"(log10 4 ≈ 0.6 个数量级),再插值给出极点实部(默认信号 → σ = -2.00)。σ 范围没覆盖极点时返回 null,界面显示 "no split found in this σ range"。
 - 第 6 节 `drawSpiral()` / `projectPoint(...)` — 手写正交投影(先绕竖直轴转 `thetaY`,再固定俯仰 `PITCH = 0.38`),不引 three.js;细线是核螺旋 e^(-st)(半径 e^(-σt),绘制时夹在 3 倍框内),粗线是 f(t)·e^(-st),另有原点、t 轴与当前采样点;水平拖动/触摸拖动改 `thetaY`,只旋转不平移缩放。
-- 第 7 节为静态 HTML 英文讲解(7 个小标题:从傅里叶到拉普拉斯、质心→积分、σ 的意义、极点、收敛域、有限窗口的诚实说明、3D 螺旋读法),KaTeX auto-render 配置同傅里叶页,只是作用在 `#section7`。
+- 第 7 节为静态 HTML 英文讲解(7 个小标题:从傅里叶到拉普拉斯、质心→积分、σ 的意义、极点、收敛域、有限窗口的诚实说明、3D 螺旋读法),KaTeX auto-render 配置同傅里叶页,同样作用在 `document.body`(2026-09-22 起从 `#section7` 扩大到全页;第 1–6 节的 prose 与图例里的公式也是 `$...$` 写法)。
 - 输入面板:`applyPreset('exp' | 'ring' | 'step')` 三个预设(分别设置函数、单边/双边、T、σ 与 ω);切单边/双边时 `onModeChange()` 会在 `exp(-2*t)` 与 `exp(-2*abs(t))` 之间改写默认函数;`toNumber()` 负责把 mathjs 可能返回的布尔值(阶跃预设 `(t>=0)`)、BigNumber、复数转成数值。
 
 ## 构建与运行
@@ -111,7 +111,7 @@ Notebook 共 4 个章节:
 ## 代码风格约定
 
 - 注释语言混用:2026 年新增/修改的代码与说明使用中文(例如 `# 指数衰减信号`、`# 衰减系数`,第 2 节后的 markdown 详解、第 3 节标题均为中文),2019 年原始内容为英文。新增代码请沿用所在单元格/段落附近已有的语言习惯。
-- 网页版界面文案全英文:`fourier_transform.html`、`laplace_transform.html`、`index.html` 三个页面的正文与提示语都是英文(拉普拉斯页与落地页的 `<html lang>` 为 en);代码标识符统一用英文 camelCase(如 `drawAnim`、`meanList`、`funcInput`、`sfList`;拉普拉斯页另有 `kernelPass`、`sMap`、`TMap`、`famSplitSigma`)。
+- 网页版界面文案全英文:`fourier_transform.html`、`laplace_transform.html`、`index.html` 三个页面的正文与提示语都是英文(三个页面的 `<html lang>` 均为 en);代码标识符统一用英文 camelCase(如 `drawAnim`、`meanList`、`funcInput`、`sfList`;拉普拉斯页另有 `kernelPass`、`sMap`、`TMap`、`famSplitSigma`)。
 - 拉普拉斯页共用的约定:缠绕核角度一律 `-omega*t`(e^(-jωt),勿改回正号);ω 的单位是 rad/s(不是 Hz);画布填充色必须等于 CSS 变量 `--surface`(#16213e)、标签色等于 `--text`(#e0e0e0);求和惯例是直接累加各采样点的值(不除 N)并按 `dt` 缩放到积分的量级;第 4 节地图用内部长窗口 `T_map` 而不是显示窗口 `T`;全程不做符号运算,极点与收敛域只从图上读出来。
 - Notebook 变量命名习惯:`r_cord`(极坐标点列表)、`x_cord` / `y_cord`(直角坐标)、`mean_list`(质心 x 之和)、`sf_list`(采样频率)。
 - Notebook 绘图参数习惯:`plt.rcParams["figure.figsize"]` 常用 (12,4);第 2 节子图大图用 (15,110)。
