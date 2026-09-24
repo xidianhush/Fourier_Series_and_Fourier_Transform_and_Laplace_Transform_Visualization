@@ -43,16 +43,16 @@
 ```
 ft_laplace/
 ├── index.html                                        落地页（英文），两张卡片指向下面两页
-├── fourier_transform.html                            傅里叶变换交互页（单文件，1024 行）
-├── laplace_transform.html                            拉普拉斯变换交互页（单文件，2039 行）
+├── fourier_transform.html                            傅里叶变换交互页（单文件，1370 行）
+├── laplace_transform.html                            拉普拉斯变换交互页（单文件，2250 行）
 ├── Fourier Transform - A Visual Introduction.ipynb   主 Notebook（nbformat 4.2，Python 3.11.8 生成，19 个单元格）
 ├── README.md
 └── AGENTS.md                                         该子项目的详细内部说明
 ```
 
-特点：**每页都是一个自包含的单文件**，HTML/CSS/JS 全写在一起，没有模块划分，JS 全是全局函数。外部依赖只有 CDN 上的 mathjs 12.4.1（编译并数值求值用户输入的函数）与 KaTeX 0.16.9（auto-render 作用于整个 `document.body`，渲染全页 `$…$`/`$$…$$` 公式，不限于讲解节），主地址 jsdelivr、回退地址 cdnjs。
+特点：**每页都是一个自包含的单文件**，HTML/CSS/JS 全写在一起，没有模块划分，JS 全是全局函数。外部依赖只有 CDN 上的 mathjs 12.4.1（编译并数值求值用户输入的函数，主地址 jsdelivr、回退地址 cdnjs，2026-09-24 起是唯一网络依赖）；公式排版由页尾内联的迷你 TeX 渲染器完成（子项目二 `assets/tex.js` 的内联副本，`texify()` 在 DOMContentLoaded 渲染全页 `.tex`/`.tex-block` 元素，2026-09-24 取代 KaTeX）。
 
-`fourier_transform.html` 的正文是「输入函数」面板 + 5 个编号小节（1 信号 → 2 缠绕网格 → 3 逐帧动画 → 4 质心曲线 → 5 几何意义静态讲解），`laplace_transform.html` 是「输入函数」面板 + 7 个编号小节（1 包络 → 2 s 平面缠绕 → 3 动画 → 4 s 平面 log10|F| 地图 → 5 极点和收敛域 → 6 三维螺旋 → 7 讲解）。
+`fourier_transform.html` 的正文是「输入函数」面板 + 5 个编号小节（1 信号 → 2 缠绕网格 → 3 逐帧动画 → 4 质心曲线 → 5 几何意义讲解（Canvas 实时插图 `#geoFig`）），`laplace_transform.html` 是「输入函数」面板 + 7 个编号小节（1 包络 → 2 s 平面缠绕 → 3 动画 → 4 s 平面 log10|F| 地图 → 5 极点和收敛域 → 6 三维螺旋 → 7 讲解）。
 
 **该子项目的页面内部结构、每一节的算法与实现细节、若干"不要改回去"的约定（缠绕核角度符号、递推初值、求和缩放等）都写在 `ft_laplace/AGENTS.md` 里，改动这一目录前必须先读它。**
 
@@ -116,7 +116,7 @@ fs_inv_ft_inv_laplace/
 - 直接双击根目录 `index.html`：卡片链接都指向具体的 `index.html`，在 `file://` 下也能一层层点进去；
 - 或在本目录启动静态服务器：`python -m http.server`，访问 `http://localhost:8000/`。
 
-子项目二 **完全自包含、不依赖网络**；子项目一的两个页面需要联网加载 mathjs/KaTeX CDN，加载失败时页面约 8 秒后给出提示，不降级。
+子项目二 **完全自包含、不依赖网络**；子项目一的两个页面需要联网加载 mathjs CDN（2026-09-24 起 mathjs 是唯一网络依赖），加载失败时页面约 8 秒后给出提示，不降级。
 
 **跑 Notebook**
 
@@ -151,7 +151,7 @@ jupyter notebook "Fourier Transform - A Visual Introduction.ipynb"
 | Cloudflare Workers / D1 / Supabase / Upstash Redis / Turnstile | 没有后端、没有数据库、没有表单、没有账号体系、没有人机验证场景 |
 | Cloudflare Pages | GitHub Pages 已跑通且全站相对路径；「每月 500 次构建」对本项目是 **0 次构建** |
 | Playwright / Vitest | 与 `fs_inv_ft_inv_laplace/tools/check.js` 的无头 DOM 探针 + 自解 PNG 像素扫描**功能重叠**，且两者都要 `npm install`，会打破「全仓库无 `package.json`」这条事实。真要引入，必须同时改掉本文件与 README 里的相关表述 |
-| Trivy | 没有依赖清单可扫。第三方代码只有手写在 HTML 里的两个 CDN 版本号（mathjs 12.4.1、KaTeX 0.16.9） |
+| Trivy | 没有依赖清单可扫。第三方代码只有手写在 HTML 里的一个 CDN 版本号（mathjs 12.4.1） |
 | ZAP | 没有服务端。唯一的安全点是 `math.compile()` 执行访客输入的表达式，属设计意图且只在访客自己的浏览器内运行，已记录在「安全注意事项」 |
 | Wireshark / Apache JMeter | `curl` 或 DevTools 足够；对 GitHub Pages 的 CDN 做压测没有意义 |
 | SQLite / DBeaver / Hoppscotch | 没有数据库、没有接口 |
@@ -217,6 +217,8 @@ DASHSCOPE_API_KEY=sk-... node tools/visual_qa/agent.js   # Qwen 视觉巡检（�
 巡检动作被安全栏限制在仓库内 `file://` 页面；产物在 `tools/visual_qa/out/`（已 gitignore）；任一功能点 fail 退出码为 1。详见 `tools/visual_qa/README.md`。
 
 ## 无障碍与性能体检（`ft_laplace/` 两页，2026-09）
+
+**2026-09-24 状态更新**：自该日起两页配色已统一为全站「深蓝黑仪表盘」（#0a1020 底 / #111c30 面板 / #0e1626 画布），KaTeX 已被页尾内联的迷你 TeX 渲染器取代（两页不再加载 KaTeX CDN），第 5 节手绘 jpg 插图已改为 Canvas 实时绘制（fourier 新增 `#geoFig`，自带 `aria-label`；连同它两页共 15 个 canvas，其余 14 个的无障碍缺口仍未补）。**下文的审计数字、颜色值与行号均为统一前的历史记录，不代表当前状态。**
 
 **先说适用范围**：下一节「代码风格与开发约定」里那条无障碍/性能约定（`prefers-reduced-motion`、canvas `role="img"` + `aria-label` + `tabindex`、`devicePixelRatio` 夹到 2、隐藏标签页暂停绘制）**目前只在子项目二成立**。`ft_laplace/` 的两页是 2019 年原仓库直接搬进来的，从未按这套约定改造过。**本节只记录现状，做这轮核对时没有改动任何页面代码。**
 
@@ -307,7 +309,7 @@ DASHSCOPE_API_KEY=sk-... node tools/visual_qa/agent.js   # Qwen 视觉巡检（�
 - **`var` 与 `const/let` 混用**：子项目二的 `ift.js`、`bridge.js`、`laplace.js`、`common.js` 用 `var`，只有 `fsls.js` 用 `const/let` 与箭头函数。改哪个文件就跟着哪个文件已有的写法，不要顺手统一。
 - **相对路径是硬约束**：两个子项目内部的一切引用（`assets/*.css`、`assets/*.js`、页面互链）都必须是相对本目录的相对路径。这正是它们能被整体搬进子目录、并部署在任意子路径下而互不干扰的原因。**禁止改成绝对路径或以 `/` 开头的路径。**
 - **仓库根不承载可视化代码**：新增一个案例 = 新建一个子目录放页面，再在根 `index.html` 卡片区加一张卡片；不修改已有子项目。
-- 两套子项目配色不同，不要互相"统一"：`ft_laplace/` 与根页用 `--bg #1a1a2e` / `--surface #16213e` / `--text #e0e0e0` / accent `#4cc9f0`；`fs_inv_ft_inv_laplace/` 用 `--bg #0a1020` / panel `#111c30` / `--accent #ff5d5d` / `--accent2 #7fd1ff`。子项目一里画布填充色必须等于 CSS 变量 `--surface`、标签色等于 `--text`。
+- 全站配色自 2026-09-24 起统一为「深蓝黑仪表盘」——底 `--bg #0a1020` / 面板 `--surface #111c30` / 画布底 `--canvas #0e1626`（仅 `ft_laplace/` 两页有，画布底色与面板底色分离）/ 正文 `--text #e8eefc` / 次级 `--text-dim #8fa2c4` / 交互强调青 `--accent #7fd1ff` / 关键标注红 `--accent2 #ff5d5d` / 边线 `--hairline #22314d`。`fs_inv_ft_inv_laplace/` 原即此配色，`ft_laplace/` 与根页于 2026-09-24 对齐；`ft_laplace/` 两页里画布填充色必须等于 CSS 变量 `--canvas`（#0e1626）、标签色等于 `--text`（#e8eefc）。
 - **无障碍与性能是既有约定，新增/改动页面请延续**：四个页面都尊重 `prefers-reduced-motion`（系统开启"减少动态效果"时默认暂停动画，可手动播放）、提供键盘操作、`<canvas>` 带 `role="img"` 与 `aria-label`、canvas 有 `tabindex`；`devicePixelRatio` 上限夹到 2；隐藏标签页时暂停绘制。子项目一的拉普拉斯页使用离屏 canvas + `drawImage` 让滑块拖动不重算热力图。**注意适用范围：这条约定目前只在子项目二成立**，`ft_laplace/` 的两页实测不满足（14 个 canvas 全无 `role`/`aria-label`/`tabindex`，无 `devicePixelRatio` 处理，无 `visibilitychange` 暂停），逐项清单见上文「无障碍与性能体检」一节。
 - **数学约定（子项目一，改动前务必确认）**：缠绕核角度一律取 `-omega*t`（即 e^(−jωt)），不要改回正号；拉普拉斯页 ω 的单位是 rad/s 而不是 Hz；求和惯例是直接累加各采样点值（不除 N）并按 `dt` 缩放到积分量级；全程不做符号运算，极点和收敛域只从图上读出来。子项目二的详细约定见其 README 与页面内 `.note` 说明文字。
 
@@ -336,7 +338,7 @@ GitHub Pages，**Deploy from a branch → `main` → `/ (root)`**。站点 URL �
 ## 安全注意事项
 
 - **`ft_laplace/` 的两个页面会在浏览器端执行用户输入的函数表达式**（`math.compile(funcStr)`，用 mathjs 编译并数值求值）。这是功能设计——等价于让访问者运行自定义数学函数——只作用于其本人浏览器会话、不涉及任何服务器。但若要把这些页面部署到不信任的共享环境，应知晓这一点。子项目二不加载外部库、不 eval 用户输入，没有这个问题。
-- 子项目一的两个页面依赖外部 CDN（mathjs、KaTeX），存在网络依赖；离线环境不降级，仅提示加载失败。
+- 子项目一的两个页面依赖外部 CDN（mathjs），存在网络依赖；离线环境不降级，仅提示加载失败。
 - notebook 可执行任意 Python 代码，与普通 Jupyter 行为一致——不要打开或运行不可信来源的 notebook。
 - 本仓库不含任何服务端代码、密钥或凭据；`tools/check.js` 只在本地读写临时文件并调用本机 Chrome。
 - `tools/visual_qa/agent.js` 巡检时会把页面截图发送给阿里云百炼（DashScope）供视觉模型判断；`DASHSCOPE_API_KEY` 只从环境变量读取、不落盘；动作安全栏限制在仓库内 `file://` 页面，`--max-calls` 默认 200 封顶调用量。

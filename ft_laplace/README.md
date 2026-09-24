@@ -15,4 +15,4 @@ pip3 install --user matplotlib
 pip3 install --user seaborn
 ```
 
-<b>Static web version :</b> open `index.html` in any browser, or jump straight to `fourier_transform.html` (the winding machine and the center of mass) and `laplace_transform.html` (the same machine with a real exponent added: σ envelopes, poles and the region of convergence). Both are single files with no build step; mathjs and KaTeX load from a CDN.
+<b>Static web version :</b> open `index.html` in any browser, or jump straight to `fourier_transform.html` (the winding machine and the center of mass) and `laplace_transform.html` (the same machine with a real exponent added: σ envelopes, poles and the region of convergence). Both are single files with no build step; only mathjs loads from a CDN, and formulas are typeset by the pages' built-in mini TeX renderer.

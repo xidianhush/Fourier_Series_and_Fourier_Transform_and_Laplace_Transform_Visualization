@@ -16,7 +16,7 @@
 | 文件 | 用途 |
 | --- | --- |
 | `cdp.js` | 极简 CDP（Chrome DevTools Protocol）客户端：启动 Chrome、开页、导航、截图、点击/输入/拖动 |
-| `readiness.js` | 页面清单 `PAGES`（11 页）+ 三档就绪等待（CDN 页等 mathjs/KaTeX、可视化页等 `__VIZ`、跳转页等 meta refresh 跳完），三方共用 |
+| `readiness.js` | 页面清单 `PAGES`（11 页）+ 三档就绪等待（CDN 页等 mathjs、可视化页等 `__VIZ`、跳转页等 meta refresh 跳完），三方共用 |
 | `shot.js` | 批量截图：整页 + 纵切切片 + 语义分段 |
 | `selftest.js` | 不耗 API 的 smoke 自检：导航、就绪等待、canvas 存在、点击/拖动、console 错误 |
 | `qwen.js` | DashScope（OpenAI 兼容模式）视觉模型客户端 + 动作 JSON 解析 |

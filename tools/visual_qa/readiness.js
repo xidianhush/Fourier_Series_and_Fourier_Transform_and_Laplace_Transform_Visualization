@@ -26,14 +26,14 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function fileUrl(def) { return pathToFileURL(path.join(REPO_ROOT, def.rel)).href; }
 
-/* 就绪等待（超时也继续）。ftl- 页返回 {math, katex} 就绪状态，其余返回 null。 */
+/* 就绪等待（超时也继续）。ftl- 页返回 {math} 就绪状态（KaTeX 已被页内 tex.js 取代，
+   不再有 .katex 节点可等），其余返回 null。 */
 async function waitReady(page, def) {
-  const cdn = { math: null, katex: null };
+  const cdn = { math: null };
   if (def.cdn) {
-    await page.waitFor("typeof math!=='undefined' && document.querySelectorAll('.katex').length>0", 15000);
+    await page.waitFor("typeof math!=='undefined'", 15000);
     await page.waitFor("var b=document.getElementById('btnGenerate'); b && !b.disabled", 10000);
     cdn.math = await page.evalJs("typeof math!=='undefined'").catch(() => false);
-    cdn.katex = await page.evalJs("document.querySelectorAll('.katex').length>0").catch(() => false);
     await sleep(800);   // 等首帧 canvas 画完
     return cdn;
   }

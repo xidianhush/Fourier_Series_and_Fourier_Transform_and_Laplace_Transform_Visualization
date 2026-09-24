@@ -96,7 +96,7 @@ async function shotOne(browser, def, outRoot, narrow) {
     const loaded = await page.goto(url);
     if (!loaded) console.log('[shot] ' + def.key + ' WARN load event timeout, shooting anyway');
     const cdn = await waitReady(page, def);
-    if (def.cdn) console.log('[shot] ' + def.key + ' cdn math=' + cdn.math + ' katex=' + cdn.katex);
+    if (def.cdn) console.log('[shot] ' + def.key + ' cdn math=' + cdn.math);
     const finalUrl = await page.url().catch(() => url);
     const size = await pageSize(page);
 

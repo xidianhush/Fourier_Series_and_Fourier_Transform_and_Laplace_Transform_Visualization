@@ -24,10 +24,10 @@ module.exports = [
   /* ---------- ftl-fourier（ft_laplace/fourier_transform.html） ----------
      已核对控件：#funcInput(text) #tMin #tMax #freqMin #freqMax(number) #btnGenerate
      #animFreq(range) #animPlayBtn(▶) #animFrame(range)；canvasSignal/canvasGrid/canvasAnim/
-     canvasCOMRaw/canvasCOMSmooth/canvasCOMBar；§5 内一张 jpg。 */
+     canvasCOMRaw/canvasCOMSmooth/canvasCOMBar/geoFig（§5 的 Canvas 插图）。 */
   {
     id: 'ft-load', page: 'ftl-fourier', maxTurns: 16,
-    title: 'mathjs/KaTeX 就绪并自动出图',
+    title: 'mathjs 就绪并自动出图',
     goal: '打开傅里叶变换交互页（英文 UI），不做任何点击，只向下滚动观察。页面很高（约 9500px），每轮【驱动实测状态】里的"滚动=当前/总高"告诉你位置，scroll 的 dy 用 800（约一屏）。逐项确认，见过即算，不要求同屏。',
     passCriteria: '四项都见过立即 done pass：①首屏 #btnGenerate 可用（文字 "Generate!"，不是 "Loading math.js..."）且无红色 "Failed to load math.js" 提示；②滚到 §1 "The signal" 看到信号曲线；③滚过 §2 "Wrapping the signal" 看到缠绕网格与红色质心点；④滚到 §5 讲解区，公式是排版后的数学式（无裸露 $...$）。',
   },
@@ -53,7 +53,7 @@ module.exports = [
     id: 'ft-sections', page: 'ftl-fourier', maxTurns: 16,
     title: '§4 三图并排与 §5 讲解渲染',
     goal: '向下滚动到 §4 "Center of mass vs frequency" 与 §5 "Geometric meaning"（页面底部，总高约 9500px，scroll 的 dy 用 800）。逐项确认，见过即算。',
-    passCriteria: '三项都见过立即 done pass：①§4 三张质心图（raw / smoothed / bar）并排渲染、坐标轴与曲线可见；②§5 公式已用 KaTeX 排版（无裸露 $ 符号）；③§5 末尾 "A figure makes this easier to understand:" 字样下方有一张大尺寸手绘风格示意图（黑底、手绘 V/t 坐标轴 + 蓝色波形曲线）——看到这张图即满足。注意：页面最大滚动位置约 8651，到底了就别再往下滚，图就在底部这一屏。',
+    passCriteria: '三项都见过立即 done pass：①§4 三张质心图（raw / smoothed / bar）并排渲染、坐标轴与曲线可见；②§5 公式已由页内置迷你 TeX 渲染器排版（无裸露 $ 符号、无红色错误框）；③§5 末尾 "A figure makes this easier to understand:" 字样下方有一张 Canvas 实时插图（深蓝黑底：左侧青色时域波形、中间 winding 箭头、右侧复平面缠绕曲线 + 红色质心向量）——看到这张图即满足。注意：页面最大滚动位置约 8651，到底了就别再往下滚，图就在底部这一屏。',
   },
 
   /* ---------- ftl-laplace（ft_laplace/laplace_transform.html） ----------
@@ -64,7 +64,7 @@ module.exports = [
   {
     id: 'lt-load', page: 'ftl-laplace', maxTurns: 6,
     title: '就绪自动出图',
-    goal: '打开拉普拉斯变换交互页（英文 UI），不操作，只观察。mathjs/KaTeX 加载完成后自动出图。',
+    goal: '打开拉普拉斯变换交互页（英文 UI），不操作，只观察。mathjs 加载完成后自动出图（公式由页内置迷你 TeX 渲染器排版）。',
     passCriteria: '①无 "Failed to load math.js" 红色提示；②§1 "The signal and its envelope" 画布上可见三条线（信号曲线 + e^{-σt} 上下包络）；③#btnGenerate 可用。',
   },
   {

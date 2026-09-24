@@ -6,24 +6,19 @@
 <title>Fourier Transform - A Visual Introduction</title>
 <script src="https://cdn.jsdelivr.net/npm/mathjs@12.4.1/lib/browser/math.js"
   onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js'"></script>
-<!-- KaTeX: render LaTeX across the whole page -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
-  onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js';"></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-  onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js';"></script>
 <style>
   :root {
-    --bg: #1a1a2e;
-    --surface: #16213e;          /* must equal the canvas fill colour in the JS */
-    --text: #e0e0e0;             /* must equal the canvas label colour in the JS */
-    --text-dim: #99a5c2;
-    --text-faint: #7b87a6;
-    --accent: #4cc9f0;
-    --accent2: #f72585;
-    --border: #2a2a4a;
-    --hairline: rgba(255, 255, 255, 0.10);
-    --radius: 14px;
+    --bg: #0a1020;
+    --surface: #111c30;
+    --canvas: #0e1626;           /* must equal the canvas fill colour in the JS */
+    --text: #e8eefc;             /* must equal the canvas label colour in the JS */
+    --text-dim: #8fa2c4;
+    --text-faint: #8fa2c4;
+    --accent: #7fd1ff;
+    --accent2: #ff5d5d;
+    --border: #22314d;
+    --hairline: #22314d;
+    --radius: 10px;
     --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Source Han Serif SC', 'Songti SC', serif;
     --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
     --mono: 'Cascadia Mono', Consolas, 'SFMono-Regular', monospace;
@@ -35,42 +30,34 @@
   body {
     font-family: var(--sans);
     background-color: var(--bg);
-    background-image: radial-gradient(1000px 560px at 50% -220px, rgba(76, 201, 240, 0.10), transparent 70%);
-    background-repeat: no-repeat;
     color: var(--text);
     line-height: 1.75; max-width: 1180px; margin: 0 auto;
     padding: clamp(20px, 4vw, 52px) clamp(16px, 4vw, 40px) 96px;
     -webkit-font-smoothing: antialiased;
   }
-  ::selection { background: rgba(76, 201, 240, 0.3); }
+  ::selection { background: rgba(127, 209, 255, 0.3); }
 
   /* ---- Headings ---- */
   h1 {
     font-size: clamp(1.9rem, 4.2vw, 2.55rem); font-weight: 600;
-    letter-spacing: 0.005em; text-align: center; color: #f4f8ff;
+    letter-spacing: 0.005em; text-align: center; color: #e8eefc;
     margin: 0 0 14px;
-  }
-  h1::after {
-    content: ''; display: block; width: 68px; height: 2px; border-radius: 2px;
-    margin: 20px auto 0;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
   }
   h2 {
     font-size: clamp(1.2rem, 2.4vw, 1.42rem); font-weight: 600;
-    letter-spacing: 0.01em; color: #eaf2ff;
-    margin: 4.6rem 0 0.8rem; padding-left: 0.9rem;
-    border-left: 3px solid var(--accent); scroll-margin-top: 24px;
+    letter-spacing: 0.01em; color: #e8eefc;
+    margin: 4.6rem 0 0.8rem; scroll-margin-top: 24px;
   }
   h2:first-of-type { margin-top: 2.4rem; }
-  h3 { font-size: 1.05rem; color: var(--accent); margin: 2rem 0 0.5rem; }
+  h3 { font-size: 1.05rem; color: var(--text-dim); margin: 2rem 0 0.5rem; }
   h4 {
     font-size: 0.79rem; font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.15em;
-    color: var(--accent); margin: 2.6rem 0 0.9rem;
+    color: var(--text-dim); margin: 2.6rem 0 0.9rem;
   }
   /* math keeps its own case inside uppercased headings/labels:
-     KaTeX output, and plain-text symbols wrapped in .ntc (e.g. σ, t, Hz) */
-  h4 .katex, .ntc { text-transform: none; }
+     .tex output (mini TeX renderer inlined at the end of this page), and plain-text symbols wrapped in .ntc (e.g. σ, t, Hz) */
+  h4 .tex, .ntc { text-transform: none; }
   p, li { margin: 0.55rem 0; max-width: 68ch; }
 
   /* the one-line blurb under each numbered section heading */
@@ -81,13 +68,12 @@
     text-align: center; color: var(--text-dim); font-size: 1rem;
     line-height: 1.85; max-width: 56ch; margin: 0 auto 2.2rem;
   }
-  .lead b { color: #ffffff; font-weight: 600; }
+  .lead b { color: #e8eefc; font-weight: 600; }
 
   .video-wrap { text-align: center; margin: 2.4rem 0 1rem; }
   .video-wrap iframe {
     width: min(100%, 880px); aspect-ratio: 16 / 9; height: auto;
     border: 1px solid var(--hairline); border-radius: var(--radius);
-    box-shadow: 0 30px 70px -40px rgba(0, 0, 0, 0.95);
   }
   img { max-width: 100%; }
 
@@ -96,40 +82,33 @@
     background: var(--surface); border: 1px solid var(--hairline);
     border-radius: var(--radius); padding: clamp(18px, 2.6vw, 28px);
     margin: 1.6rem 0; display: flex; flex-wrap: wrap; gap: 18px 22px; align-items: flex-end;
-    box-shadow: 0 24px 60px -40px rgba(0, 0, 0, 0.95);
   }
   .input-panel label {
     display: block; font-size: 0.7rem; text-transform: uppercase;
     letter-spacing: 0.13em; color: var(--text-dim); margin-bottom: 7px;
   }
-  .input-panel label .katex { text-transform: none; }
+  .input-panel label .tex { text-transform: none; }
   .input-panel input {
-    padding: 9px 13px; border-radius: 9px; border: 1px solid var(--border);
-    background: rgba(9, 13, 30, 0.6); color: var(--text); font-size: 0.95rem;
-    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    padding: 9px 13px; border-radius: 6px; border: 1px solid var(--border);
+    background: #0b1424; color: var(--text); font-size: 0.95rem;
+    transition: border-color 0.18s;
   }
   .input-panel input:focus {
     outline: none; border-color: var(--accent);
-    background: rgba(9, 13, 30, 0.9);
-    box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.18);
   }
   .input-panel input[type="text"] { width: min(260px, 60vw); font-family: var(--mono); }
   .input-panel input[type="number"] { width: 84px; }
   .btn {
-    padding: 10px 26px; border-radius: 9px; border: none; cursor: pointer;
+    padding: 10px 26px; border-radius: 6px; border: 1px solid var(--border);
+    background: #16233c; color: var(--text); cursor: pointer;
     font-size: 0.95rem; font-weight: 600;
-    transition: transform 0.15s, box-shadow 0.2s, background 0.2s, color 0.2s;
+    transition: background 0.16s, border-color 0.16s;
   }
   .btn:disabled { opacity: 0.55; cursor: progress; }
-  .btn-primary {
-    background: linear-gradient(180deg, #74daf9, var(--accent)); color: #04121c;
-    box-shadow: 0 12px 28px -16px rgba(76, 201, 240, 0.75);
+  .btn:hover { background: #1d2e4d; border-color: #33507f; }
+  .btn.btn-primary {
+    background: #20355c; border-color: #3d6bb0;
   }
-  .btn-primary:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 16px 32px -14px rgba(76, 201, 240, 0.9);
-  }
-  .btn-danger { background: linear-gradient(180deg, #ff64ad, var(--accent2)); color: #fff; }
   .note { font-size: 0.78rem; color: var(--text-faint); margin-top: 7px; }
   .note b { color: var(--text-dim); }
   .btn:focus-visible, .anim-controls button:focus-visible {
@@ -141,7 +120,6 @@
     background: var(--surface); border: 1px solid var(--hairline);
     border-radius: var(--radius); padding: clamp(14px, 2vw, 22px);
     margin: 1.4rem 0; overflow-x: auto;
-    box-shadow: 0 26px 55px -34px rgba(0, 0, 0, 0.95);
   }
   canvas { display: block; max-width: 100%; margin: 0 auto; }
 
@@ -155,20 +133,20 @@
     font-size: 0.7rem; text-transform: uppercase;
     letter-spacing: 0.13em; color: var(--text-dim);
   }
-  .anim-controls label .katex { text-transform: none; }
+  .anim-controls label .tex { text-transform: none; }
   .anim-controls #animFreqLabel, .anim-controls #animFrameLabel {
     font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0;
     text-transform: none; color: var(--accent);
   }
   .anim-controls input[type="range"] { flex: 1; min-width: 160px; accent-color: var(--accent); }
   .anim-controls button {
-    padding: 7px 18px; border-radius: 999px;
-    border: 1px solid rgba(76, 201, 240, 0.5);
-    background: rgba(76, 201, 240, 0.08); color: var(--accent);
+    padding: 7px 18px; border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #16233c; color: var(--text);
     cursor: pointer; font-size: 0.85rem;
-    transition: background 0.18s, color 0.18s;
+    transition: background 0.16s, border-color 0.16s;
   }
-  .anim-controls button:hover { background: var(--accent); color: #04121c; }
+  .anim-controls button:hover { background: #1d2e4d; border-color: #33507f; }
   .anim-controls .play-btn { font-size: 1rem; padding: 6px 16px; }
 
   .com-row { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -185,20 +163,45 @@
   /* prose: one sentence per line, flush left, no centring */
   #section5 p {
     font-family: var(--serif); font-size: clamp(1rem, 1.3vw, 1.08rem);
-    line-height: 1.9; color: #dee5f4; max-width: 100%; margin: 1.6rem 0;
+    line-height: 1.9; color: #e8eefc; max-width: 100%; margin: 1.6rem 0;
   }
   #section5 h4 { text-align: left; margin: 2.8rem 0 0.9rem; }
-  #section5 strong { color: #ffffff; font-weight: 600; }
-  #section5 em { color: #ffffff; }
-  #section5 img {
+  #section5 strong { color: #e8eefc; font-weight: 600; }
+  #section5 em { color: #e8eefc; }
+  #section5 canvas {
     display: block; width: min(100%, 860px); height: auto;
     margin: 2.4rem 0 0.5rem;
     border: 1px solid var(--hairline); border-radius: 10px;
-    box-shadow: 0 34px 70px -46px rgba(0, 0, 0, 1);
   }
-  #section5 .katex-display,
-  #section5 .katex-display > .katex { text-align: left; }
-  #section5 .katex-display { margin: 1.6em 0; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+  #section5 .tex-block { text-align: left; margin: 1.6em 0; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+  #section5 .eq-rows .tex-block { margin: .35em 0; }
+
+  /* ---- TeX subset formulas: the mini renderer inlined at the end of this page
+     turns .tex / .tex-block text into the structures below ---- */
+  .tex{font-family:"Cambria Math",Cambria,Georgia,"Times New Roman",serif; font-style:normal; line-height:1.35}
+  .tex i{font-style:italic}
+  .tex .mfn,.tex .mtext,.tex .mop,.tex .mrad{font-style:normal}
+  .tex .msym{font-style:italic}
+  .tex .mop{font-size:1.1em; margin:0 .05em}
+  .tex .mfn{margin:0 .05em}
+  .tex .mtext{font-family:inherit}
+  .tex .mrel{margin:0 .26em}
+  .tex .mbin{margin:0 .16em}
+  .tex .msp0{display:inline-block; width:.18em}
+  .tex .msp1{display:inline-block; width:.34em}
+  .tex .msp2{display:inline-block; width:1.1em}
+  .tex sup,.tex sub{font-size:.7em; line-height:0}
+  .tex .mfrac{display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 .16em; font-size:.94em}
+  .tex .mfrac>*{white-space:nowrap; padding:0 .18em}
+  .tex .mfrac>.mden{border-top:1px solid currentColor; padding-top:.06em}
+  .tex .msqrt>.mbody{border-top:1px solid currentColor; padding:.05em .14em 0}
+  .tex .mstack{display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 .12em}
+  .tex .mstack>*{white-space:nowrap; line-height:1.2}
+  .tex .mstack>.mup,.tex .mstack>.mdn{font-size:.7em; white-space:nowrap}
+  .tex .mstack>.mup:empty,.tex .mstack>.mdn:empty{display:none}
+  .tex .texerr{color:#ff9d9d; outline:1px dashed rgba(255,157,157,.6); padding:0 .2em}
+  .tex-block{display:block; text-align:center; margin:4px 0 0; line-height:1.95}
+  .tex .mbar{display:inline-block; border-top:1px solid currentColor; padding:0 .08em}
 
   @media (max-width: 720px) {
     body { padding: 22px 16px 64px; }
@@ -232,7 +235,7 @@
 <h2>⚙️ Input Your Function</h2>
 <div class="input-panel">
   <div>
-    <label for="funcInput">Function $f(t) =$</label>
+    <label for="funcInput">Function <span class="tex">f(t) =</span></label>
     <input type="text" id="funcInput" value="exp(-2*abs(t))" placeholder="e.g. exp(-2*abs(t))">
   </div>
   <div>
@@ -253,12 +256,12 @@
   </div>
   <button class="btn btn-primary" id="btnGenerate" onclick="generate()" disabled>Loading math.js...</button>
 </div>
-<div class="note">Variable: <b>$t$</b>. Available: exp, sin, cos, abs, sqrt, log, pi. The transform is two-sided, so the time axis covers the negative half: keep <b>t min</b> below 0, and <b>Freq min</b> below 0 to include negative frequencies.</div>
+<div class="note">Variable: <b><span class="tex">t</span></b>. Available: exp, sin, cos, abs, sqrt, log, pi. The transform is two-sided, so the time axis covers the negative half: keep <b>t min</b> below 0, and <b>Freq min</b> below 0 to include negative frequencies.</div>
 <div class="loading" id="loading">Computing... please wait...</div>
 
 <!-- ========== SECTION 1: Signal ========== -->
 <h2>1. Generating the Signal</h2>
-<p>Your input function $f(t)$ plotted over the whole time axis, centred on <span style="white-space:nowrap"><b>$t = 0$</b></span>.</p>
+<p>Your input function <span class="tex">f(t)</span> plotted over the whole time axis, centred on <span style="white-space:nowrap"><b><span class="tex">t = 0</span></b></span>.</p>
 <div class="canvas-box">
   <canvas id="canvasSignal" width="1000" height="350"></canvas>
 </div>
@@ -266,7 +269,7 @@
 <!-- ========== SECTION 2: Winding Subplots ========== -->
 <h2>2. Warping the Signal Around</h2>
 <p>For each sampling frequency, the signal is "wound" around a circle.
-The <span style="color:#ff4444;">red dot</span> marks the center of mass.</p>
+The <span style="color:#ff5d5d;">red dot</span> marks the center of mass.</p>
 <div class="canvas-box">
   <canvas id="canvasGrid" width="900" height="900"></canvas>
 </div>
@@ -302,7 +305,7 @@ The <span style="color:#ff4444;">red dot</span> marks the center of mass.</p>
 <h2>5. Understanding the Geometric Meaning of Fourier Transform &amp; Spectral Density</h2>
 <div class="canvas-box" id="section5">
   <p>
-    Winding a signal around a circle at frequency $f$ tells frequencies apart.<br>
+    Winding a signal around a circle at frequency <span class="tex">f</span> tells frequencies apart.<br>
     A frequency present in the signal bunches the curve on one side.<br>
     That pulls the center of mass away from the origin.<br>
     A frequency that is absent spreads the curve evenly.<br>
@@ -316,50 +319,39 @@ The <span style="color:#ff4444;">red dot</span> marks the center of mass.</p>
 
   <h4>Sampling the signal</h4>
   <p>
-    Sample the signal every $\Delta t$ over the window $-T/2 \to T/2$.<br>
-    This gives $N$ sample points $t_k = -T/2 + k\,\Delta t$, each with a value $f(t_k)$.<br>
+    Sample the signal every <span class="tex">\Delta t</span> over the window <span class="tex">-T/2 \to T/2</span>.<br>
+    This gives <span class="tex">N</span> sample points <span class="tex">t_k = -T/2 + k\,\Delta t</span>, each with a value <span class="tex">f(t_k)</span>.<br>
     The samples and the step size are tied to the window by:
   </p>
-  $$
-  N \cdot \Delta t = T \qquad \Longrightarrow \qquad \frac{\Delta t}{T} = \frac{1}{N}
-  $$
+  <div class="tex-block">N \cdot \Delta t = T \qquad \Longrightarrow \qquad \frac{\Delta t}{T} = \frac{1}{N}</div>
 
   <h4>The center of mass as a sum</h4>
   <p>
-    Give the curve a total mass of $1$.<br>
-    The $N$ samples sit in the window $-T/2 \to T/2$, each carrying the mass $1/N$.<br>
-    At step $k$ the curve has wound to the point $e^{-j 2 \pi f t_k}$.<br>
-    So the sample adds the mass $1/N$ at the position $f(t_k)\,e^{-j 2 \pi f t_k}$.<br>
+    Give the curve a total mass of <span class="tex">1</span>.<br>
+    The <span class="tex">N</span> samples sit in the window <span class="tex">-T/2 \to T/2</span>, each carrying the mass <span class="tex">1/N</span>.<br>
+    At step <span class="tex">k</span> the curve has wound to the point <span class="tex">e^{-j 2 \pi f t_k}</span>.<br>
+    So the sample adds the mass <span class="tex">1/N</span> at the position <span class="tex">f(t_k)\,e^{-j 2 \pi f t_k}</span>.<br>
     The center of mass is therefore:
   </p>
-  $$ \sum_{k=1}^{N} \frac{1}{N} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}} $$
+  <div class="tex-block">\sum_{k=1}^{N} \frac{1}{N} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}}</div>
 
   <h4>Taking the limit — a Riemann sum</h4>
   <p>
-    Since $1/N = \Delta t / T$, the sum is an average over $[-T/2, T/2]$:
+    Since <span class="tex">1/N = \Delta t / T</span>, the sum is an average over <span class="tex">[-T/2, T/2]</span>:
   </p>
-  $$
-  \begin{aligned}
-  \sum_{k=1}^{N} \frac{1}{N} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}}
-  & = \sum_{k=1}^{N} \frac{\Delta t}{T} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}} \\
-  & = \frac{1}{T} \sum_{k=1}^{N} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}} \Delta t
-  \end{aligned}
-  $$
+  <div class="eq-rows"><div class="tex-block">\sum_{k=1}^{N} \frac{1}{N} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}} = \sum_{k=1}^{N} \frac{\Delta t}{T} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}}</div><div class="tex-block">= \frac{1}{T} \sum_{k=1}^{N} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}} \Delta t</div></div>
   <p>
     This is a Riemann sum.<br>
-    The window $[-T/2,T/2]$ is cut into $N$ sub-intervals of length $\Delta t$.<br>
-    On each one, take the point $\xi_k = t_k$.<br>
-    This forms the product $f(\xi_k)\,e^{-j 2 \pi f \xi_k}\,\Delta t$.<br>
-    If $f(t)$ is bounded on $[-T/2,T/2]$, the limit as $\Delta t \to 0$ exists:
+    The window <span class="tex">[-T/2,T/2]</span> is cut into <span class="tex">N</span> sub-intervals of length <span class="tex">\Delta t</span>.<br>
+    On each one, take the point <span class="tex">\xi_k = t_k</span>.<br>
+    This forms the product <span class="tex">f(\xi_k)\,e^{-j 2 \pi f \xi_k}\,\Delta t</span>.<br>
+    If <span class="tex">f(t)</span> is bounded on <span class="tex">[-T/2,T/2]</span>, the limit as <span class="tex">\Delta t \to 0</span> exists:
   </p>
-  $$
-  \lim_{\Delta t \to 0} \frac{1}{T} \sum_{k=1}^{N} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}} \Delta t
-  \longrightarrow \frac{1}{T} \int_{-T/2}^{T/2} f(t) e^{-j 2 \pi f t} \mathrm{d}t
-  $$
+  <div class="tex-block">\lim_{\Delta t \to 0} \frac{1}{T} \sum_{k=1}^{N} f\left(t_{k}\right) e^{-j 2 \pi f t_{k}} \Delta t \longrightarrow \frac{1}{T} \int_{-T/2}^{T/2} f(t) e^{-j 2 \pi f t} \mathrm{d}t</div>
 
   <h4>An average, not a density</h4>
   <p>
-    Watch the factor $1/T$.<br>
+    Watch the factor <span class="tex">1/T</span>.<br>
     What we computed is the <em>average</em> position of the wound curve.<br>
     The mass was spread over the window, not over the curve itself.
   </p>
@@ -367,20 +359,20 @@ The <span style="color:#ff4444;">red dot</span> marks the center of mass.</p>
     For a periodic signal, every period draws the same figure.<br>
     The center of mass keeps a finite amplitude.<br>
     The average therefore settles on a definite value.<br>
-    For a non-periodic signal, a longer $T$ spreads the curve over more time.<br>
+    For a non-periodic signal, a longer <span class="tex">T</span> spreads the curve over more time.<br>
     The average is diluted and the center of mass creeps inward.<br>
-    Its amplitude becomes infinitesimal as $T \to \infty$.
+    Its amplitude becomes infinitesimal as <span class="tex">T \to \infty</span>.
   </p>
   <p>
     The information has not disappeared.<br>
-    It was only divided by an ever larger $T$.<br>
+    It was only divided by an ever larger <span class="tex">T</span>.<br>
     So the average is the wrong thing to keep.<br>
     What we want is the <em>density</em>, the center of mass per unit time.
   </p>
 
   <h4>The Fourier transform — scaling the center of mass up</h4>
   <p>
-    Multiplying the average by $T$ undoes the normalization.<br>
+    Multiplying the average by <span class="tex">T</span> undoes the normalization.<br>
     The coordinate of the center of mass then grows with the interval.<br>
     This step also turns an amplitude in volts into a density.<br>
     That unit is V/Hz, an amplitude per unit frequency.<br>
@@ -389,51 +381,47 @@ The <span style="color:#ff4444;">red dot</span> marks the center of mass.</p>
 
   <h4>From a finite window to the whole time axis</h4>
   <p>
-    $T$ was only the length of our observation window.<br>
+    <span class="tex">T</span> was only the length of our observation window.<br>
     It says nothing about the signal itself.<br>
     A transform should not remember it.<br>
     So let the window grow at both ends.<br>
     For a signal that dies out, the new samples carry no amplitude.<br>
     This exponential is down to about 0.02 when the window closes.<br>
-    Past either end, the sample weight is $0 \cdot e^{-j 2 \pi f t_k} = 0$.<br>
+    Past either end, the sample weight is <span class="tex">0 \cdot e^{-j 2 \pi f t_k} = 0</span>.<br>
     That cannot move the center of mass.<br>
-    Both ends therefore stretch out together, and $T$ drops out of the result.<br>
-    Then $\int_{-T/2}^{T/2}$ becomes $\int_{-\infty}^{\infty}$, the two-sided transform.<br>
+    Both ends therefore stretch out together, and <span class="tex">T</span> drops out of the result.<br>
+    Then <span class="tex">\int_{-T/2}^{T/2}</span> becomes <span class="tex">\int_{-\infty}^{\infty}</span>, the two-sided transform.<br>
     It privileges no starting time.<br>
     A signal that never dies out, a periodic one say, differs.<br>
     Extending its window keeps adding fresh periods instead.<br>
-    Letting $t$ cover the whole line also lets $f$ be negative.<br>
+    Letting <span class="tex">t</span> cover the whole line also lets <span class="tex">f</span> be negative.<br>
     That is the winding travelling the other way around the circle.<br>
-    A real signal satisfies $F(-f) = \overline{F(f)}$.<br>
-    Its spectrum is therefore conjugate symmetric about $f = 0$.<br>
+    A real signal satisfies <span class="tex">F(-f) = \overline{F(f)}</span>.<br>
+    Its spectrum is therefore conjugate symmetric about <span class="tex">f = 0</span>.<br>
     The two halves of the frequency axis are mirror images.<br>
     The default range here sweeps both of them, and Section 4 shows the symmetric hump.
   </p>
   <p>
-    With the window opened out, $T$ has dropped out.<br>
+    With the window opened out, <span class="tex">T</span> has dropped out.<br>
     The definition of the Fourier transform reads:
   </p>
-  $$
-  F(j\omega) \stackrel{\mathrm{def}}{=} \int_{-\infty}^{\infty} f(t) e^{-j \omega t} \mathrm{d}t,
-  \qquad \omega = 2\pi f
-  $$
+  <div class="tex-block">F(j\omega) \stackrel{\mathrm{def}}{=} \int_{-\infty}^{\infty} f(t) e^{-j \omega t} \mathrm{d}t, \qquad \omega = 2\pi f</div>
   <p>
-    Here $\omega$ is the angular frequency for the winding frequency $f$.
+    Here <span class="tex">\omega</span> is the angular frequency for the winding frequency <span class="tex">f</span>.
   </p>
 
   <h4>What the transform tells you</h4>
   <p>
     The center of mass of the wound curve lies on the complex plane.<br>
-    So $F(j\omega)$ is in general a complex number.<br>
-    Its magnitude $|F(j\omega)|$ is how far the curve bunches to one side.<br>
+    So <span class="tex">F(j\omega)</span> is in general a complex number.<br>
+    Its magnitude <span class="tex">|F(j\omega)|</span> is how far the curve bunches to one side.<br>
     That carries the amplitude of the frequency component, in V/Hz.<br>
-    Its phase angle $\angle F(j\omega)$ is the direction it bunches in.<br>
+    Its phase angle <span class="tex">\angle F(j\omega)</span> is the direction it bunches in.<br>
     That carries the phase of the frequency component.
   </p>
 
   <p>A figure makes this easier to understand:</p>
-  <img src="b0ef0ca70073a40eba9fcd213d1a1b5b.jpg"
-    alt="Geometric meaning of the Fourier transform">
+  <canvas id="geoFig" width="1668" height="778" aria-label="Geometric meaning of the Fourier transform"></canvas>
 </div>
 
 <script>
@@ -579,7 +567,7 @@ function drawSignal() {
   const pad = { top: 30, right: 30, bottom: 40, left: 50 };
 
   ctxSignal.clearRect(0, 0, W, H);
-  ctxSignal.fillStyle = '#16213e';
+  ctxSignal.fillStyle = '#0e1626';
   ctxSignal.fillRect(0, 0, W, H);
 
   // Find range
@@ -600,7 +588,7 @@ function drawSignal() {
   function ty(y) { return pad.top + plotH - (y - yMin) / (yMax - yMin) * plotH; }
 
   // Grid
-  ctxSignal.strokeStyle = '#2a2a4a';
+  ctxSignal.strokeStyle = '#22314d';
   ctxSignal.lineWidth = 0.5;
   for (let i = 0; i <= 5; i++) {
     const y = yMin + (yMax - yMin) * i / 5;
@@ -616,7 +604,7 @@ function drawSignal() {
     const x0 = tx(0);
     ctxSignal.save();
     ctxSignal.setLineDash([4, 4]);
-    ctxSignal.strokeStyle = '#2a2a4a';
+    ctxSignal.strokeStyle = '#22314d';
     ctxSignal.lineWidth = 1;
     ctxSignal.beginPath();
     ctxSignal.moveTo(x0, pad.top);
@@ -626,7 +614,7 @@ function drawSignal() {
   }
 
   // Axes
-  ctxSignal.strokeStyle = '#888';
+  ctxSignal.strokeStyle = '#8fa2c4';
   ctxSignal.lineWidth = 1;
   ctxSignal.beginPath();
   ctxSignal.moveTo(pad.left, pad.top);
@@ -635,7 +623,7 @@ function drawSignal() {
   ctxSignal.stroke();
 
   // Curve
-  ctxSignal.strokeStyle = '#4cc9f0';
+  ctxSignal.strokeStyle = '#7fd1ff';
   ctxSignal.lineWidth = 2;
   ctxSignal.beginPath();
   let first = true;
@@ -650,7 +638,7 @@ function drawSignal() {
   ctxSignal.stroke();
 
   // Labels
-  ctxSignal.fillStyle = '#e0e0e0';
+  ctxSignal.fillStyle = '#e8eefc';
   ctxSignal.font = '12px sans-serif';
   ctxSignal.textAlign = 'center';
   ctxSignal.fillText('Time (s)', W / 2, H - 5);
@@ -694,11 +682,11 @@ function drawWindingCell(ctx, k, numPoints, rect, opts) {
   function sy(v) { return cy - (v / r) * scale; }
 
   ctx.clearRect(rect.x, rect.y, rect.w, rect.h);
-  ctx.fillStyle = '#16213e';
+  ctx.fillStyle = '#0e1626';
   ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
 
   // Axes through the origin (0,0)
-  ctx.strokeStyle = '#888';
+  ctx.strokeStyle = '#8fa2c4';
   ctx.lineWidth = o.axisWidth || 0.3;
   ctx.beginPath();
   ctx.moveTo(cx - scale, cy); ctx.lineTo(cx + scale, cy);
@@ -707,7 +695,7 @@ function drawWindingCell(ctx, k, numPoints, rect, opts) {
 
   // Curve
   const n = Math.max(1, Math.min(numPoints, xCord[k].length));
-  ctx.strokeStyle = '#4cc9f0';
+  ctx.strokeStyle = '#7fd1ff';
   ctx.lineWidth = o.curveWidth || 0.5;
   ctx.beginPath();
   for (let i = 0; i < n; i++) {
@@ -723,7 +711,7 @@ function drawWindingCell(ctx, k, numPoints, rect, opts) {
   for (let i = 0; i < n; i++) { sumX += xCord[k][i]; sumY += yCord[k][i]; }
   const cmx = sumX / n;
   const cmy = sumY / n;
-  ctx.fillStyle = '#ff4444';
+  ctx.fillStyle = '#ff5d5d';
   ctx.beginPath();
   ctx.arc(sx(cmx), sy(cmy), o.comRadius || 2.5, 0, Math.PI * 2);
   ctx.fill();
@@ -747,7 +735,7 @@ function drawGrid() {
     const cx = rect.x + rect.w / 2;
     const cy = rect.y + rect.h / 2;
     const scale = Math.min(cellW, cellH) * 0.38;
-    ctxGrid.fillStyle = '#aaa';
+    ctxGrid.fillStyle = '#8fa2c4';
     ctxGrid.font = '9px sans-serif';
     ctxGrid.textAlign = 'center';
     ctxGrid.fillText(sfList[k].toFixed(1) + ' Hz', cx, cy + scale + 12);
@@ -770,7 +758,7 @@ function drawAnim(freqIdx, frame) {
     { curveWidth: 1, axisWidth: 0.5, comRadius: 6 });
 
   // Title
-  ctxAnim.fillStyle = '#e0e0e0';
+  ctxAnim.fillStyle = '#e8eefc';
   ctxAnim.font = '14px sans-serif';
   ctxAnim.textAlign = 'center';
   ctxAnim.fillText(`Freq = ${sfList[k].toFixed(2)} Hz | t = ${t[frame].toFixed(2)} s | Frame ${frame}/${NUM_POINTS-1}`, W/2, H - 10);
@@ -836,7 +824,7 @@ function drawLinePlot(ctx, xData, yData, title, xLabel, yLabel) {
   const pad = { top: 30, right: 20, bottom: 35, left: 50 };
 
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#16213e';
+  ctx.fillStyle = '#0e1626';
   ctx.fillRect(0, 0, W, H);
 
   let yMin = Infinity, yMax = -Infinity;
@@ -854,7 +842,7 @@ function drawLinePlot(ctx, xData, yData, title, xLabel, yLabel) {
   function ty(y) { return pad.top + plotH - (y - yMin) / (yMax - yMin) * plotH; }
 
   // Grid
-  ctx.strokeStyle = '#2a2a4a';
+  ctx.strokeStyle = '#22314d';
   ctx.lineWidth = 0.5;
   for (let i = 0; i <= 4; i++) {
     const y = yMin + (yMax - yMin) * i / 4;
@@ -863,7 +851,7 @@ function drawLinePlot(ctx, xData, yData, title, xLabel, yLabel) {
   }
 
   // Axes
-  ctx.strokeStyle = '#888';
+  ctx.strokeStyle = '#8fa2c4';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(pad.left, pad.top);
@@ -872,7 +860,7 @@ function drawLinePlot(ctx, xData, yData, title, xLabel, yLabel) {
   ctx.stroke();
 
   // Curve
-  ctx.strokeStyle = '#4cc9f0';
+  ctx.strokeStyle = '#7fd1ff';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   for (let i = 0; i < xData.length; i++) {
@@ -884,7 +872,7 @@ function drawLinePlot(ctx, xData, yData, title, xLabel, yLabel) {
   ctx.stroke();
 
   // Title
-  ctx.fillStyle = '#e0e0e0';
+  ctx.fillStyle = '#e8eefc';
   ctx.font = '11px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText(title, W / 2, 14);
@@ -902,7 +890,7 @@ function drawBarPlot(ctx, xData, yData, title, xLabel, yLabel) {
   const pad = { top: 30, right: 20, bottom: 35, left: 50 };
 
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#16213e';
+  ctx.fillStyle = '#0e1626';
   ctx.fillRect(0, 0, W, H);
 
   let yMin = 0, yMax = 0;
@@ -920,7 +908,7 @@ function drawBarPlot(ctx, xData, yData, title, xLabel, yLabel) {
   function ty(y) { return pad.top + plotH - (y - yMin) / (yMax - yMin) * plotH; }
 
   // Axes
-  ctx.strokeStyle = '#888';
+  ctx.strokeStyle = '#8fa2c4';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(pad.left, pad.top);
@@ -929,7 +917,7 @@ function drawBarPlot(ctx, xData, yData, title, xLabel, yLabel) {
   ctx.stroke();
 
   // Bars — measured from the zero line, so negative values hang below it
-  ctx.fillStyle = '#f72585';
+  ctx.fillStyle = '#ff5d5d';
   const zeroY = ty(0);
   for (let i = 0; i < xData.length; i++) {
     if (yData[i] !== 0) {
@@ -940,7 +928,7 @@ function drawBarPlot(ctx, xData, yData, title, xLabel, yLabel) {
   }
 
   // Title
-  ctx.fillStyle = '#e0e0e0';
+  ctx.fillStyle = '#e8eefc';
   ctx.font = '11px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText(title, W / 2, 14);
@@ -968,6 +956,147 @@ document.getElementById('animFrame').addEventListener('input', function() {
 document.getElementById('funcInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') generate();
 });
+
+// ============================================================
+//  Section 5 figure: geometric meaning of F(jω), drawn live
+//  (replaces the old bitmap; same palette as the other panels)
+// ============================================================
+function drawGeoFigure() {
+  const cv = document.getElementById('geoFig');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const BG = '#0e1626', AXIS = '#22314d', CYAN = '#7fd1ff', RED = '#ff5d5d', NOTE = '#8fa2c4';
+  const SANS = "'Segoe UI', 'Microsoft YaHei', sans-serif";
+  const SERIF = "Georgia, 'Times New Roman', serif";
+  ctx.fillStyle = BG;
+  ctx.fillRect(0, 0, W, H);
+
+  // the signal: f(t) = e^(-αt)·cos(ωt + φ), wound at exactly ω
+  const ALPHA = 0.2, F0 = 0.35, PHASE = Math.PI / 5, TEND = 10;
+  const fSig = t => Math.exp(-ALPHA * t) * Math.cos(2 * Math.PI * F0 * t + PHASE);
+
+  // helper: "e" with a superscript exponent
+  function expText(x, y, expon, size, color) {
+    ctx.fillStyle = color;
+    ctx.font = 'italic ' + size + 'px ' + SERIF;
+    ctx.fillText('e', x, y);
+    const we = ctx.measureText('e').width;
+    ctx.font = 'italic ' + Math.round(size * 0.68) + 'px ' + SERIF;
+    ctx.fillText(expon, x + we + 1, y - size * 0.38);
+    return x + we + 1 + ctx.measureText(expon).width;
+  }
+
+  // ---- left panel: the signal in time ----
+  const lx0 = 70, lx1 = 500, ly0 = 170, ly1 = 620;
+  const lyc = (ly0 + ly1) / 2;
+  ctx.strokeStyle = AXIS; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(lx0, lyc); ctx.lineTo(lx1, lyc); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(lx0, ly0); ctx.lineTo(lx0, ly1); ctx.stroke();
+  for (let tt = 0; tt <= TEND; tt += 2) {
+    const x = lx0 + (lx1 - lx0) * tt / TEND;
+    ctx.beginPath(); ctx.moveTo(x, lyc - 4); ctx.lineTo(x, lyc + 4); ctx.stroke();
+  }
+  ctx.strokeStyle = CYAN; ctx.lineWidth = 2; ctx.beginPath();
+  for (let i = 0; i <= 500; i++) {
+    const tt = TEND * i / 500;
+    const x = lx0 + (lx1 - lx0) * tt / TEND;
+    const y = lyc - fSig(tt) * (ly1 - ly0) / 2 * 0.92;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.textAlign = 'left'; ctx.fillStyle = NOTE; ctx.font = '15px ' + SANS;
+  ctx.fillText('the signal', lx0, ly0 - 40);
+  ctx.font = 'italic 19px ' + SERIF;
+  ctx.fillText(' f(t)', lx0 + ctx.measureText('the signal').width, ly0 - 40);
+  ctx.font = 'italic 17px ' + SERIF;
+  ctx.fillText('t', lx1 - 8, lyc + 28);
+
+  // ---- middle: the winding operator ----
+  ctx.strokeStyle = NOTE; ctx.fillStyle = NOTE; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(555, 390); ctx.lineTo(680, 390); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(680, 390); ctx.lineTo(668, 384); ctx.lineTo(668, 396); ctx.closePath(); ctx.fill();
+  ctx.textAlign = 'center'; ctx.font = '15px ' + SANS;
+  ctx.fillText('wind with', 620, 345);
+  ctx.font = 'italic 20px ' + SERIF;
+  const we = ctx.measureText('e').width;
+  ctx.font = 'italic 14px ' + SERIF;
+  const wx = ctx.measureText('−jωt').width;
+  expText(620 - (we + wx + 1) / 2, 378, '−jωt', 20, NOTE);
+
+  // ---- right panel: the wound curve in the complex plane ----
+  const cx = 1150, cy = 400, sc = 265;
+  ctx.strokeStyle = AXIS; ctx.lineWidth = 1; ctx.setLineDash([5, 6]);
+  ctx.beginPath(); ctx.arc(cx, cy, sc, 0, Math.PI * 2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(cx - sc - 60, cy); ctx.lineTo(cx + sc + 60, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy - sc - 40); ctx.lineTo(cx, cy + sc + 40); ctx.stroke();
+  ctx.textAlign = 'left'; ctx.fillStyle = NOTE; ctx.font = 'italic 17px ' + SERIF;
+  ctx.fillText('Re', cx + sc + 68, cy + 6);
+  ctx.fillText('Im', cx + 10, cy - sc - 50);
+
+  // title above the right panel
+  let tx = cx - 190;
+  ctx.fillStyle = NOTE; ctx.font = '15px ' + SANS;
+  ctx.fillText('the winding  ', tx, 98);
+  tx += ctx.measureText('the winding  ').width;
+  ctx.font = 'italic 21px ' + SERIF;
+  ctx.fillText('f(t)', tx, 98); tx += ctx.measureText('f(t)').width + 3;
+  ctx.fillText('·', tx, 98); tx += ctx.measureText('·').width + 3;
+  ctx.fillText('e', tx, 98); tx += ctx.measureText('e').width;
+  ctx.font = 'italic 14px ' + SERIF;
+  ctx.fillText('−jωt', tx, 90);
+
+  // the wound curve: z(t) = f(t)·e^{-jωt}, plus its running mean
+  const N = 1500, dt = TEND / N;
+  let meanRe = 0, meanIm = 0;
+  ctx.strokeStyle = CYAN; ctx.lineWidth = 1.6; ctx.beginPath();
+  for (let i = 0; i <= N; i++) {
+    const tt = i * dt;
+    const fv = fSig(tt);
+    const zRe = fv * Math.cos(-2 * Math.PI * F0 * tt);
+    const zIm = fv * Math.sin(-2 * Math.PI * F0 * tt);
+    meanRe += zRe * dt; meanIm += zIm * dt;
+    const px = cx + sc * zRe, py = cy - sc * zIm;
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  meanRe /= TEND; meanIm /= TEND;
+  const mx = cx + sc * meanRe, my = cy - sc * meanIm;
+
+  // F(jω): the vector from the origin to the centre of mass
+  const angM = Math.atan2(meanIm, meanRe);
+  ctx.strokeStyle = RED; ctx.fillStyle = RED; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(mx, my); ctx.stroke();
+  const dirS = Math.atan2(my - cy, mx - cx);
+  ctx.beginPath();
+  ctx.moveTo(mx, my);
+  ctx.lineTo(mx - 13 * Math.cos(dirS - 0.42), my - 13 * Math.sin(dirS - 0.42));
+  ctx.lineTo(mx - 13 * Math.cos(dirS + 0.42), my - 13 * Math.sin(dirS + 0.42));
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.arc(mx, my, 4.5, 0, Math.PI * 2); ctx.fill();
+  ctx.font = 'italic 19px ' + SERIF;
+  ctx.fillText('|F(jω)|', cx + sc * meanRe * 0.5 - 38, cy - sc * meanIm * 0.5 - 24);
+  ctx.font = '13px ' + SANS;
+  ctx.fillText('centre of mass', mx + 14, my + 26);
+
+  // the phase angle, swept from the +Re axis
+  ctx.strokeStyle = NOTE; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(cx, cy, 120, 0, -angM, true); ctx.stroke();
+  ctx.fillStyle = NOTE; ctx.font = 'italic 16px ' + SERIF;
+  ctx.fillText('∠F(jω)', cx + 130 * Math.cos(-angM / 2) - 20, cy + 130 * Math.sin(-angM / 2) + 5);
+
+  // caption
+  ctx.font = 'italic 16px ' + SERIF; ctx.fillStyle = RED;
+  ctx.fillText('|F(jω)|', 820, 735);
+  ctx.font = '14px ' + SANS; ctx.fillStyle = NOTE;
+  ctx.fillText('— how far the curve bunches to one side (amplitude)', 820 + 62, 735);
+  ctx.font = 'italic 16px ' + SERIF; ctx.fillStyle = NOTE;
+  ctx.fillText('∠F(jω)', 820, 760);
+  ctx.font = '14px ' + SANS;
+  ctx.fillText('— the direction it bunches in (phase)', 820 + 58, 760);
+}
+drawGeoFigure();
 
 // ============================================================
 //  INIT: wait for math.js, then generate
@@ -1010,20 +1139,231 @@ setTimeout(function() {
 </script>
 
 <script>
-// Render LaTeX across the page with KaTeX
-document.addEventListener('DOMContentLoaded', function() {
-  if (typeof renderMathInElement === 'function') {
-    renderMathInElement(document.body, {
-      delimiters: [
-        {left: '$$', right: '$$', display: true},
-        {left: '$', right: '$', display: false},
-        {left: '\\(', right: '\\)', display: false},
-        {left: '\\[', right: '\\]', display: true}
-      ],
-      throwOnError: false
-    });
+/* 极简 TeX 子集渲染器：把页面里写的 TeX 片段排成 HTML，**零依赖、不联网**（纯手写实现，不依赖任何外部公式引擎）。
+   用法：把公式写成元素自身的文本，
+     <span class="tex">\frac{1}{2\pi j}\int_{\sigma-j\infty}^{\sigma+j\infty}X(s)e^{st}\,ds</span>
+     <div class="tex-block">…</div>
+   本文件在加载时（DOMContentLoaded）把 .tex / .tex-block 的文本渲染成 HTML；JS 未启用时读者看到的是
+   TeX 源码本身，配合各页的 <noscript> 提示不至于空白。
+   支持的子集：\frac \sqrt \text/\mathrm、上下标 ^ _（\sum \prod \lim 的上下限竖排、\int 用右下角上下标）、
+   常用希腊字母与算符（\sigma \omega \Delta \pi \infty \to \cdot \times \pm \le \ge \ne \approx \partial …
+   以及 \sin \cos \exp \log \lim \max \min \arg \Re \Im）、\left \right \bigl \bigr（只当括号用）、
+   \, \; \: \! \quad 空格、\{ \} \% \& \# \_ 转义。
+   渲染失败（未知命令、括号不配对）时输出带 .texerr 的原样文本 + 红色虚线框，方便一眼看见写错了。 */
+(function (g) {
+  'use strict';
+
+  /* 命令 → 显示字符。希腊字母按数学习惯用斜体（在 CSS 里统一处理）。 */
+  var SYM = {
+    alpha:'α', beta:'β', gamma:'γ', delta:'δ', epsilon:'ε', varepsilon:'ε', zeta:'ζ', eta:'η',
+    theta:'θ', vartheta:'ϑ', iota:'ι', kappa:'κ', lambda:'λ', mu:'μ', nu:'ν', xi:'ξ', pi:'π',
+    varpi:'ϖ', rho:'ρ', sigma:'σ', varsigma:'ς', tau:'τ', upsilon:'υ', phi:'φ', varphi:'φ',
+    chi:'χ', psi:'ψ', omega:'ω', Gamma:'Γ', Delta:'Δ', Theta:'Θ', Lambda:'Λ', Xi:'Ξ', Pi:'Π',
+    Sigma:'Σ', Upsilon:'Υ', Phi:'Φ', Psi:'Ψ', Omega:'Ω',
+    cdot:'·', times:'×', div:'÷', pm:'±', mp:'∓', ast:'∗', star:'⋆',
+    le:'≤', leq:'≤', ge:'≥', geq:'≥', ne:'≠', neq:'≠', approx:'≈', equiv:'≡', sim:'∼', simeq:'≃',
+    propto:'∝', to:'→', rightarrow:'→', longrightarrow:'→', leftarrow:'←', leftrightarrow:'↔', mapsto:'↦', implies:'⟹', Longrightarrow:'⟹',
+    infty:'∞', partial:'∂', nabla:'∇', sum:'∑', prod:'∏', int:'∫', oint:'∮', sqrt:'√',
+    in:'∈', notin:'∉', subset:'⊂', subseteq:'⊆', cup:'∪', cap:'∩', forall:'∀', exists:'∃',
+    ldots:'…', cdots:'⋯', vdots:'⋮', ddots:'⋱', angle:'∠', perp:'⊥', prime:'′', circ:'∘',
+    lfloor:'⌊', rfloor:'⌋', lceil:'⌈', rceil:'⌉', langle:'⟨', rangle:'⟩', hbar:'ℏ', ell:'ℓ'
+  };
+  /* 直立排版的函数名 / 算符名 */
+  var FN = {
+    sin:1, cos:1, tan:1, cot:1, sec:1, csc:1, arcsin:1, arccos:1, arctan:1,
+    sinh:1, cosh:1, tanh:1, exp:1, log:1, ln:1, lg:1, lim:1, limsup:1, liminf:1,
+    max:1, min:1, sup:1, inf:1, arg:1, det:1, dim:1, ker:1, deg:1, gcd:1, sgn:1, mod:1
+  };
+  var BIGSTACK = { sum:1, prod:1, lim:1, limsup:1, liminf:1, max:1, min:1, sup:1, inf:1 };   /* 上下限竖排 */
+  var STACKRE = /data-big="(sum|prod|lim|limsup|liminf|max|min|sup|inf)"/;
+  var REL = { '=':1, '<':1, '>':1, '≤':1, '≥':1, '≠':1, '≈':1, '≡':1, '∼':1, '≃':1, '→':1, '←':1, '↔':1, '↦':1, '⟹':1, '∝':1, '∈':1, '∉':1, '⊂':1, '⊆':1 };
+  var BIN = { '+':1, '−':1, '-':1, '±':1, '∓':1, '·':1, '×':1, '÷':1, '∗':1, '⋆':1, '∪':1, '∩':1 };
+
+  function esc(c) { return c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '"' ? '&quot;' : c; }
+  function escAll(s) { return String(s).replace(/[&<>"]/g, esc); }
+
+  function renderTex(src) {
+    var s = String(src == null ? '' : src).trim();
+    var pos = 0;
+
+    function fail(msg) { var e = new Error(msg); e.tex = true; throw e; }
+    function token() {
+      if (pos >= s.length) return null;
+      var c = s[pos];
+      if (c === '\\') {
+        pos++;
+        if (pos >= s.length) fail('反斜杠后面什么都没有');
+        var m = /^[A-Za-z]+/.exec(s.slice(pos));
+        if (m) { pos += m[0].length; return { t: 'cmd', v: m[0] }; }
+        var ch = s[pos]; pos++;
+        return { t: 'esc', v: ch };
+      }
+      pos++;
+      if (c === '{') return { t: '{' };
+      if (c === '}') return { t: '}' };
+      if (c === '^') return { t: '^' };
+      if (c === '_') return { t: '_' };
+      return { t: 'ch', v: c };
+    }
+
+    /* 取一个"原子"（不带上标下标）：{...} / \cmd / 单字符 */
+    function atom(tok) {
+      if (!tok) fail('缺参数');
+      if (tok.t === '{') return group();
+      if (tok.t === '}') fail('多余的右花括号');
+      if (tok.t === '^' || tok.t === '_') fail('上下标的顺序不对（缺前面的原子）');
+      return one(tok);
+    }
+    /* 一个 {} 组：内部按顺序解析，返回 HTML */
+    function group() {
+      var out = '';
+      for (;;) {
+        var tk = token();
+        if (!tk) fail('花括号没有闭合');
+        if (tk.t === '}') return out;
+        out += node(tk);
+      }
+    }
+    /* 单个 token → HTML（含跟随其后的上下标） */
+    function node(tk) {
+      var html = one(tk);
+      var sup = null, sub = null, guard = 0;
+      for (;;) {
+        var save = pos, nx = token();
+        if (nx && (nx.t === '^' || nx.t === '_')) {
+          var arg = atom(token());
+          if (nx.t === '^') { if (sup !== null) fail('同一个原子有两个上标'); sup = arg; }
+          else { if (sub !== null) fail('同一个原子有两个下标'); sub = arg; }
+        } else { pos = save; break; }
+        if (++guard > 4) fail('上下标套得太多');
+      }
+      if (sup === null && sub === null) return html;
+      if (STACKRE.test(html)) {
+        return '<span class="mstack"><span class="mup">' + (sup || '') + '</span>' + html +
+          '<span class="mdn">' + (sub || '') + '</span></span>';
+      }
+      return html + (sub ? '<sub>' + sub + '</sub>' : '') + (sup ? '<sup>' + sup + '</sup>' : '');
+    }
+    /* token → 最基础的 HTML */
+    function one(tk) {
+      if (tk.t === '{') { var g2 = group(); return '<span class="mgrp">' + g2 + '</span>'; }
+      if (tk.t === 'esc') {
+        if (tk.v === ',') return '<span class="msp0"></span>';
+        if (tk.v === ':' || tk.v === ';') return '<span class="msp1"></span>';
+        if (tk.v === '!') return '';
+        if (tk.v === ' ') return '<span class="msp0"></span>';
+        var q = { '{': '{', '}': '}', '%': '%', '&': '&', '#': '#', '_': '_', '$': '$', '\\': '' }[tk.v];
+        if (q === undefined) fail('不认识 \\' + tk.v);
+        return escAll(q);
+      }
+      if (tk.t === 'cmd') {
+        var v = tk.v;
+        if (v === 'frac') {
+          var a = atom(token()), b = atom(token());
+          return '<span class="mfrac"><span class="mnum">' + a + '</span><span class="mden">' + b + '</span></span>';
+        }
+        if (v === 'sqrt') {
+          var r = atom(token());
+          return '<span class="msqrt"><span class="mrad">√</span><span class="mbody">' + r + '</span></span>';
+        }
+        if (v === 'stackrel') {
+          var srTop = atom(token()), srBase = atom(token());
+          return '<span class="mstack"><span class="mup">' + srTop + '</span>' + srBase + '</span>';
+        }
+        if (v === 'overline') {
+          var olArg = atom(token());
+          return '<span class="mbar">' + olArg + '</span>';
+        }
+        if (v === 'text' || v === 'mathrm' || v === 'operatorname' || v === 'mbox') {
+          var t = token();
+          if (!t || t.t !== '{') fail('\\' + v + ' 后面要跟 {…}');
+          var raw = '';
+          for (;;) {
+            var tk2 = token();
+            if (!tk2) fail('\\' + v + ' 的花括号没有闭合');
+            if (tk2.t === '}') break;
+            raw += tk2.t === 'cmd' ? '\\' + tk2.v : tk2.t === 'esc' ? '\\' + tk2.v : (tk2.v !== undefined ? tk2.v : (tk2.t === '{' ? '{' : '}'));
+          }
+          return '<span class="mtext">' + escAll(raw) + '</span>';
+        }
+        if (v === 'left' || v === 'right' || v === 'bigl' || v === 'bigr' || v === 'Bigl' || v === 'Bigr' || v === 'big' || v === 'Big' || v === 'bigg' || v === 'Bigg') {
+          return '';                                   /* 只当括号用，本身不排 */
+        }
+        if (v === 'limits' || v === 'nolimits' || v === 'displaystyle' || v === 'textstyle') return '';
+        if (v === 'quad') return '<span class="msp1"></span>';
+        if (v === 'qquad') return '<span class="msp2"></span>';
+        if (v === ',' || v === ':' || v === ';') return '<span class="msp0"></span>';
+        if (v === '!') return '';
+        if (SYM[v] !== undefined) {
+          var ch = SYM[v];
+          var isBig = ch === '∑' || ch === '∏' || ch === '∫' || ch === '∮';
+          var cls = (isBig ? 'mop' : (FN[v] ? 'mfn' : (REL[ch] ? 'mrel' : (BIN[ch] ? 'mbin' : 'msym'))));
+          return '<span class="' + cls + '"' + (isBig ? ' data-big="' + v + '"' : '') + '>' + escAll(ch) + '</span>' +
+            (cls === 'mrel' || cls === 'mbin' ? '<wbr>' : '');
+        }
+        if (FN[v]) return '<span class="mfn"' + (BIGSTACK[v] ? ' data-big="' + v + '"' : '') + '>' + v + '</span><span class="msp0"></span>';
+        fail('不认识的命令 \\' + v);
+      }
+      /* 普通字符：连续字母裹成斜体变量；数字/括号等原样 */
+      return plain(tk.v);
+    }
+    function plain(c) {
+      if (/[A-Za-z]/.test(c)) {
+        var m = /^[A-Za-z]+/.exec(s.slice(pos - 1));
+        if (m) {
+          pos += m[0].length - 1;
+          return '<i>' + m[0] + '</i>';
+        }
+        return '<i>' + c + '</i>';
+      }
+      if (c === ' ') return '<span class="msp0"></span>';
+      var cc = c === '-' ? '−' : c;                     /* 数学模式里减号用 U+2212（TeX 同款） */
+      var cls = REL[cc] ? 'mrel' : (BIN[cc] ? 'mbin' : null);
+      /* 关系/二元算符后面给一个换行机会（<wbr>），长公式才能自动折行；分式/竖排内部已 nowrap */
+      return cls ? '<span class="' + cls + '">' + escAll(cc) + '</span>' + (cls === 'mrel' || cls === 'mbin' ? '<wbr>' : '') : escAll(cc);
+    }
+
+    var html = '';
+    try {
+      for (;;) {
+        var tk = token();
+        if (!tk) break;
+        if (tk.t === '}') fail('多余的右花括号');
+        html += node(tk);
+      }
+    } catch (e) {
+      if (e && e.tex) return '<span class="texerr" title="' + escAll(e.message) + '">' + escAll(s) + '</span>';
+      throw e;
+    }
+    return html;
   }
-});
+
+  /* 把页面里 .tex / .tex-block 的文本渲染掉；已渲染过的加 data-tex-done 避免重复。
+     .tex-block 自动补上 .tex 类，这样 CSS 只需写一套 .tex … 规则。 */
+  function texify(root) {
+    var doc = (root || g.document);
+    if (!doc || !doc.querySelectorAll) return 0;
+    var list = doc.querySelectorAll('.tex,.tex-block'), n = 0;
+    for (var i = 0; i < list.length; i++) {
+      var el = list[i];
+      if (el.getAttribute('data-tex-done')) continue;
+      if (/(^|\s)tex-block(\s|$)/.test(el.className) && !/(^|\s)tex(\s|$)/.test(el.className)) el.className += ' tex';
+      var src = el.textContent;
+      el.innerHTML = renderTex(src);
+      el.setAttribute('data-tex-done', '1');
+      n++;
+    }
+    return n;
+  }
+
+  g.renderTex = renderTex;
+  g.texify = texify;
+  if (g.document) {
+    if (g.document.readyState === 'loading') g.document.addEventListener('DOMContentLoaded', function () { texify(); });
+    else texify();
+  }
+})(window);
+
 </script>
 
 </body>

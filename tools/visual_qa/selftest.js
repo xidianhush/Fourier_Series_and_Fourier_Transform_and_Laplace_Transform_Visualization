@@ -17,8 +17,8 @@ const { PAGES, sleep, fileUrl, waitReady } = require('./readiness.js');
 
 const OUT_DIR = path.join(__dirname, 'out', 'selftest');
 
-/* ftl-* 两页因 CDN（jsdelivr/cdnjs 上的 mathjs/KaTeX）失败产生的错误 */
-const CDN_ERR_RE = /failed to load resource|net::|err_internet|err_connection|err_aborted|math\.js|mathjs|katex|cdnjs|jsdelivr/i;
+/* ftl-* 两页因 CDN（jsdelivr/cdnjs 上的 mathjs）失败产生的错误 */
+const CDN_ERR_RE = /failed to load resource|net::|err_internet|err_connection|err_aborted|math\.js|mathjs|cdnjs|jsdelivr/i;
 
 async function testOne(browser, def) {
   const problems = [];
@@ -29,7 +29,7 @@ async function testOne(browser, def) {
     const loaded = await page.goto(fileUrl(def));
     if (!loaded) notes.push('load-timeout');
     const cdn = await waitReady(page, def);
-    if (def.cdn) notes.push('cdn math=' + cdn.math + ' katex=' + cdn.katex);
+    if (def.cdn) notes.push('cdn math=' + cdn.math);
 
     // 1) title 非空
     const title = await page.evalJs('document.title').catch(e => { problems.push('title eval: ' + e.message); return ''; });
@@ -65,8 +65,8 @@ async function testOne(browser, def) {
       if ((def.cdn || def.redir) && CDN_ERR_RE.test(entry.text)) { cdnWarns.push(entry.text.slice(0, 120)); continue; }
       problems.push(entry.level + ': ' + entry.text.slice(0, 160));
     }
-    if (def.cdn && cdn && (cdn.math === false || cdn.katex === false)) {
-      cdnWarns.push('CDN 未就绪 math=' + cdn.math + ' katex=' + cdn.katex);
+    if (def.cdn && cdn && cdn.math === false) {
+      cdnWarns.push('CDN 未就绪 math=' + cdn.math);
     }
 
     // 截图存档（跳转页偶发撞上导航中途的 0 宽布局，失败时等一下重试一次）
