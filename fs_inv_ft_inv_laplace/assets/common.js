@@ -19,6 +19,21 @@
 
   function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
 
+  /* 文字超过 maxWidth（像素）时截断到能放下的最长前缀并补省略号；放得下原样返回。
+     纯函数，不读写 ctx 状态；依赖 ctx 当前 font。
+     调用方一律写 window.fitText(...)：check.js 桩 DOM 只给 window 挂固定白名单别名
+     （colFor/fmt/fmtG/bucketOf/clamp/attachPointer），裸写 fitText 在桩里是未定义。 */
+  function fitText(ctx, text, maxWidth) {
+    if (ctx.measureText(text).width <= maxWidth) return text;
+    var lo = 0, hi = text.length;
+    while (lo < hi) {
+      var mid = (lo + hi + 1) >> 1;
+      if (ctx.measureText(text.slice(0, mid) + '…').width <= maxWidth) lo = mid;
+      else hi = mid - 1;
+    }
+    return lo > 0 ? text.slice(0, lo) + '…' : '';
+  }
+
   /* 把 mouse 三件套换成 Pointer Events：触屏/手写笔可用，鼠标行为不变。
      handlers: {down(e), move(e), up(e)}；down 之后尝试 setPointerCapture 以便拖出画布仍收到 move/up。 */
   function attachPointer(cv, handlers) {
@@ -55,6 +70,7 @@
   g.fmtG = fmtG;
   g.bucketOf = bucketOf;
   g.clamp = clamp;
+  g.fitText = fitText;
   g.attachPointer = attachPointer;
   g.installErrorBanner = installErrorBanner;
 

@@ -71,7 +71,8 @@
   /* .go stretches across the whole card, so the card acts as one big link
      without nesting one anchor inside another, which the parser splits apart */
   .card .go::after { content: ''; position: absolute; inset: 0; }
-  .card p a { position: relative; z-index: 1; }
+  .card p a { position: relative; z-index: 1; color: var(--accent); }
+  .card p a:hover { color: #74daf9; }
   .foot {
     margin: 3.4rem auto 0; text-align: center;
     font-size: 0.82rem; color: var(--text-faint); max-width: 62ch;

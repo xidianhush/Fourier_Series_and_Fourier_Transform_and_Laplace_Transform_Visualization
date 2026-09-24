@@ -547,8 +547,8 @@ function drawComplex(){
   ctx.moveTo(cx,r.y+18); ctx.lineTo(cx,r.y+r.h-8);
   ctx.stroke();
   ctx.fillStyle='#8fa2c4'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('Complex plane: vₙ=X(σ+jnΔω)(Δω/2π)e^{(σ+jnΔω)t} tip-to-tail (n=−N…N), endpoint = s(t); '+
-    'color = phase arg X (same colors as the 3D fence)'+(st.freezeScale?'; range frozen to window ±Tw (scale bar at lower left)':'; range auto-fits each frame'), r.x+8, r.y+14);
+  ctx.fillText(window.fitText(ctx, 'Complex plane: vₙ=X(σ+jnΔω)(Δω/2π)e^{(σ+jnΔω)t} tip-to-tail (n=−N…N), endpoint = s(t); '+
+    'color = phase arg X (same colors as the 3D fence)'+(st.freezeScale?'; range frozen to window ±Tw (scale bar at lower left)':'; range auto-fits each frame'), r.w-16), r.x+8, r.y+14);
   ctx.fillText('Re', r.x+r.w-20, cy-4);
   ctx.fillText('Im', cx+4, r.y+28);
   var N=COMP.N;
@@ -604,8 +604,13 @@ function drawComplex(){
   ctx.moveTo(ex,ey); ctx.lineTo(ex,cy); ctx.stroke(); ctx.setLineDash([]);
   ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(ex,ey,3.5,0,6.2832); ctx.fill();
   ctx.fillStyle='#e8eefc'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('Re s(t) = '+fmt(ch.end[0],4), ex+6, ey-6);
-  if(eLen>20) ctx.fillText('s(t)', (cx+ex)/2+6, (cy+ey)/2-6);   /* 端点贴近原点时这行会和上一行叠在一起，就不画了 */
+  /* 链标签 's(t)' 与读数水平过近时（窄屏/短链），读数挪到端点下方一行，避免叠字 */
+  var etxt='Re s(t) = '+fmt(ch.end[0],4);
+  var mlx=(cx+ex)/2+6, mly=(cy+ey)/2-6;
+  var collide=eLen>20 && Math.abs(mly-(ey-6))<12 &&
+    mlx+22>ex+6 && mlx<ex+6+ctx.measureText(etxt).width+4;
+  ctx.fillText(etxt, ex+6, collide?ey+16:ey-6);
+  if(eLen>20) ctx.fillText('s(t)', mlx, mly);   /* 端点贴近原点时这行会和上一行叠在一起，就不画了 */
   /* 比例尺：把量程的一段按实长画出来并标数值，任何 t 下都能读绝对值 */
   var barV=niceScaleNum(66/sc), barL=barV*sc;
   if(barL>r.w*0.34){ barV=niceScaleNum(barL/2/sc); barL=barV*sc; }
@@ -781,12 +786,12 @@ function drawSplane3d(){
   }
   ctx.lineWidth=1;
   ctx.fillStyle='#8fa2c4'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('3D s-plane fence: bar height = weight |X(σ+jnΔω)|·Δω/2π, color = phase arg X', r.x+8, r.y+14);
+  ctx.fillText(window.fitText(ctx, '3D s-plane fence: bar height = weight |X(σ+jnΔω)|·Δω/2π, color = phase arg X', r.w-16), r.x+8, r.y+14);
   var l2=isCus()
     ? 'floor = s-plane: σ = Re s, ω = Im s; green band = ROC (numeric estimate for custom f), cyan line = integration path Re s = σ (poles/zeros need closed forms, not drawn for custom f)'
     : 'floor = s-plane: σ = Re s, ω = Im s; green band = ROC, × poles, ○ zeros, cyan line = integration path Re s = σ';
-  ctx.fillText(l2, r.x+8, r.y+28);
-  ctx.fillText('drag to rotate; hover a bar → bold its chain segment, click a bar → mute it, double-click → unmute all', r.x+8, r.y+42);
+  ctx.fillText(window.fitText(ctx, l2, r.w-16), r.x+8, r.y+28);
+  ctx.fillText(window.fitText(ctx, 'drag to rotate; hover a bar → bold its chain segment, click a bar → mute it, double-click → unmute all', r.w-16), r.x+8, r.y+42);
   ctx.fillText('ω', a2[0]+6, a2[1]+4);
   ctx.fillText('σ', e2[0]+6, e2[1]+4);
   ctx.fillText('|W|', h2[0]-6, h2[1]-8);
@@ -821,7 +826,7 @@ function drawTime(){
   ctx.moveTo(r.x,Y(0)); ctx.lineTo(r.x+r.w,Y(0)); ctx.stroke();
   var x0=X(0), vstep=niceScaleNum(ymax/3.4);
   ctx.fillStyle='#8fa2c4'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('Time domain: solid = in-window Riemann-sum Re s(t) (period Tr, replica weights e^{−σkTr}); faint parts outside = Ω-truncation error amplified by e^{σt} (y-axis scaled inside the window); gray dashed = ideal f(t); drag to scrub t', r.x+8, r.y+14);
+  ctx.fillText(window.fitText(ctx, 'Time domain: solid = in-window Riemann-sum Re s(t) (period Tr, replica weights e^{−σkTr}); faint parts outside = Ω-truncation error amplified by e^{σt} (y-axis scaled inside the window); gray dashed = ideal f(t); drag to scrub t', r.w-16), r.x+8, r.y+14);
   ctx.fillText('t', r.x+r.w-10, Y(0)-4);
   if(st.ckIdeal){
     ctx.strokeStyle='#7a8db0'; ctx.setLineDash([5,4]); ctx.beginPath();
@@ -866,7 +871,7 @@ function drawTime(){
     ctx.textAlign='right'; ctx.fillText(fmtG(vv6), x0-7, yy6+3.5); ctx.textAlign='left';
   }
   ctx.textAlign='right'; ctx.fillText('0', x0-7, Y(0)+3.5); ctx.textAlign='left';
-  ctx.fillText('amplitude Re s(t)', x0-70, r.y+30);
+  ctx.textAlign='right'; ctx.fillText('amplitude Re s(t)', x0-8, r.y+30); ctx.textAlign='left';
   ctx.fillStyle='#7fb3e8';
   ctx.fillText('t = 0 (time origin)', x0+6, r.y+30);
   ctx.fillStyle='#8fa2c4';
@@ -877,7 +882,9 @@ function drawTime(){
     ctx.moveTo(X(-Tw),yb-5); ctx.lineTo(X(-Tw),yb+5);
     ctx.moveTo(X(Tw),yb-5); ctx.lineTo(X(Tw),yb+5);
     ctx.stroke();
-    ctx.fillStyle='#ff5d5d'; ctx.fillText('window ±Tw='+fmt(Tw,2), X(0)-40, yb-6);
+    /* 红标签移到括号线下方、t=0 轴右侧：原位置（yb-6、X(0)-40）与纵轴刻度数字（止于 x0-7）叠字。
+       黄标签随之移到黄线下方同一列，两行错开不互压；绘制顺序不变（本块本来就在 strokeCurve 之后）。 */
+    ctx.fillStyle='#ff5d5d'; ctx.fillText('window ±Tw='+fmt(Tw,2), X(0)+10, yb+14);
     if(Tr/2<=Xw){
       var yp=r.y+r.h-18;
       ctx.strokeStyle='#ffd479'; ctx.beginPath();
@@ -885,7 +892,7 @@ function drawTime(){
       ctx.moveTo(X(-Tr/2),yp-5); ctx.lineTo(X(-Tr/2),yp+5);
       ctx.moveTo(X(Tr/2),yp-5); ctx.lineTo(X(Tr/2),yp+5);
       ctx.stroke();
-      ctx.fillStyle='#ffd479'; ctx.fillText('Riemann period Tr='+fmt(Tr,2), X(0)-44, yp-6);
+      ctx.fillStyle='#ffd479'; ctx.fillText('Riemann period Tr='+fmt(Tr,2), X(0)+10, yp+12);
     }
   }
   var xt=X(st.t), se=sExact(st.t);
@@ -903,7 +910,7 @@ function drawCaption(){
   ctx.strokeStyle='#22314d'; ctx.strokeRect(r.x,r.y,r.w,r.h);
   ctx.fillStyle=rg.k===2?'#9fe8b4':(rg.k===0?'#ffb0b0':'#cfe0ff');
   ctx.font='12px Segoe UI, Microsoft YaHei, sans-serif';
-  ctx.fillText(rg.txt, r.x+10, r.y+16);
+  ctx.fillText(window.fitText(ctx, rg.txt, r.w-20), r.x+10, r.y+16);
   ctx.restore();
 }
 

@@ -20,6 +20,7 @@ laplace_transform.html      旧地址跳转页 → ft_laplace/laplace_transform.
 .nojekyll                   关闭 GitHub Pages 的 Jekyll 处理
 ft_laplace/                 子项目一（原独立仓库）
 fs_inv_ft_inv_laplace/      子项目二（原独立仓库）
+tools/visual_qa/            全站截图与视觉巡检工具（Node + 本机 Chrome，零 npm 依赖）
 ```
 
 两个子目录内部的文件、相对路径与页面跳转均未改动，各自的结构说明见其自身的 `README.md` / `AGENTS.md`。
@@ -35,6 +36,14 @@ fs_inv_ft_inv_laplace/      子项目二（原独立仓库）
 
 ```
 node fs_inv_ft_inv_laplace/tools/check.js
+```
+
+另有一套全站截图与视觉巡检工具（同样需要 Node.js 与本机 Chrome；视觉巡检另需 DashScope API Key）：
+
+```
+node tools/visual_qa/selftest.js    # 11 页 smoke
+node tools/visual_qa/shot.js        # 全页/分段截图 → tools/visual_qa/out/shots/
+node tools/visual_qa/agent.js       # Qwen 视觉巡检（用法见 tools/visual_qa/README.md）
 ```
 
 ## 部署

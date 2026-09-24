@@ -71,7 +71,7 @@
         <label><input type="radio" name="view" value="oneside" checked>
           <span>One-sided rotating chain <span class="tex">k=0\ldots N</span><span class="hint">the tip really rotates and scales; its projection onto the Re axis is the waveform below</span></span></label>
         <label><input type="radio" name="view" value="double">
-          <span>Two-sided complex-exponential series <span class="tex">k=-N\ldots N</span><span class="hint"><span class="tex">c_{-k}=c_k^{*}</span>, imaginary parts cancel pairwise ⟹ the sum is always real</span></span></label>
+          <span>Two-sided complex-exponential series <span class="tex" style="display:inline-block">k=-N\ldots N</span><span class="hint"><span class="tex">c_{-k}=c_k^{*}</span>, imaginary parts cancel pairwise ⟹ the sum is always real</span></span></label>
         <label><input type="radio" name="view" value="pair">
           <span>Conjugate pairs → real harmonics<span class="hint">±k pairs combine into <span class="tex">A_k\cos(k\omega_0 t+\phi_k)</span>, all along the Re axis</span></span></label>
       </div>
@@ -96,7 +96,7 @@
         <label><input type="checkbox" id="cCircles" checked>Orbit circles</label>
         <label><input type="checkbox" id="cLabels" checked>Vector labels</label>
         <label><input type="checkbox" id="cTrail" checked>Tip trail</label>
-        <label><input type="checkbox" id="cIdeal" checked>Ideal waveform overlay</label>
+        <label class="wide"><input type="checkbox" id="cIdeal" checked>Ideal waveform overlay</label>
       </div>
     </section>
 

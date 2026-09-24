@@ -338,7 +338,7 @@ function drawChain(){
   ctx.moveTo(cx,r.y+18); ctx.lineTo(cx,r.y+r.h-8);
   ctx.stroke();
   ctx.fillStyle='#8fa2c4'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('Complex plane: v_n=F_n·e^{jnω₀t} joined head-to-tail (n=−N…N), endpoint = s_T(t)', r.x+8, r.y+14);
+  ctx.fillText(window.fitText(ctx, 'Complex plane: v_n=F_n·e^{jnω₀t} joined head-to-tail (n=−N…N), endpoint = s_T(t)', r.w-16), r.x+8, r.y+14);
   ctx.fillText('Re', r.x+r.w-20, cy-4);
   ctx.fillText('Im', cx+4, r.y+28);
   var N=FN.N;
@@ -362,7 +362,13 @@ function drawChain(){
   ctx.moveTo(ex,ey); ctx.lineTo(ex,cy); ctx.stroke(); ctx.setLineDash([]);
   ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(ex,ey,3.5,0,6.2832); ctx.fill();
   ctx.fillStyle='#e8eefc';
-  ctx.fillText('Re endpoint = '+fmt(ch.end[0],4), ex+6, ey-6);
+  /* 端点靠右时文字会冲出面板右缘：量宽，超界就右对齐画到端点左侧 */
+  var etxt='Re endpoint = '+fmt(ch.end[0],4);
+  if(ex+6+ctx.measureText(etxt).width > r.x+r.w-4){
+    ctx.textAlign='right'; ctx.fillText(etxt, ex-6, ey-6); ctx.textAlign='left';
+  }else{
+    ctx.fillText(etxt, ex+6, ey-6);
+  }
   ctx.restore();
   return ch;
 }
@@ -374,7 +380,7 @@ function drawCaption(){
   ctx.strokeStyle='#22314d'; ctx.strokeRect(r.x,r.y,r.w,r.h);
   ctx.fillStyle=rg.k===2?'#9fe8b4':(rg.k===0?'#ffb0b0':'#cfe0ff');
   ctx.font='12px Segoe UI, Microsoft YaHei, sans-serif';
-  ctx.fillText(rg.txt, r.x+10, r.y+16);
+  ctx.fillText(window.fitText(ctx, rg.txt, r.w-20), r.x+10, r.y+16);
   ctx.restore();
 }
 
@@ -393,7 +399,7 @@ function draw(){
 
 function el(id){ return document.getElementById(id); }
 var ePreset=el('preset'), eShape=el('shape'), eShapeLab=el('shapeLab'), eShapeVal=el('shapeval');
-var eLogT=el('logT'), eTval=el('Tval'), eAuto=el('autoT'), eOmx=el('omx'), eOmxVal=el('omxval');
+var eLogT=el('logT'), eTvalT=el('Tval'), eAuto=el('autoT'), eOmx=el('omx'), eOmxVal=el('omxval');
 var ePlay=el('play'), eStep=el('step'), eTsl=el('tsl'), eTval=el('tval');
 var eEnv=el('ckEnv'), eRaw=el('ckRaw'), eBrk=el('ckBrk'), eIdeal=el('ckIdeal');
 var rT=el('r_T'), rW=el('r_w0'), rN=el('r_N'), rF0=el('r_F0'), rF0T=el('r_F0T'), rErr=el('r_err'), rNote=el('r_capNote');
@@ -411,7 +417,7 @@ function syncT(){
   if(st.T<a) st.T=a; if(st.T>b) st.T=b;
   var u=Math.log(st.T/a)/Math.log(b/a);
   eLogT.value=Math.round(u*1000);
-  eTval.textContent=fmt(st.T,2);
+  eTvalT.textContent=fmt(st.T,2);
   eTsl.max=st.T; eTsl.step=st.T/1000;
   if(st.t>st.T) st.t=st.t%st.T;
 }

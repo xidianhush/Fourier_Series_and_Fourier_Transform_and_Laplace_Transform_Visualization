@@ -261,7 +261,10 @@ function drawLens(ch){
   ctx.restore();
   ctx.strokeStyle='#33507f'; ctx.beginPath(); ctx.arc(lx,ly,LR,0,6.2832); ctx.stroke();
   ctx.fillStyle='#bcd0f2'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('zoom ×'+fmtG(g), lx-LR+4, ly+LR+14);
+  /* 图注挪进放大镜圆内顶部居中：原先画在圆下方，窄屏时会和端点读数叠字 */
+  ctx.textAlign='center';
+  ctx.fillText(window.fitText(ctx, 'zoom ×'+fmtG(g), 2*LR-16), lx, ly-LR+14);
+  ctx.textAlign='left';
 }
 
 function drawComplex(){
@@ -282,8 +285,8 @@ function drawComplex(){
   ctx.moveTo(cx,r.y+18); ctx.lineTo(cx,r.y+r.h-8);
   ctx.stroke();
   ctx.fillStyle='#8fa2c4'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('Complex plane: vₙ=F(jnΔω)(Δω/2π)e^{jnΔω t} joined head-to-tail (n=−N…N), endpoint = s(t); color = initial phase at t=0'+
-    (st.freezeScale?'; scale frozen over window ±Tw (scale bar, lower left)':'; scale auto-fits each frame, scale bar lower left gives absolute value'), r.x+8, r.y+14);
+  ctx.fillText(window.fitText(ctx, 'Complex plane: vₙ=F(jnΔω)(Δω/2π)e^{jnΔω t} joined head-to-tail (n=−N…N), endpoint = s(t); color = initial phase at t=0'+
+    (st.freezeScale?'; scale frozen over window ±Tw (scale bar, lower left)':'; scale auto-fits each frame, scale bar lower left gives absolute value'), r.w-16), r.x+8, r.y+14);
   ctx.fillText('Re', r.x+r.w-20, cy-4);
   ctx.fillText('Im', cx+4, r.y+28);
   var N=COMP.N;
@@ -378,7 +381,7 @@ function drawSpec(){
   var y0=Y(0);
   ctx.strokeStyle='#2a3b5c'; ctx.beginPath(); ctx.moveTo(r.x,y0); ctx.lineTo(r.x+r.w,y0); ctx.stroke();
   ctx.fillStyle='#8fa2c4'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillText('Spectrum: lines = '+(raw?'raw |F(jnΔω)|':'weights |F(jnΔω)|·Δω/2π (click to mute, double-click to restore)')+(st.ckEnv?(', gray envelope '+(raw?'|F(jω)|':'|F(jω)|·Δω/2π')):'')+'; color = initial phase arg F(jnΔω) at t=0', r.x+8, r.y+14);
+  ctx.fillText(window.fitText(ctx, 'Spectrum: lines = '+(raw?'raw |F(jnΔω)|':'weights |F(jnΔω)|·Δω/2π (click to mute, double-click to restore)')+(st.ckEnv?(', gray envelope '+(raw?'|F(jω)|':'|F(jω)|·Δω/2π')):'')+'; color = initial phase arg F(jnΔω) at t=0', r.w-16), r.x+8, r.y+14);
   ctx.fillText('ω', r.x+r.w-10, y0-4);
   if(st.ckEnv){
     ctx.strokeStyle='#9aa8c0'; ctx.beginPath();
@@ -517,7 +520,7 @@ function drawTime(){
   ctx.strokeStyle='#2a3b5c'; ctx.beginPath();
   ctx.moveTo(r.x,Y(0)); ctx.lineTo(r.x+r.w,Y(0)); ctx.stroke();
   ctx.fillStyle='#8fa2c4'; ctx.font='11px Segoe UI, sans-serif';
-  ctx.fillStyle='#8fa2c4'; ctx.fillText('Time domain: colored = Riemann-sum synthesis Re s(t) (periodic with Tr=2π/Δω, ≈ f(t) inside window, replicas/truncation residue outside), gray dashed = ideal f(t); drag to scrub t', r.x+8, r.y+14);
+  ctx.fillStyle='#8fa2c4'; ctx.fillText(window.fitText(ctx, 'Time domain: colored = Riemann-sum synthesis Re s(t) (periodic with Tr=2π/Δω, ≈ f(t) inside window, replicas/truncation residue outside), gray dashed = ideal f(t); drag to scrub t', r.w-16), r.x+8, r.y+14);
   ctx.fillText('t', r.x+r.w-10, Y(0)-4);
   ctx.save();
   ctx.translate(r.x+12, r.y+r.h/2);
@@ -556,7 +559,10 @@ function drawTime(){
     ctx.moveTo(X(-Tw),yb-5); ctx.lineTo(X(-Tw),yb+5);
     ctx.moveTo(X(Tw),yb-5); ctx.lineTo(X(Tw),yb+5);
     ctx.stroke();
-    ctx.fillStyle='#ff5d5d'; ctx.fillText('window ±Tw='+fmt(Tw,2), X(0)-40, yb-6);
+    /* 红标签右对齐止于 t=0 虚线左侧、并避开幅值刻度列（刻度右对齐止于 xa0-7）；
+       黄标签移到黄色横线下方、t=0 虚线右侧，两条标签不再互压也不再被绿线穿过 */
+    ctx.fillStyle='#ff5d5d';
+    ctx.textAlign='right'; ctx.fillText('window ±Tw='+fmt(Tw,2), X(0)-46, yb-6); ctx.textAlign='left';
     if(Tr/2<=Xw){
       var yp=r.y+r.h-18;
       ctx.strokeStyle='#ffd479'; ctx.beginPath();
@@ -564,7 +570,7 @@ function drawTime(){
       ctx.moveTo(X(-Tr/2),yp-5); ctx.lineTo(X(-Tr/2),yp+5);
       ctx.moveTo(X(Tr/2),yp-5); ctx.lineTo(X(Tr/2),yp+5);
       ctx.stroke();
-      ctx.fillStyle='#ffd479'; ctx.fillText('Riemann period Tr='+fmt(Tr,2), X(0)-44, yp-6);
+      ctx.fillStyle='#ffd479'; ctx.fillText('Riemann period Tr='+fmt(Tr,2), X(0)+10, yp+12);
     }
   }
   var xt=X(st.t), se=sExact(st.t);
@@ -581,7 +587,7 @@ function drawCaption(){
   ctx.strokeStyle='#22314d'; ctx.strokeRect(r.x,r.y,r.w,r.h);
   ctx.fillStyle=rg.k===2?'#9fe8b4':(rg.k===0?'#ffb0b0':'#cfe0ff');
   ctx.font='12px Segoe UI, Microsoft YaHei, sans-serif';
-  ctx.fillText(rg.txt, r.x+10, r.y+16);
+  ctx.fillText(window.fitText(ctx, rg.txt, r.w-20), r.x+10, r.y+16);
   ctx.restore();
 }
 

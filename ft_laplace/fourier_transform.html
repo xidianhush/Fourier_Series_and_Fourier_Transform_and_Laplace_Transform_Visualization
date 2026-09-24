@@ -68,6 +68,9 @@
     text-transform: uppercase; letter-spacing: 0.15em;
     color: var(--accent); margin: 2.6rem 0 0.9rem;
   }
+  /* math keeps its own case inside uppercased headings/labels:
+     KaTeX output, and plain-text symbols wrapped in .ntc (e.g. σ, t, Hz) */
+  h4 .katex, .ntc { text-transform: none; }
   p, li { margin: 0.55rem 0; max-width: 68ch; }
 
   /* the one-line blurb under each numbered section heading */
@@ -97,8 +100,9 @@
   }
   .input-panel label {
     display: block; font-size: 0.7rem; text-transform: uppercase;
-    letter-spacing: 0.13em; color: var(--text-faint); margin-bottom: 7px;
+    letter-spacing: 0.13em; color: var(--text-dim); margin-bottom: 7px;
   }
+  .input-panel label .katex { text-transform: none; }
   .input-panel input {
     padding: 9px 13px; border-radius: 9px; border: 1px solid var(--border);
     background: rgba(9, 13, 30, 0.6); color: var(--text); font-size: 0.95rem;
@@ -149,8 +153,9 @@
   }
   .anim-controls label {
     font-size: 0.7rem; text-transform: uppercase;
-    letter-spacing: 0.13em; color: var(--text-faint);
+    letter-spacing: 0.13em; color: var(--text-dim);
   }
+  .anim-controls label .katex { text-transform: none; }
   .anim-controls #animFreqLabel, .anim-controls #animFrameLabel {
     font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0;
     text-transform: none; color: var(--accent);
@@ -231,19 +236,19 @@
     <input type="text" id="funcInput" value="exp(-2*abs(t))" placeholder="e.g. exp(-2*abs(t))">
   </div>
   <div>
-    <label for="tMin">t min</label>
+    <label for="tMin"><span class="ntc">t</span> min</label>
     <input type="number" id="tMin" value="-2" step="0.1">
   </div>
   <div>
-    <label for="tMax">t max</label>
+    <label for="tMax"><span class="ntc">t</span> max</label>
     <input type="number" id="tMax" value="2" step="0.1">
   </div>
   <div>
-    <label for="freqMin">Freq min (Hz)</label>
+    <label for="freqMin">Freq min (<span class="ntc">Hz</span>)</label>
     <input type="number" id="freqMin" value="-10" step="0.1">
   </div>
   <div>
-    <label for="freqMax">Freq max (Hz)</label>
+    <label for="freqMax">Freq max (<span class="ntc">Hz</span>)</label>
     <input type="number" id="freqMax" value="10" step="0.1">
   </div>
   <button class="btn btn-primary" id="btnGenerate" onclick="generate()" disabled>Loading math.js...</button>
@@ -253,7 +258,7 @@
 
 <!-- ========== SECTION 1: Signal ========== -->
 <h2>1. Generating the Signal</h2>
-<p>Your input function $f(t)$ plotted over the whole time axis, centred on <b>$t = 0$</b>.</p>
+<p>Your input function $f(t)$ plotted over the whole time axis, centred on <span style="white-space:nowrap"><b>$t = 0$</b></span>.</p>
 <div class="canvas-box">
   <canvas id="canvasSignal" width="1000" height="350"></canvas>
 </div>
@@ -550,6 +555,7 @@ function generate() {
       drawSignal();
       drawGrid();
       drawAnim(0, 0);
+      updateAnimDisplay();   // sync the Freq # / Frame readouts with the first frame, not the hardcoded 0.0 Hz
       drawCOMPlots();
 
       loadingEl.style.display = 'none';

@@ -118,10 +118,11 @@ Notebook 共 4 个章节:
 
 ## 测试
 
-- 项目没有单元测试、没有 CI、没有自动化测试脚本。
+- 本目录内没有单元测试、没有 CI、没有自动化测试脚本(总仓库根的 `tools/visual_qa/` 提供全站 smoke 与视觉巡检,见下)。
 - 验证以人工为主:
   - Notebook:按顺序执行各单元格,确认四节图形与第 3 节动画正常;
   - 网页版:浏览器打开,确认四节渲染与动画/滑块交互正常。
+- 机器辅助验证(在总仓库根执行):`node tools/visual_qa/selftest.js ftl-index ftl-fourier ftl-laplace` 做无头 smoke;`node tools/visual_qa/shot.js ftl-fourier ftl-laplace` 出截图供人工/视觉模型审查;上线前的 Qwen 视觉巡检见根 `AGENTS.md` 与 `tools/visual_qa/README.md`。
 - notebook 每次重新运行后,会产生 `execution_count`、widget `model_id`、内嵌 base64 图像等大量 diff,这是正常现象,不代表代码出错;提交时通常一并带上。
 
 ## 版本控制

@@ -68,6 +68,9 @@
     text-transform: uppercase; letter-spacing: 0.15em;
     color: var(--accent); margin: 2.6rem 0 0.9rem;
   }
+  /* math keeps its own case inside uppercased headings/labels:
+     KaTeX output, and plain-text symbols wrapped in .ntc (e.g. σ, rad/s) */
+  h4 .katex, .ntc { text-transform: none; }
   p, li { margin: 0.55rem 0; max-width: 68ch; }
 
   /* the one-line blurb under each numbered section heading */
@@ -92,8 +95,9 @@
   }
   .input-panel label {
     display: block; font-size: 0.7rem; text-transform: uppercase;
-    letter-spacing: 0.13em; color: var(--text-faint); margin-bottom: 7px;
+    letter-spacing: 0.13em; color: var(--text-dim); margin-bottom: 7px;
   }
+  .input-panel label .katex { text-transform: none; }
   .input-panel input {
     padding: 9px 13px; border-radius: 9px; border: 1px solid var(--border);
     background: rgba(9, 13, 30, 0.6); color: var(--text); font-size: 0.95rem;
@@ -170,8 +174,9 @@
   }
   .anim-controls label {
     font-size: 0.7rem; text-transform: uppercase;
-    letter-spacing: 0.13em; color: var(--text-faint);
+    letter-spacing: 0.13em; color: var(--text-dim);
   }
+  .anim-controls label .katex { text-transform: none; }
   .anim-controls #animSigmaLabel, .anim-controls #animOmegaLabel,
   .anim-controls #animFrameLabel, .anim-controls #envReadout {
     font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0;
@@ -271,11 +276,11 @@
     <input type="number" id="sigmaMax" value="1" step="0.5">
   </div>
   <div>
-    <label for="omegaMin">$\omega$ min (rad/s)</label>
+    <label for="omegaMin">$\omega$ min (<span class="ntc">rad/s</span>)</label>
     <input type="number" id="omegaMin" value="-15" step="1">
   </div>
   <div>
-    <label for="omegaMax">$\omega$ max (rad/s)</label>
+    <label for="omegaMax">$\omega$ max (<span class="ntc">rad/s</span>)</label>
     <input type="number" id="omegaMax" value="15" step="1">
   </div>
   <div>
@@ -434,7 +439,7 @@ Where the three curves coincide the integral has converged; where they fan apart
     The only thing that changed is the kernel.
   </p>
 
-  <h4>What σ does</h4>
+  <h4>What <span class="ntc">σ</span> does</h4>
   <p>
     The envelope $e^{-\sigma t}$ weights the late part of the window against the early part.<br>
     For $\sigma > 0$ it shrinks the tail, for $\sigma < 0$ it inflates it, and for $\sigma = 0$ it does nothing.<br>
@@ -1450,11 +1455,16 @@ function drawMapOverlay() {
   ctx.fillText('|F_{T_map}(s)| = |\u222B f(t) e^{\u2212st} dt| over the internal window ' +
     (mode === 'bilateral' ? '[\u2212T_map/2, T_map/2]' : '[0, T_map]') + ',  T_map = ' + TMap.toFixed(0),
     g.pad.left, 16);
+  // this note sits on top of the saturated slab, so back it with a dark plate to stay readable
   ctx.textAlign = 'right';
-  ctx.fillStyle = '#99a5c2';
   ctx.font = '11px sans-serif';
-  ctx.fillText('the front is a property of T_map: sharper as T_map grows, and the real boundary is the T \u2192 \u221E limit',
-    g.pad.left + g.plotW, g.pad.top + g.plotH - 6);
+  const frontNote = 'the front is a property of T_map: sharper as T_map grows, and the real boundary is the T \u2192 \u221E limit';
+  const frontNoteX = g.pad.left + g.plotW, frontNoteY = g.pad.top + g.plotH - 6;
+  const frontNoteW = ctx.measureText(frontNote).width;
+  ctx.fillStyle = 'rgba(10, 14, 28, 0.72)';
+  ctx.fillRect(frontNoteX - frontNoteW - 6, frontNoteY - 12, frontNoteW + 12, 17);
+  ctx.fillStyle = '#99a5c2';
+  ctx.fillText(frontNote, frontNoteX, frontNoteY);
 }
 
 function computeSliceA() {

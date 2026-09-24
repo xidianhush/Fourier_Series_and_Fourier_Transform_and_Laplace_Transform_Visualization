@@ -432,8 +432,14 @@ function drawTime(sp, r, cur, sc){
   ctx.font='600 13px "Segoe UI","Microsoft YaHei",sans-serif';
   ctx.fillStyle='#cfe0ff'; ctx.textAlign='left'; ctx.textBaseline='top';
   ctx.fillText('Re(F(t)) versus t — projection of the complex-plane sum vector onto the Re axis', r.x+12, r.y+9);
-  ctx.font='11.5px "Segoe UI","Microsoft YaHei",sans-serif'; ctx.fillStyle='#8fa2c4';
-  ctx.fillText('Window width 2T, right edge is the current time t, curve flows left'+(state.ideal&&idealWave(state.preset,0)!==null?'; gray dashed = ideal waveform (compare Gibbs phenomenon)':''), r.x+12, r.y+27);
+  ctx.font='11.5px "Segoe UI","Microsoft YaHei",sans-serif';
+  const capTxt = 'Window width 2T, right edge is the current time t, curve flows left'+(state.ideal&&idealWave(state.preset,0)!==null?'; gray dashed = ideal waveform (compare Gibbs phenomenon)':'');
+  // 深色底衬（与 labelBox 同款）：幅值 1.0 的波形（含 Gibbs 过冲）会横穿这一行
+  const capW = ctx.measureText(capTxt).width;
+  ctx.fillStyle='rgba(10,16,32,.82)';
+  roundRect(r.x+12-5, r.y+27-2, capW+10, 18, 4); ctx.fill();
+  ctx.fillStyle='#8fa2c4';
+  ctx.fillText(capTxt, r.x+12, r.y+27);
   ctx.restore();
 }
 

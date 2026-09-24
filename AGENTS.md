@@ -18,7 +18,7 @@
 
 - **没有任何构建系统、包管理器或配置文件**：全仓库不存在 `package.json`、`pyproject.toml`、`requirements.txt`、`Cargo.toml`、`Makefile`、CI 工作流等（已实测确认）。任何"先安装依赖再构建"的思路在这里都不适用。
 - 页面全部是静态 HTML + 内联或同目录的 CSS/JS，用浏览器直接打开即可运行。
-- 唯一的工具链脚本是 `fs_inv_ft_inv_laplace/tools/check.js`（Node.js，无 npm 依赖，只用 Node 内置模块）。
+- 工具链脚本有两套：`fs_inv_ft_inv_laplace/tools/check.js`（子项目二的自动化测试）与 `tools/visual_qa/`（全站截图 + Qwen 视觉模型巡检）；均为 Node.js、零 npm 依赖、只用内置模块。
 - 唯一的 Python 交付物是 `ft_laplace/Fourier Transform - A Visual Introduction.ipynb`（**文件名带空格**）。
 - 除 notebook 外，代码里没有符号运算、没有后端、没有数据库、没有构建产物目录。
 
@@ -32,7 +32,8 @@
 ├── .nojekyll                        关闭 GitHub Pages 的 Jekyll 处理
 ├── README.md                        仓库级说明（入口表、本地运行、部署、版本历史）
 ├── ft_laplace/                      子项目一（原独立仓库）
-└── fs_inv_ft_inv_laplace/           子项目二（原独立仓库）
+├── fs_inv_ft_inv_laplace/           子项目二（原独立仓库）
+└── tools/visual_qa/                 全站截图工具 + Qwen 视觉巡检（零 npm 依赖，2026-09 新增）
 ```
 
 两个跳转页是纯 HTML，用 `<meta http-equiv="refresh">` + `<link rel="canonical">` 把合并前的旧 Pages 地址（`/fourier_transform.html`、`/laplace_transform.html`）重定向到子目录里的新位置，保证已有书签与外链不失效。
@@ -69,7 +70,7 @@ fs_inv_ft_inv_laplace/
 ├── assets/fsls.js  ift.js  bridge.js  laplace.js   四个页面各自的脚本
 ├── assets/expr.js                                  自定义 f(t) 的迷你表达式解析器（只被拉普拉斯页加载）
 ├── assets/tex.js                                   极简 TeX 子集渲染器（零依赖，五个页面都加载）；不是 KaTeX
-├── tools/check.js                                  开发验证脚本（唯一的自动化测试）
+├── tools/check.js                                  开发验证脚本（子项目二的自动化测试）
 ├── LICENSE                                         MIT
 └── README.md
 ```
@@ -164,12 +165,13 @@ jupyter notebook "Fourier Transform - A Visual Introduction.ipynb"
 - **Node.js + 本机 Chrome/Chromium**：`tools/check.js` 的硬依赖（只用 Node 内置模块，无 npm 依赖）。Chrome 路径可用 `CHROME` 环境变量覆盖，Edge 也可以。
 - **Python 3 + Jupyter**：跑 `ft_laplace/Fourier Transform - A Visual Introduction.ipynb`，需要 `numpy matplotlib seaborn ipywidgets ipympl`；第 3 节动画依赖 `%matplotlib widget`（ipympl）。
 - **Git + 一个能连通 github.com 的代理**：见「版本控制与仓库历史」里的本机环境说明。
+- **DashScope（阿里云百炼）API Key**：仅 `tools/visual_qa/agent.js` 视觉巡检需要；模型默认 `qwen3-vl-flash`（`QWEN_MODEL` 可覆盖）；Key 只走环境变量 `DASHSCOPE_API_KEY`，不写入任何文件。
 
-**一句话结论**：日常只加 **Lighthouse**（配合 `node fs_inv_ft_inv_laplace/tools/check.js`）。凡是需要 `npm install` 的一律不引入，除非同时改掉本文件「零构建、全仓库无 `package.json`」这条事实。
+**一句话结论**：日常只加 **Lighthouse** + `node fs_inv_ft_inv_laplace/tools/check.js` + `node tools/visual_qa/selftest.js`（上线前另跑 `tools/visual_qa/agent.js` 视觉巡检）。凡是需要 `npm install` 的一律不引入，除非同时改掉本文件「零构建、全仓库无 `package.json`」这条事实。
 
 ## 测试与验证
 
-### 子项目二：`tools/check.js`（唯一的自动化测试）
+### 子项目二：`tools/check.js`（自动化测试）
 
 ```bash
 node fs_inv_ft_inv_laplace/tools/check.js            # 全部四个页面
@@ -200,6 +202,19 @@ ight`/转义花括号/负号用 U+2212）+ 5 条必须回退成 `.texerr` 的坏
 `ft_laplace/` 没有测试脚本、没有 CI，验证全靠人工：浏览器打开两个页面确认各节渲染与动画/滑块交互正常；notebook 按顺序执行单元格，确认四节图形与第 3 节动画正常。
 
 notebook 每次重跑都会产生 `execution_count`、widget `model_id`、内嵌 base64 图像等大量 diff，这是正常现象，不代表代码出错，提交时通常一并带上。
+
+### 全站：`tools/visual_qa/`（截图 + 视觉巡检，2026-09 新增）
+
+零 npm 依赖（Node ≥ 22 内置 WebSocket/fetch + 本机 Chrome，CDP 直连），Chrome 路径可用 `CHROME` 覆盖。
+
+```bash
+node tools/visual_qa/selftest.js     # 11 页 smoke：导航、就绪等待、canvas 存在、点击/拖动、console 错误
+node tools/visual_qa/shot.js         # 全页 + 纵切 + 语义分段截图 → tools/visual_qa/out/shots/（--narrow 查 800px 窄屏溢出）
+node tools/visual_qa/agent.js --list # 32 个视觉巡检功能点
+DASHSCOPE_API_KEY=sk-... node tools/visual_qa/agent.js   # Qwen 视觉巡检（默认 qwen3-vl-flash，QWEN_MODEL 覆盖）
+```
+
+巡检动作被安全栏限制在仓库内 `file://` 页面；产物在 `tools/visual_qa/out/`（已 gitignore）；任一功能点 fail 退出码为 1。详见 `tools/visual_qa/README.md`。
 
 ## 无障碍与性能体检（`ft_laplace/` 两页，2026-09）
 
@@ -324,6 +339,7 @@ GitHub Pages，**Deploy from a branch → `main` → `/ (root)`**。站点 URL �
 - 子项目一的两个页面依赖外部 CDN（mathjs、KaTeX），存在网络依赖；离线环境不降级，仅提示加载失败。
 - notebook 可执行任意 Python 代码，与普通 Jupyter 行为一致——不要打开或运行不可信来源的 notebook。
 - 本仓库不含任何服务端代码、密钥或凭据；`tools/check.js` 只在本地读写临时文件并调用本机 Chrome。
+- `tools/visual_qa/agent.js` 巡检时会把页面截图发送给阿里云百炼（DashScope）供视觉模型判断；`DASHSCOPE_API_KEY` 只从环境变量读取、不落盘；动作安全栏限制在仓库内 `file://` 页面，`--max-calls` 默认 200 封顶调用量。
 
 ## 修改指引
 
@@ -332,5 +348,6 @@ GitHub Pages，**Deploy from a branch → `main` → `/ (root)`**。站点 URL �
 | 仓库根（总览页、跳转页、README、部署配置） | 本文件、根 `README.md` | 浏览器打开根 `index.html` 逐层点进两个子站 |
 | `ft_laplace/` 下的页面或 notebook | `ft_laplace/AGENTS.md`（含逐节实现细节与"勿改回去"清单）；改无障碍/配色/焦点样式时另读本文件「无障碍与性能体检」 | 无自动化；人工打开页面/重跑 notebook。改无障碍相关时，对照「无障碍与性能体检」的清单逐条核，并用 Chrome DevTools 的 Lighthouse 跑一遍（注意该节列出的已知误报） |
 | `fs_inv_ft_inv_laplace/` 下的页面或脚本 | `fs_inv_ft_inv_laplace/README.md` | `node fs_inv_ft_inv_laplace/tools/check.js` |
+| `tools/visual_qa/`（截图与巡检工具） | `tools/visual_qa/README.md`、本文件「测试与验证」 | `node tools/visual_qa/selftest.js`；改了 readiness.js 需重跑全量 selftest |
 
 改动任何一份 `AGENTS.md` 或 `README.md` 所描述的事实（命令、路径、约定、分支、部署方式）时，**同步更新那份文档**，保持文档与代码一致。

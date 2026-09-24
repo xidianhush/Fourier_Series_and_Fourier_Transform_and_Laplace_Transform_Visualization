@@ -44,6 +44,7 @@
   button.primary{background:#20355c; border-color:#3d6bb0}
   .checks{display:grid; grid-template-columns:1fr 1fr; gap:5px 8px; font-size:12.5px}
   .checks label{display:flex; align-items:center; gap:5px; color:#c8d6f0; cursor:pointer}
+  .checks label.wide{grid-column:1 / -1}   /* 文案较长的复选项独占整行，避免折成两行与左列错位 */
   .ro{display:grid; grid-template-columns:auto 1fr; gap:3px 10px; font-size:12.5px; font-variant-numeric:tabular-nums}
   .ro b{color:var(--dim); font-weight:500}
   .note{font-size:11.5px; color:var(--dim); line-height:1.55; margin:6px 0 0}
@@ -74,7 +75,7 @@
   .tex .msp1{display:inline-block; width:.34em}
   .tex .msp2{display:inline-block; width:1.1em}
   .tex sup,.tex sub{font-size:.7em; line-height:0}
-  .tex .mfrac{display:inline-flex; flex-direction:column; align-items:center; vertical-align:-.42em; margin:0 .16em; font-size:.94em}
+  .tex .mfrac{display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 .16em; font-size:.94em}
   .tex .mfrac>*{white-space:nowrap; padding:0 .18em}
   .tex .mfrac>.mden{border-top:1px solid currentColor; padding-top:.06em}
   .tex .msqrt>.mbody{border-top:1px solid currentColor; padding:.05em .14em 0}
