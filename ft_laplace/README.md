@@ -16,3 +16,5 @@ pip3 install --user seaborn
 ```
 
 <b>Static web version :</b> open `index.html` in any browser, or jump straight to `fourier_transform.html` (the winding machine and the center of mass) and `laplace_transform.html` (the same machine with a real exponent added: σ envelopes, poles and the region of convergence). Both are single files with no build step; only mathjs loads from a CDN, and formulas are typeset by the pages' built-in mini TeX renderer.
+
+<b>Site-wide navigation drawer :</b> the three pages also load the repository-root drawer (`../assets/drawer.css` + `../assets/drawer.js`, linked before `</head>` and before `</body>` with `defer`), which lists every page of the whole site behind the hamburger tab on the left. Two consequences. This directory can no longer be copied out and used on its own as it could before — the pages still work, but the drawer would 404. And the pages stay network-self-contained: the drawer is local relative CSS/JS, with no CDN and no npm dependency.

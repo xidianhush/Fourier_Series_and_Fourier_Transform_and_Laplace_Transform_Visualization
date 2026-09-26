@@ -80,12 +80,14 @@
   footer { margin-top: 2.6rem; text-align: center; font-size: 0.8rem; color: var(--text-faint); }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
+<link rel="stylesheet" href="assets/drawer.css">
 </head>
 <body>
 
 <h1>Signals &amp; Systems · Fourier / Laplace Visualization Overview</h1>
 <p class="lead">
   Two sets of zero-build static interactive pages, one subdirectory each. Just open the pages — nothing to install, nothing to compile.
+  A page list for the whole site lives in the drawer on the left: hover (or click) the ≡ tab to open it.
 </p>
 
 <div class="cards">
@@ -130,5 +132,6 @@
   The old addresses <code>fourier_transform.html</code> and <code>laplace_transform.html</code> automatically redirect to the corresponding pages under <code>ft_laplace/</code>.
 </footer>
 
+<script src="assets/drawer.js" defer></script>
 </body>
 </html>

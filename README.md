@@ -11,6 +11,8 @@
 
 根目录的 `index.html` 是总览页，两张卡片分别指向上面两个入口。
 
+**任意页面左侧都有一个抽屉式侧边栏**（2026-09-26 加入）：鼠标悬停或点击左上角的 `≡` 图标即滑出，面板里按目录树列出全站所有页面（含 notebook），点一下直达，不必再从根页一层层点进子站枢纽页。
+
 ## 目录结构
 
 ```
@@ -18,12 +20,13 @@ index.html                  总览页（两套可视化的一站式入口）
 fourier_transform.html      旧地址跳转页 → ft_laplace/fourier_transform.html
 laplace_transform.html      旧地址跳转页 → ft_laplace/laplace_transform.html
 .nojekyll                   关闭 GitHub Pages 的 Jekyll 处理
+assets/drawer.css|drawer.js 全站共用的抽屉导航（样式 + 清单与交互，2026-09-26 新增）
 ft_laplace/                 子项目一（原独立仓库）
 fs_inv_ft_inv_laplace/      子项目二（原独立仓库）
 tools/visual_qa/            全站截图与视觉巡检工具（Node + 本机 Chrome，零 npm 依赖）
 ```
 
-两个子目录内部的文件、相对路径与页面跳转均未改动，各自的结构说明见其自身的 `README.md` / `AGENTS.md`。
+两个子目录内部的文件、相对路径与页面跳转均未改动，各自的结构说明见其自身的 `README.md` / `AGENTS.md`。唯一的跨目录引用是那 9 个页面各自指向仓库根 `assets/` 的抽屉导航（一行 `<link>` + 一行 `<script>`，相对路径），代价是 `fs_inv_ft_inv_laplace/` 不能再整目录拷出去独立使用（那样只是抽屉 404，页面本身仍能跑）。
 
 ## 本地运行
 
@@ -54,7 +57,7 @@ GitHub Pages：`Deploy from a branch` → `main` → `/ (root)`。站点全部�
 
 ## 新增可视化
 
-新建一个子目录放页面，再在根 `index.html` 的卡片区加一张卡片即可。子项目之间互不依赖，也不需要改动已有的任何一页。
+新建一个子目录放页面，再在根 `index.html` 的卡片区加一张卡片即可。子项目之间互不依赖，也不需要改动已有的任何一页。抽屉导航的清单是独立的一份——新页面要出现在侧边栏里，需在 `assets/drawer.js` 顶部的 `NAV` 表加一条，并给该页加上那一行 `<link>` 与一行 `<script>`。
 
 ## 版本历史
 

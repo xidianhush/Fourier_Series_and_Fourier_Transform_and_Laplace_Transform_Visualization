@@ -6,7 +6,7 @@
 
 这是一个**零构建的静态教学站点**，主题是《信号与系统》里的傅里叶变换、傅里叶级数与拉普拉斯变换。仓库根目录是一个总览页，两个子项目分别提供两套交互式可视化（HTML5 Canvas + 原生 JavaScript），另附一个 Jupyter notebook 版。
 
-总仓库由两个原本各自独立的 Git 仓库于 2026-09 合并而成（见下文「版本控制」）。两个子项目**互不依赖**，页面之间没有共享代码，改动其一时不需要动另一个。
+总仓库由两个原本各自独立的 Git 仓库于 2026-09 合并而成（见下文「版本控制」）。两个子项目的**可视化代码互不依赖**，改动其一时不需要动另一个；唯一的共享代码是仓库根的抽屉导航 `assets/drawer.css` + `assets/drawer.js`（2026-09-26 加入，9 个页面各自用相对路径引用，见下文「导航抽屉」）。
 
 | 位置 | 内容 | 入口 |
 | --- | --- | --- |
@@ -21,6 +21,7 @@
 - 工具链脚本有两套：`fs_inv_ft_inv_laplace/tools/check.js`（子项目二的自动化测试）与 `tools/visual_qa/`（全站截图 + Qwen 视觉模型巡检）；均为 Node.js、零 npm 依赖、只用内置模块。
 - 唯一的 Python 交付物是 `ft_laplace/Fourier Transform - A Visual Introduction.ipynb`（**文件名带空格**）。
 - 除 notebook 外，代码里没有符号运算、没有后端、没有数据库、没有构建产物目录。
+- **导航不必再经两级 index**：任意页面左侧有一个抽屉式侧边栏（悬停或点击左上角 `≡` 图标滑出），一次点击即可直达全站 10 个条目（Overview + 2 个子站枢纽页 + 6 个可视化页 + 1 个 notebook）。实现见下文「导航抽屉」。
 
 ## 目录结构与模块划分
 
@@ -30,6 +31,7 @@
 ├── fourier_transform.html           旧地址跳转页 → ft_laplace/fourier_transform.html
 ├── laplace_transform.html           旧地址跳转页 → ft_laplace/laplace_transform.html
 ├── .nojekyll                        关闭 GitHub Pages 的 Jekyll 处理
+├── assets/drawer.css | drawer.js    全站共用抽屉导航（2026-09-26 新增，见下文「导航抽屉」）
 ├── README.md                        仓库级说明（入口表、本地运行、部署、版本历史）
 ├── ft_laplace/                      子项目一（原独立仓库）
 ├── fs_inv_ft_inv_laplace/           子项目二（原独立仓库）
@@ -106,6 +108,25 @@ fs_inv_ft_inv_laplace/
 - 四个页面统一有 `globalThis.__VIZ = { st, draw, apply }`；
 - 另有更细的数学接口：`ift.js` → `__IFT`，`bridge.js` → `__FT`，`laplace.js` → `__LIT`（`fsls.js` 只有 `__VIZ`）。其中 `__IFT`/`__LIT` 还各带 3D 视图的钩子：`proj3(w,σ,h)` 用最近一次 `draw()` 的视角投影、`view3()` 返回该视角（`__LIT` 另有 `rects()` 返回画布分栏矩形、`phaseFrac(n)`/`phaseBucket(n)` 相位分色、`pickBar(x,y)` 屏幕空间拾取、`twNow()`/`trNow()` 观测窗与黎曼周期、`cus()` 返回自定义信号状态 `{src,f,err,hint,warn,tail,rocLo,rocHi,lobe,imr,peak,wLim,...}`、`cusQuad(σ,ω)` 单点数值 X、`cusWeights(N,Δω,k)` 权重表）。`laplace.js` 的 `apply()` 也接受 `winMul`、`w0`、`fstr`（自定义表达式）三个字段。
 - `assets/expr.js` 暴露全局 `parseExpr(src)` → `{ok, err, src, used, at(t, env)}`；`assets/tex.js` 暴露 `renderTex(src)`（TeX→HTML 字符串）与 `texify(root)`（把页面里 `.tex/.tex-block` 渲染掉）。两者与页面脚本不是同一套 IIFE 约定，勿改名。
+
+## 导航抽屉
+
+全站导航是一个**零依赖的侧边抽屉**（类 Flutter 的 Drawer，2026-09-26 加入），解决「根 index → 子站 hub index → 具体页面」要走三层的问题。
+
+- **文件**：`assets/drawer.css`（样式）+ `assets/drawer.js`（清单与交互），放在**仓库根** `assets/`，全站共用这一份。
+- **接入方式**：9 个页面各两行——`</head>` 前 `<link rel="stylesheet" href="…/drawer.css">`，`</body>` 前 `<script src="…/drawer.js" defer></script>`。根 `index.html` 写 `assets/…`，子目录里的 8 页写 `../assets/…`。**根目录的两个旧地址跳转页（`fourier_transform.html`、`laplace_transform.html`）有意不接入**——它们只是 meta refresh 中转，加了反而会闪一下再跳走。
+- **清单**：`assets/drawer.js` 顶部的 `NAV` 表，10 条（Overview → 子站①枢纽 → ft_laplace 两页 → notebook → 子站②枢纽 → 子站②四页）。**新增 / 删除 / 移动页面时改这张表**；notebook 条目带灰色注记 `notebook, not a web page`，两个 hub 条目带 `— hub page` 后缀。
+- **相对路径机制**：`NAV` 里的 `path` 一律按「仓库根相对」书写，脚本从自己的 `src` 属性反推前缀（`assets/drawer.js` → 根页口径，`../assets/drawer.js` → 子目录口径），输出的 href 仍是**纯相对路径**。所以 `file://` 直接打开与 GitHub Pages 任意子路径部署都成立，一个 `file://` 前缀或 `/` 开头的绝对路径都没有。
+- **交互**：鼠标悬停左上角 `≡` 图标即滑出（指针离开 140ms 后收起）、点击图标钉住 / 取消钉住、`Esc` 关闭并把焦点交还图标、键盘 `focus` 到图标也会展开。当前页条目高亮（`aria-current="page"`，比较前统一 `decodeURI`，路径里的 `%20` 会还原成空格）。两个 media query：`prefers-reduced-motion` 去掉过渡、`max-width:900px` 时面板宽 92vw。
+- **无障碍**：`<nav aria-label="Pages in this site">` + 图标按钮 `aria-label="Page list"` / `aria-expanded` / `aria-controls`；图标是内联 SVG（`aria-hidden="true"`），不引图标 CDN。
+
+**三条"不要改回去"**：
+
+1. 左侧那 44px 是靠 `body{padding-left:var(--dn-w)}`（`--dn-w:44px`）**让出空间**给图标条，**不是**浮层覆盖正文。改成浮层会盖住可视化页的画布左缘，`node fs_inv_ft_inv_laplace/tools/check.js` 的像素扫描（画布矩形 + 分段计数）会跟着失败——check.js 实测已确认画布 x 从 0 变成 44。
+2. `drawer.css` 只能用 `--dn-*` 变量与 `dnav-*` 类名，**不要在里面定义 `--bg` / `--panel` / `--accent` 这类全局配色变量**：两个子项目的同名变量含义相反（子项目二 `--accent` 是青色 `#7fd1ff`，`ft_laplace/` 是别的口径），一旦定义就会互相打架。`.dnav` 的 `z-index` 固定 90，低于错误横幅 `.errbar` 的 99。
+3. 面板里**不要放 `.tex` 元素**（会污染 `check.js` 探针的 TeX 计数）；脚本里也不要碰任何页面内全局（`__VIZ` / `__IFT` / `__LIT` / `__FT` 一律不碰），整个 IIFE 包在 try/catch 里，出错只 `console.error`，绝不能让导航把可视化页拖挂。
+
+**代价**：因为抽屉是仓库根共用一份资源，`fs_inv_ft_inv_laplace/` 从此**不能再整目录拷出去独立使用**（以前可以）——那样抽屉会 404，页面本身仍能正常跑。网络层面仍完全自包含：抽屉是本地相对路径的 CSS/JS，没有引入任何 CDN 或 npm 依赖。
 
 ## 构建与运行
 
@@ -222,6 +243,8 @@ DASHSCOPE_API_KEY=sk-... node tools/visual_qa/agent.js   # Qwen 视觉巡检（�
 
 **先说适用范围**：下一节「代码风格与开发约定」里那条无障碍/性能约定（`prefers-reduced-motion`、canvas `role="img"` + `aria-label` + `tabindex`、`devicePixelRatio` 夹到 2、隐藏标签页暂停绘制）**目前只在子项目二成立**。`ft_laplace/` 的两页是 2019 年原仓库直接搬进来的，从未按这套约定改造过。**本节只记录现状，做这轮核对时没有改动任何页面代码。**
 
+**2026-09-26 补充 — 全站抽屉导航的无障碍现状**：抽屉本身（`assets/drawer.css` / `assets/drawer.js`，见「导航抽屉」一节）是按那套约定写的：图标是 `<button aria-label="Page list" aria-expanded aria-controls="dnavPanel">`，清单是 `<nav aria-label="Pages in this site">`，当前页那条带 `aria-current="page"`，键盘聚焦图标即展开、`Esc` 关闭并把焦点交还图标，`prefers-reduced-motion` 下去掉面板过渡。它是**新增**的一层导航，不改动本节记录的 `ft_laplace/` 两页既有缺口（canvas 无 `role`/`aria-label`/`tabindex`、无 `devicePixelRatio` 处理、无 `visibilitychange` 暂停等仍然成立）。
+
 下文 `fourier` = `ft_laplace/fourier_transform.html`，`laplace` = `ft_laplace/laplace_transform.html`。
 
 ### 与子项目二约定的逐条对照
@@ -308,6 +331,7 @@ DASHSCOPE_API_KEY=sk-... node tools/visual_qa/agent.js   # Qwen 视觉巡检（�
 - **标识符一律英文**：子项目一是 camelCase 全局函数（`drawAnim`、`meanList`、`kernelPass`、`sMap`、`famSplitSigma`）；子项目二同样 camelCase（`computeCurve`、`xwNow`、`bucketOf`），`st` / `state` 是统一的状态对象名。
 - **`var` 与 `const/let` 混用**：子项目二的 `ift.js`、`bridge.js`、`laplace.js`、`common.js` 用 `var`，只有 `fsls.js` 用 `const/let` 与箭头函数。改哪个文件就跟着哪个文件已有的写法，不要顺手统一。
 - **相对路径是硬约束**：两个子项目内部的一切引用（`assets/*.css`、`assets/*.js`、页面互链）都必须是相对本目录的相对路径。这正是它们能被整体搬进子目录、并部署在任意子路径下而互不干扰的原因。**禁止改成绝对路径或以 `/` 开头的路径。**
+- **抽屉导航（`assets/drawer.css` / `drawer.js`）的命名与量级**：只用 `--dn-*` 变量与 `dnav-*` 类名，不定义任何全局配色变量；`.dnav` 的 `z-index` 固定 90（低于 `.errbar` 的 99）；左侧 44px 用 `body{padding-left:var(--dn-w)}` **让出空间**而不是浮层覆盖正文。完整约定与三条"不要改回去"见上文「导航抽屉」。
 - **仓库根不承载可视化代码**：新增一个案例 = 新建一个子目录放页面，再在根 `index.html` 卡片区加一张卡片；不修改已有子项目。
 - 全站配色自 2026-09-24 起统一为「深蓝黑仪表盘」——底 `--bg #0a1020` / 面板 `--surface #111c30` / 画布底 `--canvas #0e1626`（仅 `ft_laplace/` 两页有，画布底色与面板底色分离）/ 正文 `--text #e8eefc` / 次级 `--text-dim #8fa2c4` / 交互强调青 `--accent #7fd1ff` / 关键标注红 `--accent2 #ff5d5d` / 边线 `--hairline #22314d`。`fs_inv_ft_inv_laplace/` 原即此配色，`ft_laplace/` 与根页于 2026-09-24 对齐；`ft_laplace/` 两页里画布填充色必须等于 CSS 变量 `--canvas`（#0e1626）、标签色等于 `--text`（#e8eefc）。
 - **无障碍与性能是既有约定，新增/改动页面请延续**：四个页面都尊重 `prefers-reduced-motion`（系统开启"减少动态效果"时默认暂停动画，可手动播放）、提供键盘操作、`<canvas>` 带 `role="img"` 与 `aria-label`、canvas 有 `tabindex`；`devicePixelRatio` 上限夹到 2；隐藏标签页时暂停绘制。子项目一的拉普拉斯页使用离屏 canvas + `drawImage` 让滑块拖动不重算热力图。**注意适用范围：这条约定目前只在子项目二成立**，`ft_laplace/` 的两页实测不满足（14 个 canvas 全无 `role`/`aria-label`/`tabindex`，无 `devicePixelRatio` 处理，无 `visibilitychange` 暂停），逐项清单见上文「无障碍与性能体检」一节。
@@ -350,6 +374,7 @@ GitHub Pages，**Deploy from a branch → `main` → `/ (root)`**。站点 URL �
 | 仓库根（总览页、跳转页、README、部署配置） | 本文件、根 `README.md` | 浏览器打开根 `index.html` 逐层点进两个子站 |
 | `ft_laplace/` 下的页面或 notebook | `ft_laplace/AGENTS.md`（含逐节实现细节与"勿改回去"清单）；改无障碍/配色/焦点样式时另读本文件「无障碍与性能体检」 | 无自动化；人工打开页面/重跑 notebook。改无障碍相关时，对照「无障碍与性能体检」的清单逐条核，并用 Chrome DevTools 的 Lighthouse 跑一遍（注意该节列出的已知误报） |
 | `fs_inv_ft_inv_laplace/` 下的页面或脚本 | `fs_inv_ft_inv_laplace/README.md` | `node fs_inv_ft_inv_laplace/tools/check.js` |
+| 抽屉导航的清单或样式（`assets/drawer.css` / `drawer.js`） | 本文件「导航抽屉」一节、`assets/drawer.js` 顶部的 `NAV` 表 | `node fs_inv_ft_inv_laplace/tools/check.js` + `node tools/visual_qa/selftest.js`，再浏览器打开任意一页确认悬停图标能滑出、点击能跳转 |
 | `tools/visual_qa/`（截图与巡检工具） | `tools/visual_qa/README.md`、本文件「测试与验证」 | `node tools/visual_qa/selftest.js`；改了 readiness.js 需重跑全量 selftest |
 
 改动任何一份 `AGENTS.md` 或 `README.md` 所描述的事实（命令、路径、约定、分支、部署方式）时，**同步更新那份文档**，保持文档与代码一致。

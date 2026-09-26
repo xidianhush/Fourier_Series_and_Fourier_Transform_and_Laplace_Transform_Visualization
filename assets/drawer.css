@@ -1,0 +1,70 @@
+/* 全站导航抽屉（Drawer）：仓库根共用一份，各页用相对路径 <link> 引用。
+   约定：类名一律 dnav-*，CSS 变量一律 --dn-*。绝不定义 :root{--bg/--panel/--accent...}——
+   两个子项目里同名的 --accent 颜色相反（子站② 是红、ft_laplace 是青），覆盖会串色。
+   z-index 取 90，低于 fs_inv_ft_inv_laplace/assets/common.css 里 .errbar 的 99，
+   错误横幅永远压在抽屉之上。
+   类名避开 tools/visual_qa/shot.js 的语义分段选择器
+   （header/main/aside/footer/section/article/.card/.canvas-box/.input-panel/.anim-controls/.stage/.panel/.sidebar），
+   否则每页截图的语义分段都会多出抽屉这一段。 */
+:root{
+  --dn-w:44px;            /* 左侧让出的宽度（单点可调） */
+  --dn-panel-w:348px;     /* 抽屉面板总宽（含左侧 44px 图标条） */
+  --dn-bg:#0b1424;
+  --dn-line:#22314d;
+  --dn-fg:#e8eefc;
+  --dn-dim:#8fa2c4;
+  --dn-accent:#7fd1ff;
+  --dn-hi:#152540;
+  --dn-mono:Consolas,"Courier New",ui-monospace,monospace;
+}
+
+/* 左侧 44px 是「让出空间」而不是浮层，所以抽屉图标永不遮挡画布与正文。
+   本文件必须插在各页自己的 <style> 之后（即 </head> 之前）才能赢下这条同优先级的规则。 */
+body{padding-left:var(--dn-w)}
+
+.dnav{
+  position:fixed; left:0; top:0; bottom:0; width:var(--dn-w); z-index:90;
+  background:var(--dn-bg); border-right:1px solid var(--dn-line);
+  font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif; color:var(--dn-fg);
+}
+.dnav-toggle{
+  display:block; width:var(--dn-w); height:var(--dn-w); margin:0; padding:0;
+  background:transparent; border:0; border-bottom:1px solid var(--dn-line);
+  color:var(--dn-fg); cursor:pointer;
+}
+.dnav-toggle:hover,.dnav.open .dnav-toggle{background:var(--dn-hi)}
+.dnav-toggle svg{display:block; margin:0 auto}
+.dnav-bar{fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round}
+.dnav-dot{fill:none; stroke:var(--dn-accent); stroke-width:2.2; stroke-linecap:round}
+.dnav.open .dnav-dot{stroke-width:3}
+
+.dnav-panel{
+  --dn-pw:var(--dn-panel-w);
+  position:absolute; left:var(--dn-w); top:0; bottom:0;
+  width:calc(var(--dn-pw) - var(--dn-w));
+  background:var(--dn-bg); border-right:1px solid var(--dn-line);
+  padding:10px 0 16px; overflow-y:auto; overflow-x:hidden;
+  visibility:hidden; transform:translateX(calc(-100% - var(--dn-w) - 2px));
+  transition:transform .22s ease, visibility 0s linear .22s;
+}
+.dnav.open .dnav-panel{
+  visibility:visible; transform:none;
+  transition:transform .22s ease, visibility 0s;
+}
+.dnav-head{margin:0; padding:0 14px 8px; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--dn-dim)}
+.dnav-item{
+  display:block; padding:7px 14px 8px; text-decoration:none; color:var(--dn-fg);
+  border-left:2px solid transparent; border-bottom:1px solid rgba(34,49,77,.55);
+}
+.dnav-item:hover{background:var(--dn-hi)}
+.dnav-item[aria-current="page"]{background:var(--dn-hi); border-left-color:var(--dn-accent)}
+.dnav-item-name{display:block; font-size:13px; line-height:1.35}
+.dnav-item-path{display:block; font-family:var(--dn-mono); font-size:11px; line-height:1.45; color:var(--dn-dim); word-break:break-all}
+.dnav-item[aria-current="page"] .dnav-item-path{color:#bcd0f2}
+.dnav-group{border-top:1px solid var(--dn-line)}
+.dnav-group .dnav-item-name{font-weight:600; color:var(--dn-accent)}
+.dnav-tag{display:block; font-size:10.5px; color:var(--dn-dim)}
+.dnav-toggle:focus-visible,.dnav-item:focus-visible{outline:2px solid var(--dn-accent); outline-offset:2px}
+
+@media (prefers-reduced-motion: reduce){ .dnav-panel{transition:none} }
+@media (max-width:900px){ .dnav-panel{--dn-pw:min(var(--dn-panel-w),92vw)} }
