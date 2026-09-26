@@ -63,7 +63,7 @@ GitHub Pages：`Deploy from a branch` → `main` → `/ (root)`。站点全部�
 
 本仓库由两个各自独立的 Git 仓库合并而成：
 
-- `ft_laplace/` 的内容来自原仓库 `xidianhush/Fourier_Series_and_Fourier_Transform_and_Laplace_Transform_Visualization`；
+- `ft_laplace/` 的内容来自原仓库 `xidianhush/Fourier_and_Laplace_Visualization`（合并时名为 `xidianhush/Fourier_Series_and_Fourier_Transform_and_Laplace_Transform_Visualization`，同一个仓库改名而来）；
 - `fs_inv_ft_inv_laplace/` 的内容来自另一个独立的本地仓库。
 
 合并采用「保留历史 + 子目录隔离」方式：两个仓库的每条提交都原样保留（**已有提交的 SHA 没有发生变化**），各自多出一个「把文件移进子目录」的提交，再由一个合并提交把两条历史汇合。合并前的状态由 `pre-merge` 标签标记，可随时回退。

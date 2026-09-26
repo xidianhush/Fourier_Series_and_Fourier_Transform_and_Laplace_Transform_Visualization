@@ -38,13 +38,14 @@
 
 ## 仓库中的位置(2026-09 合并后)
 
-本工程不再是一个独立仓库,而是总仓库 `Fourier_Series_and_Fourier_Transform_and_Laplace_Transform_Visualization` 下的子目录 **`ft_laplace/`**。总仓库根目录另有:
+本工程不再是一个独立仓库,而是总仓库 `Fourier_and_Laplace_Visualization` 下的子目录 **`ft_laplace/`**。总仓库根目录另有:
 
 - `index.html` — 总览页,两张卡片分别指向 `ft_laplace/index.html` 与姊妹工程 `fs_inv_ft_inv_laplace/index.html`;
 - `fourier_transform.html`、`laplace_transform.html` — 旧地址跳转页,把合并前的两个 Pages 地址重定向到本目录下的同名页面;
+- `assets/drawer.css`、`assets/drawer.js` — 全站共用的抽屉式侧边导航(2026-09-26 加入)。本目录两页各有一行 `../assets/drawer.css` 与一行 `../assets/drawer.js`,这是本工程**唯一**指向上级目录的引用;
 - `fs_inv_ft_inv_laplace/` — 姊妹工程(傅里叶级数、傅里叶/拉普拉斯反变换),与本工程互不依赖。
 
-本目录内的引用全部是相对本目录的相对路径,合并时一行未改;因此下面的结构说明仍按 `ft_laplace/` 自身为根来写。
+本目录内的其他引用全部是相对本目录的相对路径,合并时一行未改;因此下面的结构说明仍按 `ft_laplace/` 自身为根来写。
 
 ## 目录结构与模块划分
 
@@ -128,7 +129,7 @@ Notebook 共 4 个章节:
 
 ## 版本控制
 
-- 仓库:origin = `git@github.com:xidianhush/Fourier_Series_and_Fourier_Transform_and_Laplace_Transform_Visualization`(SSH;2026-09 由原 `Fourier_Series_and_Fourier_Transform_Visualization` 改名而来,改名后 Pages 地址随之变化)。upstream = `https://github.com/thatSaneKid/fourier.git`(2019 年原仓库,仅作参考)。
+- 仓库:origin = `git@github.com:xidianhush/Fourier_and_Laplace_Visualization`(SSH;仓库改过几次名——原 `Fourier_Series_and_Fourier_Transform_Visualization`,2026-09 合并时叫长名 `Fourier_Series_and_Fourier_Transform_and_Laplace_Transform_Visualization`,现在是短名 `Fourier_and_Laplace_Visualization`;每次改名 Pages 地址随之变化)。upstream = `https://github.com/thatSaneKid/fourier.git`(2019 年原仓库,仅作参考)。
 - 分支:origin 上只有 `main`(当前分支,跟踪 `origin/main`,工作区干净)。本地另有一个未推送的 `feature/use_exponential_function_as_input`。
 - 历史:2019-06 原仓库由 thatSaneKid 创建;2026-08 由 hushpro 扩展,新增逐帧动画、第 5 节讲解、网页版与 GitHub Pages 入口页;2026-09 把傅里叶页改成双边(时间与频率都跨 0),新增 `laplace_transform.html` 与落地页。
 - 2026-09 合并:本工程与另一个独立的本地仓库(现为 `fs_inv_ft_inv_laplace/`)合并成同一个总仓库。办法是两边各加一个"把文件移进子目录"的提交,再合并两条无关历史(合并提交 `d80acce`),全程零改写 —— **合并前 23 个提交的 SHA 一个都没变**,所以这是一次普通快进推送,没有 force-push。合并前的状态由 `pre-merge` 标签标记,回退用 `git reset --hard pre-merge`。合并只改了文件层级,本目录内没有一行页面代码被改动。

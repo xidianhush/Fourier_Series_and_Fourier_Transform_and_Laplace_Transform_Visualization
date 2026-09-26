@@ -349,13 +349,13 @@ GitHub Pages，**Deploy from a branch → `main` → `/ (root)`**。站点 URL �
 
 ## 版本控制与仓库历史
 
-- `origin` = `git@github.com:xidianhush/Fourier_Series_and_Fourier_Transform_and_Laplace_Transform_Visualization`（**SSH**）
+- `origin` = `git@github.com:xidianhush/Fourier_and_Laplace_Visualization`（**SSH**；仓库曾用更长的旧名 `Fourier_Series_and_Fourier_Transform_and_Laplace_Transform_Visualization`，`git remote -v` 实测即为上址，本地 remote 与本文档均已按现名更新）
 - `upstream` = `https://github.com/thatSaneKid/fourier.git`（2019 年原仓库，仅作参考）
 - 当前分支 `main`（跟踪 `origin/main`，工作区干净）。本地另有一个未推送的 `feature/use_exponential_function_as_input`。
 - 标签 `pre-merge` 标记合并前的状态，回退用 `git reset --hard pre-merge`。
 - 提交信息用英文。
 
-**合并历史**：本仓库由两个各自独立的 Git 仓库合并而成——`ft_laplace/` 来自原仓库 `xidianhush/Fourier_Series_and_Fourier_Transform_and_Laplace_Transform_Visualization`，`fs_inv_ft_inv_laplace/` 来自另一个独立的本地仓库。合并采用「保留历史 + 子目录隔离」：两边各加一个"把文件移进子目录"的提交，再合并两条无关历史（合并提交 `d80acce`），**合并前 23 个提交的 SHA 一个都没变**，因此这是一次普通快进推送，没有 force-push。合并只改了文件层级，两个子目录内没有一行页面代码被改动。
+**合并历史**：本仓库由两个各自独立的 Git 仓库合并而成——`ft_laplace/` 来自原仓库 `xidianhush/Fourier_and_Laplace_Visualization`（合并时名为上文那个长名，是同一个 remote 改名而来），`fs_inv_ft_inv_laplace/` 来自另一个独立的本地仓库。合并采用「保留历史 + 子目录隔离」：两边各加一个"把文件移进子目录"的提交，再合并两条无关历史（合并提交 `d80acce`），**合并前 23 个提交的 SHA 一个都没变**，因此这是一次普通快进推送，没有 force-push。合并只改了文件层级，两个子目录内没有一行页面代码被改动。
 
 **本机环境（实测，换机器后需重新确认）**：github.com 直连不通，git 走 `http.proxy = http://127.0.0.1:7897`；SSH（`git@github.com`）可用，所以推送用 SSH 地址而不是 HTTPS。CDN 只有 jsdelivr 可达，cdnjs/unpkg 不通——`ft_laplace/` 的两个页面因此以 jsdelivr 为主地址、cdnjs 为回退。
 

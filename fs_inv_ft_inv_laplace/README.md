@@ -102,7 +102,7 @@ Chrome 路径可用环境变量 `CHROME` 覆盖。
 
 ## 在总仓库中的位置
 
-本工程是总仓库（`xidianhush/Fourier_Series_and_Fourier_Transform_and_Laplace_Transform_Visualization`）下的子目录 **`fs_inv_ft_inv_laplace/`**，与姊妹工程 `ft_laplace/`（傅里叶变换、拉普拉斯变换）并列。总仓库根目录的 `index.html` 是总览页，其中一张卡片指向本目录的 `index.html`。
+本工程是总仓库（`xidianhush/Fourier_and_Laplace_Visualization`）下的子目录 **`fs_inv_ft_inv_laplace/`**，与姊妹工程 `ft_laplace/`（傅里叶变换、拉普拉斯变换）并列。总仓库根目录的 `index.html` 是总览页，其中一张卡片指向本目录的 `index.html`；任意页面左侧另有全站共用的抽屉导航（`../assets/drawer.css` / `drawer.js`），可一层直达全站各页。
 
 本目录内的引用全部是相对本目录的相对路径，合并时一行未改，因此下面的结构说明仍按本目录自身为根来写。
 
