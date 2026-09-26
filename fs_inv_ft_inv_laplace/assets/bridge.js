@@ -224,12 +224,12 @@ function fit(){
 
 function layout(w,h){
   var topH=Math.round(h*0.40);
-  R.time={x:14,y:26,w:w-28,h:topH-40};
-  R.cap={x:14,y:topH-12,w:w-28,h:24};
-  var by=topH+18, bh=h-by-12;
   var sw=Math.round((w-42)*0.54);
-  R.spec={x:14,y:by,w:sw,h:bh};
-  R.chain={x:14+sw+14,y:by,w:w-28-sw-14,h:bh};
+  R.chain={x:14,y:26,w:sw,h:topH-40};
+  R.spec={x:14+sw+14,y:26,w:w-28-sw-14,h:topH-40};
+  R.cap={x:14,y:topH-12,w:w-28,h:24};
+  var by=topH+18;
+  R.time={x:14,y:by,w:w-28,h:h-by-12};
 }
 
 function regime(){
