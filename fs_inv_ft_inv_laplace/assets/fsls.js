@@ -139,8 +139,9 @@ function chainSegments(sp, t){
   if(state.view === 'oneside'){
     for(let k=0;k<=N;k++){
       const m = sp.A[k]; if(m === 0) continue;
-      const ang = sp.P[k] + k*t;
-      segs.push({k, m, re:m*Math.cos(ang), im:m*Math.sin(ang), tag:k===0?'DC':'k='+k});
+      const ph = sp.P[k];
+      const ang = ph + k*t;
+      segs.push({k, m, ph, re:m*Math.cos(ang), im:m*Math.sin(ang), tag:k===0?'DC':'k='+k});
     }
   }else if(state.view === 'double'){
     const push = k => {
@@ -149,7 +150,7 @@ function chainSegments(sp, t){
       const ph = (a===0) ? 0 : (k>0 ? sp.P[a] : -sp.P[a]);
       const ang = ph + k*t;
       const tag = (a===0) ? 'DC' : 'k='+(k>0?'+':'−')+a;
-      segs.push({k, m, re:m*Math.cos(ang), im:m*Math.sin(ang), tag, neg:k<0});
+      segs.push({k, m, ph, re:m*Math.cos(ang), im:m*Math.sin(ang), tag, neg:k<0});
     };
     push(0);
     for(let k=1;k<=N;k++){ push(k); push(-k); }
@@ -157,15 +158,41 @@ function chainSegments(sp, t){
     for(let k=0;k<=N;k++){
       if(k>0 && sp.A[k] === 0) continue;
       const v = (k===0) ? sp.A[0] : sp.A[k]*Math.cos(k*t + sp.P[k]);
-      segs.push({k, m:Math.abs(v), re:v, im:0, ang:(v<0?Math.PI:0), tag:k===0?'DC':'k=±'+k, real:true});
+      segs.push({k, m:Math.abs(v), ph:(k===0?0:sp.P[k]), re:v, im:0, ang:(v<0?Math.PI:0), tag:k===0?'DC':'k=±'+k, real:true});
     }
   }
   return segs;
 }
 
-function hueFor(k){ return (200 + Math.abs(k)*26) % 360; }
-function colorFor(k, neg){
-  return 'hsl('+hueFor(k)+','+(neg?58:74)+'%,'+(neg?52:60)+'%)';
+/* 相位配色：链段与频谱共用同一套 24 色桶，取 t=0 的静态初相位 φ_k
+   （不含 e^{jkt} 的旋转因子，否则颜色会随 t 变，与另外三页不一致）。 */
+function phaseFracOf(ph){
+  let f = (ph + Math.PI) / TAU;
+  f -= Math.floor(f);
+  return f;
+}
+function phaseBucketOf(ph){
+  return Math.min(23, Math.max(0, Math.floor(24*phaseFracOf(ph))));
+}
+function colorOfPhase(ph){ return colFor(phaseBucketOf(ph)/23); }
+
+/* 频谱：跟随当前视图取分量（值与 chainSegments 的线段一一对应）
+   oneside → k=0…N，高 A_k；double → k=−N…N，高 A_|k|/2；pair → 实数谐波 k=0…N，高 A_k */
+function specBars(sp){
+  const bars = [];
+  if(state.view === 'double'){
+    for(let k=-sp.N;k<=sp.N;k++){
+      const a = Math.abs(k);
+      const m = (a===0) ? sp.A[0] : sp.A[a]/2; if(m === 0) continue;
+      bars.push({k, m, ph:(a===0 ? 0 : (k>0 ? sp.P[a] : -sp.P[a]))});
+    }
+  }else{
+    for(let k=0;k<=sp.N;k++){
+      if(sp.A[k] === 0) continue;
+      bars.push({k, m:sp.A[k], ph:(k===0?0:sp.P[k])});
+    }
+  }
+  return bars;
 }
 
 /* ========== 绘图小工具 ========== */
@@ -288,7 +315,7 @@ function drawComplex(sp, r, tip, sc){
   for(const s of segs){
     const X0=PX(tx), Y0=PY(ty), hx=tx+s.re, hy=ty+s.im;
     const X1=PX(hx), Y1=PY(hy);
-    const col = colorFor(s.k, s.neg);
+    const col = colorOfPhase(s.ph);
     if(state.circles && s.m*sc > 3 && state.view!=='pair'){
       ctx.save(); ctx.setLineDash([3,4]); ctx.globalAlpha=.30;
       ctx.strokeStyle=col; ctx.lineWidth=1;
@@ -317,7 +344,7 @@ function drawComplex(sp, r, tip, sc){
         for(const sg of [1,-1]){
           const ang=sg*sp.P[k]+k*state.t;
           arrow(PX(px),PY(0),PX(px+m*Math.cos(ang)),PY(m*Math.sin(ang)),
-                colorFor(k,sg<0),1,0.30);
+                colorOfPhase(sg<0 ? -sp.P[k] : sp.P[k]),1,0.30);
         }
         px += sp.A[k]*Math.cos(k*state.t+sp.P[k]);
       }
@@ -347,6 +374,72 @@ function drawComplex(sp, r, tip, sc){
             : state.view==='double'  ? 'Two-sided chain k=−N…N: c₋ₖ=cₖ* cancels imaginary parts pairwise, tip always lands on the Re axis'
             : 'Conjugate pairs: ±k combine into real harmonics Aₖcos(kω₀t+φₖ), all stretching along the Re axis';
   ctx.fillText(sub, r.x+12, r.y+27);
+  ctx.restore();
+}
+
+/* ========== 右上方面板：线状频谱（颜色 = 相位） ========== */
+function drawSpec(sp, r){
+  panelBox(r);
+  const bars = specBars(sp);
+  let mx = 1e-9;
+  for(const b of bars) mx = Math.max(mx, b.m);
+  const ymax = mx*1.15;
+
+  const y0 = r.y + r.h - 20, yTop = r.y + 46;
+  const two = (state.view === 'double');
+  const k0 = two ? -sp.N : 0, k1 = sp.N;
+  const span = Math.max(k1 - k0, 1);
+  const xl = r.x + 14, xr = r.x + r.w - 14;
+  const X = k => xl + (k - k0)/span*(xr - xl);
+  const Y = v => y0 - (v/ymax)*(y0 - yTop);
+
+  ctx.save();
+  roundRect(r.x, r.y, r.w, r.h, 10); ctx.clip();
+
+  // ω 轴（ω = k·ω₀，本页 ω₀ = 1）与刻度
+  ctx.strokeStyle = '#2a3b5c'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(xl, y0+0.5); ctx.lineTo(xr, y0+0.5); ctx.stroke();
+  const kstep = Math.max(1, Math.ceil(28/((xr-xl)/span)));
+  ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for(let k = Math.ceil(k0/kstep)*kstep; k <= k1 + 1e-9; k += kstep){
+    const x = X(k);
+    if(x < xl - 1 || x > xr + 1) continue;
+    ctx.strokeStyle = 'rgba(120,155,215,.12)';
+    ctx.beginPath(); ctx.moveTo(x, yTop-6); ctx.lineTo(x, y0); ctx.stroke();
+    ctx.fillStyle = 'rgba(143,162,196,.9)';
+    ctx.fillText(k===0 ? '0' : (k<0 ? '−'+(-k) : String(k)), x, y0+5);
+  }
+
+  // 谱线：按 24 个相位桶分组，每桶一次 stroke
+  const B = 24, paths = [];
+  for(let i=0;i<B;i++) paths.push(null);
+  for(const b of bars){
+    const i = phaseBucketOf(b.ph);
+    if(!paths[i]) paths[i] = [];
+    paths[i].push(X(b.k), y0, Y(b.m));
+  }
+  ctx.lineCap = 'round'; ctx.lineWidth = 2.6;
+  for(let i=0;i<B;i++){
+    if(!paths[i]) continue;
+    ctx.strokeStyle = colFor(i/23);
+    ctx.beginPath();
+    const arr = paths[i];
+    for(let j=0;j<arr.length;j+=3){ ctx.moveTo(arr[j], arr[j+1]); ctx.lineTo(arr[j], arr[j+2]); }
+    ctx.stroke();
+  }
+  ctx.lineCap = 'butt'; ctx.lineWidth = 1;
+  ctx.restore();
+
+  // 面板标题
+  ctx.save();
+  ctx.font='600 13px "Segoe UI","Microsoft YaHei",sans-serif';
+  ctx.fillStyle='#cfe0ff'; ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillText(window.fitText(ctx, 'Line spectrum · one line per harmonic, colored by initial phase', r.w-24), r.x+12, r.y+9);
+  ctx.font='11.5px "Segoe UI","Microsoft YaHei",sans-serif'; ctx.fillStyle='#8fa2c4';
+  const sub = two ? 'Two-sided lines k=−N…N: |c_k| = A_|k|/2, phase = ±φ_|k|'
+            : state.view==='pair' ? 'Real harmonics A_k cos(kω₀t+φ_k): line at each k, height A_k'
+            : 'One-sided lines k=0…N: height = weight |w_k| = A_k, color = initial phase φ_k';
+  ctx.fillText(window.fitText(ctx, sub, r.w-24), r.x+12, r.y+27);
   ctx.restore();
 }
 
@@ -454,14 +547,16 @@ function draw(){
   sampleTrail(sp, state.t, trRe.length-1);
   sampleWindow(sp, state.t - 2*T, state.t, SAMPLES);
 
-  const pad=12;
+  const pad=12, gap=14;
   const timeH = Math.max(150, Math.min(300, Math.round(H*0.33)));
   const topH = H - timeH - pad*3;
-  const rTop = {x:pad, y:pad, w:W-pad*2, h:topH};
-  const rTime = {x:pad, y:pad*2+topH, w:W-pad*2, h:timeH};
+  const sw = Math.round((W - pad*2 - gap)*0.52);
+  const rChain = {x:pad, y:pad, w:sw, h:topH};
+  const rSpec  = {x:pad+sw+gap, y:pad, w:W-pad*2-gap-sw, h:topH};
+  const rTime  = {x:pad, y:pad*2+topH, w:W-pad*2, h:timeH};
 
   // 目标比例尺（平滑过渡，改 N 时不跳变）
-  const availC = Math.min(rTop.w*0.46, rTop.h*0.44);
+  const availC = Math.min(rChain.w*0.46, rChain.h*0.44);
   const tgtC = availC/sp.reach;
   scaleC += (tgtC-scaleC)*0.16;
   const halfT = rTime.h*0.5-14;
@@ -472,7 +567,8 @@ function draw(){
   const tgtT = Math.min(scaleC, halfT/mx);
   scaleT += (tgtT-scaleT)*0.16;
 
-  drawComplex(sp, rTop, tip, scaleC);
+  drawComplex(sp, rChain, tip, scaleC);
+  drawSpec(sp, rSpec);
   drawTime(sp, rTime, tip.re, scaleT);
   updateReadout(tip);
 }
